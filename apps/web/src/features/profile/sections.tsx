@@ -79,6 +79,7 @@ export function TopAlbums({ userName, top, range }: { userName: string; top: Top
               rank={i + 1}
               artist={item.artist}
               album={item.album ?? "?"}
+              mbid={item.mbids?.release}
               plays={item.listenCount}
             />
           ))}
@@ -187,7 +188,11 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
           borderRadius: "field",
         })}
       >
-        <Cover seed={albumSeed(nowPlaying.artist, nowPlaying.album)} size={48} />
+        <Cover
+          seed={albumSeed(nowPlaying.artist, nowPlaying.album)}
+          mbid={nowPlaying.mbids?.release}
+          size={48}
+        />
         <div
           className={css({
             flex: 1,
@@ -310,10 +315,10 @@ export function StreakFigures({ streaks }: { streaks: Streaks }) {
         note={current.since ? `depuis le ${formatDayString(current.since)}` : undefined}
       />
       <Stat
-        value={formatDays(longest.days)}
+        value={formatDays(longest?.days ?? 0)}
         label="RECORD"
         note={
-          longest.from && longest.to
+          longest
             ? `${formatDayString(longest.from)} – ${formatDayStringWithYear(longest.to)}`
             : undefined
         }

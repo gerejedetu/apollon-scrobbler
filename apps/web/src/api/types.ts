@@ -105,7 +105,8 @@ export interface Clock extends Ranged {
 export interface Streaks {
   activeDays: number;
   current: { days: number; since: string | null };
-  longest: { days: number; from?: string; to?: string };
+  /** Null before the first listen. */
+  longest: { days: number; from: string; to: string } | null;
 }
 
 /** A row of the insight lists: an artist, a track or an album depending on the endpoint. */
@@ -209,9 +210,9 @@ export interface Wrapped {
   listeningTimeMs: number;
   activeDays: number;
   longestStreakDays: number;
-  busiestDay?: { date: string; listenCount: number };
-  busiestMonth?: { month: string; listenCount: number };
-  favouriteHour?: { hour: number; listenCount: number };
+  busiestDay?: { date: string; listenCount: number } | null;
+  busiestMonth?: { month: string; listenCount: number } | null;
+  favouriteHour?: { hour: number; listenCount: number } | null;
   topArtists: { artist: string; listenCount: number }[];
   topTracks: { artist: string; track: string; listenCount: number }[];
   topAlbums: { artist: string; album: string; listenCount: number }[];

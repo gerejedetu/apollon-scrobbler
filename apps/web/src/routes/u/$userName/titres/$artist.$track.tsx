@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "../../../../api/index.ts";
 import { TrackPage } from "../../../../features/library/index.ts";
+import { textParam } from "../../../../lib/ranges.ts";
 import { utcOffset } from "../../../../lib/timezone.ts";
 
 export const Route = createFileRoute("/u/$userName/titres/$artist/$track")({
-  validateSearch: (search: Record<string, unknown>): { album?: string } => ({
-    album: typeof search.album === "string" && search.album ? search.album : undefined,
+  validateSearch: (search: Record<string, unknown>): { album?: string; mbid?: string } => ({
+    album: textParam(search.album),
+    mbid: textParam(search.mbid),
   }),
   loader: ({ params }) =>
     api.library.track(params.userName, params.artist, params.track, {
@@ -13,11 +15,15 @@ export const Route = createFileRoute("/u/$userName/titres/$artist/$track")({
       utcOffset: utcOffset(),
     }),
   head: ({ params }) => ({ meta: [{ title: `${params.track} · ${params.artist} · Needle` }] }),
-  component: () => (
-    <TrackPage
-      userName={Route.useParams().userName}
-      track={Route.useLoaderData()}
-      album={Route.useSearch().album}
-    />
-  ),
+  component: () => {
+    const { album, mbid } = Route.useSearch();
+    return (
+      <TrackPage
+        userName={Route.useParams().userName}
+        track={Route.useLoaderData()}
+        album={album}
+        mbid={mbid}
+      />
+    );
+  },
 });

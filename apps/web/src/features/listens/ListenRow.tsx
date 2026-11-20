@@ -26,7 +26,7 @@ export function ListenRow({
   return (
     <div className={row}>
       <div className={css({ width: "40px", flexShrink: 0 })}>
-        <Cover seed={albumSeed(track.artist, track.album)} />
+        <Cover seed={albumSeed(track.artist, track.album)} mbid={track.mbids?.release} size={40} />
       </div>
       <div
         className={css({

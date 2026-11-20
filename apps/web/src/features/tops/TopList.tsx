@@ -22,11 +22,13 @@ function ItemLink({ userName, kind, item }: { userName: string; kind: Kind; item
     return {
       to: "/u/$userName/albums/$artist/$album",
       params: { userName, artist: item.artist, album: item.album },
+      search: { mbid: item.mbids?.release ?? undefined },
     } as const;
   if (kind === "titres" && item.track)
     return {
       to: "/u/$userName/titres/$artist/$track",
       params: { userName, artist: item.artist, track: item.track },
+      search: { album: item.album ?? undefined, mbid: item.mbids?.release ?? undefined },
     } as const;
   return {
     to: "/u/$userName/artistes/$artist",
@@ -97,6 +99,7 @@ export function TopList({
                   kind === "artistes" ? artistSeed(item.artist) : albumSeed(item.artist, item.album)
                 }
                 round={kind === "artistes"}
+                mbid={kind === "artistes" ? null : item.mbids?.release}
                 size={36}
               />
               <span

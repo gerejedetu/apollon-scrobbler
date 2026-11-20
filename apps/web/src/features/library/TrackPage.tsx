@@ -17,10 +17,13 @@ export function TrackPage({
   userName,
   track,
   album,
+  mbid,
 }: {
   userName: string;
   track: Track;
   album?: string;
+  /** Release MBID of that album, when known. */
+  mbid?: string;
 }) {
   const months = fillMonths(track.byMonth);
   const record = recordOf(months);
@@ -32,6 +35,7 @@ export function TrackPage({
     ? ({
         to: "/u/$userName/albums/$artist/$album",
         params: { userName, artist: track.artist, album },
+        search: { mbid },
       } as const)
     : null;
   const muted = css({ color: "muted", textDecoration: "none" });
@@ -55,7 +59,7 @@ export function TrackPage({
       <section
         className={css({ display: "flex", flexWrap: "wrap", gap: "28px", alignItems: "center" })}
       >
-        <Cover seed={albumSeed(track.artist, album)} size={140} />
+        <Cover seed={albumSeed(track.artist, album)} mbid={mbid} size={140} />
         <div className={css({ flex: "1 1 320px" })}>
           <EntityTitle
             kind="TITRE"

@@ -171,6 +171,7 @@ export function ArtistPage({
                 key={a.album}
                 to="/u/$userName/albums/$artist/$album"
                 params={{ userName, artist: artist.artist, album: a.album }}
+                search={{ mbid: a.releaseMbid ?? undefined }}
                 className={css({
                   display: "flex",
                   flexDirection: "column",
@@ -179,7 +180,7 @@ export function ArtistPage({
                   minWidth: 0,
                 })}
               >
-                <Cover seed={albumSeed(artist.artist, a.album)} />
+                <Cover seed={albumSeed(artist.artist, a.album)} mbid={a.releaseMbid} />
                 <span
                   className={css({
                     display: "flex",

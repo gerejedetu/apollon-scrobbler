@@ -34,6 +34,7 @@ export function AlbumCard({
   plays,
   badge,
   title,
+  mbid,
 }: {
   userName: string;
   rank?: number;
@@ -43,14 +44,17 @@ export function AlbumCard({
   badge?: ReactNode;
   /** Text under the cover (defaults to the album). */
   title?: string;
+  /** Release MBID, for the real sleeve here and on the album page. */
+  mbid?: string | null;
 }) {
   return (
     <Link
       to="/u/$userName/albums/$artist/$album"
       params={{ userName, artist, album }}
+      search={{ mbid: mbid ?? undefined }}
       className={card}
     >
-      <Cover seed={albumSeed(artist, album)} title={album} />
+      <Cover seed={albumSeed(artist, album)} title={album} mbid={mbid} />
       <span className={lines}>
         {rank !== undefined ? <span className={css({ color: "muted" })}>{rank}.</span> : null}
         <span className={css({ display: "flex", gap: "6px", alignItems: "center", minWidth: 0 })}>

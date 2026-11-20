@@ -34,7 +34,7 @@ export function StreakCard({
   last30: { date: string; listenCount: number }[];
 }) {
   const { current, longest } = streaks;
-  const toBeat = longest.days - current.days + 1;
+  const toBeat = (longest?.days ?? 0) - current.days + 1;
   return (
     <div className={card}>
       <Caps>SÉRIE EN COURS</Caps>
@@ -64,9 +64,11 @@ export function StreakCard({
         ))}
       </div>
       <span className={note}>
-        {longest.from && longest.days > current.days
+        {longest && longest.days > current.days
           ? `Record : ${formatDays(longest.days)}, en ${formatMonthYear(parseDay(longest.from).getTime() / 1000)}. Encore ${toBeat} pour le battre.`
-          : `C'est ton record. Continue.`}
+          : current.days > 0
+            ? "C'est ton record. Continue."
+            : "Pas encore de série : une écoute aujourd'hui la lance."}
       </span>
     </div>
   );

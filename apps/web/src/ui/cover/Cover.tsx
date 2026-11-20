@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { css, cx } from "styled-system/css";
+import { artworkUrl } from "./artwork.ts";
 import { coverPattern } from "./pattern.ts";
 
 const frame = css({
@@ -20,11 +22,13 @@ interface CoverProps {
   round?: boolean;
   /** Fixed side in px; fluid (fills the column) when left out. */
   size?: number;
+  /** MusicBrainz release MBID: shows the real sleeve when the Cover Art Archive has one. */
+  mbid?: string | null;
   className?: string;
 }
 
 /** A square sleeve (round for artists): no radius, no shadow, a motif in two colours. */
-export function Cover({ seed, title, round, size, className }: CoverProps) {
+export function Cover({ seed, title, round, size, mbid, className }: CoverProps) {
   const p = coverPattern(seed);
   const fg = { background: p.fg };
   return (
@@ -121,6 +125,36 @@ export function Cover({ seed, title, round, size, className }: CoverProps) {
           {title}
         </span>
       ) : null}
+      <Artwork src={artworkUrl(mbid, size !== undefined && size <= 64 ? 250 : 500)} />
     </div>
+  );
+}
+
+/** The real sleeve over the pattern; removed if it fails (also when it failed before hydration). */
+function Artwork({ src }: { src: string | null }) {
+  const [failed, setFailed] = useState(false);
+  const ref = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    setFailed(false);
+    const img = ref.current;
+    if (img?.complete && img.naturalWidth === 0) setFailed(true);
+  }, [src]);
+  if (!src || failed) return null;
+  return (
+    <img
+      ref={ref}
+      src={src}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className={css({
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+      })}
+    />
   );
 }

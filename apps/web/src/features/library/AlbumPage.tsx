@@ -9,7 +9,16 @@ import { albumSeed } from "../listens/index.ts";
 import { EntityTitle } from "./shared.tsx";
 
 /** An album: the sleeve with totals, first and last listen, and its tracks by plays. */
-export function AlbumPage({ userName, album }: { userName: string; album: Album }) {
+export function AlbumPage({
+  userName,
+  album,
+  mbid,
+}: {
+  userName: string;
+  album: Album;
+  /** Release MBID from the link that led here, for the real sleeve. */
+  mbid?: string;
+}) {
   const max = Math.max(0, ...album.tracks.map((t) => t.listenCount));
   const artistLink = {
     to: "/u/$userName/artistes/$artist",
@@ -44,7 +53,7 @@ export function AlbumPage({ userName, album }: { userName: string; album: Album 
             gap: "16px",
           })}
         >
-          <Cover seed={albumSeed(album.artist, album.album)} title={album.album} />
+          <Cover seed={albumSeed(album.artist, album.album)} title={album.album} mbid={mbid} />
           <div className={css({ display: "flex", justifyContent: "space-around" })}>
             <Stat align="center" value={formatCount(album.listenCount)} label="ÉCOUTES" />
             <Stat align="center" value={formatCount(album.tracks.length)} label="TITRES" />
@@ -111,7 +120,7 @@ export function AlbumPage({ userName, album }: { userName: string; album: Album 
                 key={t.trackName}
                 to="/u/$userName/titres/$artist/$track"
                 params={{ userName, artist: album.artist, track: t.trackName }}
-                search={{ album: album.album }}
+                search={{ album: album.album, mbid }}
                 className={css({
                   display: "flex",
                   alignItems: "center",

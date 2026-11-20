@@ -18,3 +18,7 @@ export const rangeLabel = (range: Range) => RANGES.find((r) => r.value === range
 export function isRange(value: unknown): value is Range {
   return typeof value === "string" && RANGES.some((r) => r.value === value);
 }
+
+/** A non-empty string search parameter, or undefined. */
+export const textParam = (value: unknown) =>
+  typeof value === "string" && value ? value : undefined;
