@@ -1,0 +1,26 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "scrobbler-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  // Better Auth relies on AsyncLocalStorage and a few node: modules.
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "scrobbler",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../../packages/db-d1/migrations",
+    },
+  ],
+  "kv_namespaces": [{ "binding": "CACHE", "id": "00000000000000000000000000000000" }],
+  "vars": {
+    // Public URL of this Worker, used by Better Auth for callbacks and cookies.
+    "BASE_URL": "http://localhost:8787",
+    // Comma-separated origins of web fronts allowed to use the auth endpoints with cookies.
+    "TRUSTED_ORIGINS": "",
+    "DISABLE_SIGNUP": "false",
+  },
+  // Secret (not here): BETTER_AUTH_SECRET. Local: .dev.vars; production: wrangler secret put BETTER_AUTH_SECRET
+}

@@ -1,3 +1,5 @@
+See @AGENTS.md for the architecture and rules of this repository.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web

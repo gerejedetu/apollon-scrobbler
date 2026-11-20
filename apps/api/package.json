@@ -1,0 +1,30 @@
+{
+  "name": "@scrobbler/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "ListenBrainz-compatible HTTP API (Hono) on Cloudflare Workers.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vp test",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "dependencies": {
+    "@scrobbler/auth": "workspace:*",
+    "@scrobbler/cache-kv": "workspace:*",
+    "@scrobbler/core": "workspace:*",
+    "@scrobbler/db-d1": "workspace:*",
+    "@scrobbler/types": "workspace:*",
+    "hono": "4.13.19"
+  },
+  "devDependencies": {
+    "@scrobbler/testing": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:",
+    "wrangler": "4.165.0"
+  }
+}

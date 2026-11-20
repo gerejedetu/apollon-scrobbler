@@ -1,0 +1,2 @@
+# Copy to .dev.vars for `wrangler dev`. Any long random string, e.g. `openssl rand -base64 32`.
+BETTER_AUTH_SECRET=
