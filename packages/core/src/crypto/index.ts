@@ -41,11 +41,6 @@ export async function uuidV5(name: string, namespace: string): Promise<string> {
   return formatUuid(hash);
 }
 
-/** A random UUID v4, used as the raw user token (same shape as ListenBrainz tokens). */
-export function randomToken(): string {
-  return crypto.randomUUID();
-}
-
 /** Constant-time string comparison, for secrets compared outside the database. */
 export function timingSafeEqual(a: string, b: string): boolean {
   const ab = encoder.encode(a);

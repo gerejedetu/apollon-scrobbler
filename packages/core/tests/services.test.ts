@@ -1,19 +1,30 @@
 import { beforeEach, describe, expect, test } from "vite-plus/test";
 import { ApiError, MemoryCache, createServices, tokenFromHeader, type Services } from "../src/index.ts";
-import { fakeRepositories } from "./fakes.ts";
+import { fakeRepositories, fakeVerifier } from "./fakes.ts";
 
 const T0 = 1_700_000_000;
 let now = T0;
 let repos: ReturnType<typeof fakeRepositories>;
 let s: Services;
+let tokens: Map<string, string>;
 
 const track = (n: number) => ({ artist_name: `Artist ${n % 2}`, track_name: `Track ${n}` });
 
 beforeEach(() => {
   now = T0;
   repos = fakeRepositories();
-  s = createServices(repos, { clock: () => now, cache: new MemoryCache(), authCache: new MemoryCache() });
+  tokens = new Map();
+  s = createServices(repos, fakeVerifier(tokens), { clock: () => now, cache: new MemoryCache(), authCache: new MemoryCache() });
 });
+
+/** Creates a profile for a new account and a token for it, as the identity provider would. */
+async function signUp(name: string) {
+  const authId = `auth-${name}`;
+  const user = await s.users.createProfile(authId, name);
+  const token = `token-${name}`;
+  tokens.set(token, authId);
+  return { user, token };
+}
 
 async function rejects(p: Promise<unknown>, code: number) {
   await expect(p).rejects.toSatisfy((e) => e instanceof ApiError && e.code === code);
@@ -27,28 +38,32 @@ describe("auth", () => {
     expect(tokenFromHeader(undefined)).toBeNull();
   });
 
-  test("createUser issues a working token; names are unique and validated", async () => {
-    const { user, token } = await s.auth.createUser("alice");
+  test("a verified token resolves to its profile; unknown tokens are rejected", async () => {
+    const { user, token } = await signUp("alice");
     expect(await s.auth.requireUser(`Token ${token}`)).toMatchObject({ id: user.id, name: "alice" });
-    await rejects(s.auth.createUser("ALICE"), 409);
-    await rejects(s.auth.createUser("bad name!"), 400);
     await rejects(s.auth.requireUser(undefined), 401);
     await rejects(s.auth.requireUser("Token nope"), 401);
   });
 
-  test("resetToken revokes old tokens", async () => {
-    const { token } = await s.auth.createUser("alice");
-    s = createServices(repos, { clock: () => now }); // no auth cache, so revocation is immediate
-    const fresh = await s.auth.resetToken("alice");
-    await rejects(s.auth.requireUser(`Token ${token}`), 401);
-    expect((await s.auth.requireUser(`Token ${fresh.token}`)).name).toBe("alice");
-    await rejects(s.auth.resetToken("bob"), 404);
+  test("token checks are cached briefly; without a cache revocation is immediate", async () => {
+    const { token } = await signUp("alice");
+    await s.auth.requireUser(`Token ${token}`);
+    tokens.delete(token);
+    expect((await s.auth.requireUser(`Token ${token}`)).name).toBe("alice");
+    const uncached = createServices(repos, fakeVerifier(tokens), { clock: () => now });
+    await rejects(uncached.auth.requireUser(`Token ${token}`), 401);
+  });
+
+  test("profiles: names are unique (case-insensitive) and validated", async () => {
+    await signUp("alice");
+    await rejects(s.users.createProfile("auth-other", "ALICE"), 409);
+    await rejects(s.users.createProfile("auth-x", "bad name!"), 400);
   });
 });
 
 describe("listens", () => {
   test("submit stores listens, dedupes, and lists newest first", async () => {
-    const { user } = await s.auth.createUser("alice");
+    const { user } = await signUp("alice");
     const payload = [0, 1, 2].map((i) => ({ listened_at: T0 - 100 + i, track_metadata: track(i) }));
     expect(await s.listens.submit(user, { listen_type: "import", payload })).toEqual({ accepted: 3, inserted: 3 });
     expect(await s.listens.submit(user, { listen_type: "import", payload })).toEqual({ accepted: 3, inserted: 0 });
@@ -61,14 +76,14 @@ describe("listens", () => {
   });
 
   test("list validates its parameters", async () => {
-    const { user } = await s.auth.createUser("alice");
+    const { user } = await signUp("alice");
     await rejects(s.listens.list(user, { count: "-1" }), 400);
     await rejects(s.listens.list(user, { min_ts: "10", max_ts: "5" }), 400);
     expect((await s.listens.list(user, { count: "5000" })).count).toBe(0);
   });
 
   test("playing_now is stored separately and expires", async () => {
-    const { user } = await s.auth.createUser("alice");
+    const { user } = await signUp("alice");
     await s.listens.submit(user, {
       listen_type: "playing_now",
       payload: [{ track_metadata: { ...track(1), additional_info: { duration_ms: 30_000 } } }],
@@ -80,7 +95,7 @@ describe("listens", () => {
   });
 
   test("delete removes one listen", async () => {
-    const { user } = await s.auth.createUser("alice");
+    const { user } = await signUp("alice");
     await s.listens.submit(user, { listen_type: "single", payload: [{ listened_at: T0, track_metadata: track(1) }] });
     const [listen] = (await s.listens.list(user, {})).listens;
     await rejects(s.listens.delete(user, { listened_at: T0 }), 400);
@@ -91,13 +106,13 @@ describe("listens", () => {
 
 describe("users, imports, stats", () => {
   test("requireByName is case-insensitive and 404s", async () => {
-    await s.auth.createUser("Alice");
+    await signUp("Alice");
     expect((await s.users.requireByName("alice")).name).toBe("Alice");
     await rejects(s.users.requireByName("bob"), 404);
   });
 
   test("latest import round-trips per service", async () => {
-    const { user } = await s.auth.createUser("alice");
+    const { user } = await signUp("alice");
     expect(await s.imports.latest(user, undefined)).toBe(0);
     await s.imports.update(user, { ts: T0 });
     await s.imports.update(user, { ts: 5, service: "spotify" });
@@ -108,7 +123,7 @@ describe("users, imports, stats", () => {
   });
 
   test("stats are cached by listen count", async () => {
-    const { user } = await s.auth.createUser("alice");
+    const { user } = await signUp("alice");
     await s.listens.submit(user, { listen_type: "import", payload: [0, 1, 2].map((i) => ({ listened_at: T0 - i, track_metadata: track(i) })) });
     const fresh = await s.users.requireByName("alice");
     const first = await s.stats.top(fresh, "artists", {});

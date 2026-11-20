@@ -4,7 +4,6 @@ import { d1Imports } from "./repositories/imports.ts";
 import { d1Listens } from "./repositories/listens.ts";
 import { d1PlayingNow } from "./repositories/playing-now.ts";
 import { d1Stats } from "./repositories/stats.ts";
-import { d1Tokens } from "./repositories/tokens.ts";
 import { d1Users } from "./repositories/users.ts";
 
 export type { D1Like, D1ResultLike, D1StatementLike } from "./d1.ts";
@@ -13,7 +12,6 @@ export type { D1Like, D1ResultLike, D1StatementLike } from "./d1.ts";
 export function createD1Repositories(db: D1Like): Repositories {
   return {
     users: d1Users(db),
-    tokens: d1Tokens(db),
     listens: d1Listens(db),
     playingNow: d1PlayingNow(db),
     imports: d1Imports(db),

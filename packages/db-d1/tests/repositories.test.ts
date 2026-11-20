@@ -3,7 +3,7 @@ import type { SqliteD1 } from "@scrobbler/testing";
 import { beforeEach, describe, expect, test } from "vite-plus/test";
 import { createD1Repositories } from "../src/index.ts";
 import { chunkBySize } from "../src/repositories/listens.ts";
-import { createMigratedD1 } from "../src/testing.ts";
+import { createMigratedD1, insertAuthUser } from "../src/testing.ts";
 
 const T0 = 1_700_000_000;
 const MBID = "8f3471b5-7e6a-48da-86a9-c1c07a0f47ae";
@@ -30,23 +30,25 @@ let userId: number;
 beforeEach(async () => {
   db = createMigratedD1();
   repos = createD1Repositories(db);
-  userId = (await repos.users.create("Alice", T0))!.id;
+  for (const id of ["a1", "a2", "a3"]) insertAuthUser(db, id);
+  userId = (await repos.users.create("a1", "Alice", T0))!.id;
   db.roundTrips = 0;
 });
 
-describe("users and tokens", () => {
-  test("names are unique and looked up case-insensitively", async () => {
-    expect(await repos.users.create("alice", T0)).toBeNull();
+describe("users", () => {
+  test("names and accounts are unique; names are looked up case-insensitively", async () => {
+    expect(await repos.users.create("a2", "alice", T0)).toBeNull();
+    expect(await repos.users.create("a1", "other", T0)).toBeNull();
     expect(await repos.users.findByName("ALICE")).toMatchObject({ id: userId, name: "Alice", listenCount: 0 });
+    expect(await repos.users.findByAuthId("a1")).toMatchObject({ id: userId });
     expect(await repos.users.findByName("bob")).toBeNull();
   });
 
-  test("token hashes resolve to their user and can be revoked", async () => {
-    await repos.tokens.add(userId, "h1", T0);
-    await repos.tokens.add(userId, "h2", T0);
-    expect((await repos.tokens.findUserByTokenHash("h1"))?.name).toBe("Alice");
-    await repos.tokens.revokeAll(userId);
-    expect(await repos.tokens.findUserByTokenHash("h2")).toBeNull();
+  test("deleting the Better Auth account deletes the profile and its listens", async () => {
+    await repos.listens.insertMany(userId, [listen(1)], T0);
+    db.raw.exec(`DELETE FROM "user" WHERE id = 'a1'`);
+    expect(await repos.users.findByName("alice")).toBeNull();
+    expect(db.raw.prepare("SELECT count(*) AS n FROM listens").get()).toEqual({ n: 0 });
   });
 });
 
@@ -79,7 +81,7 @@ describe("listens", () => {
     expect((await repos.listens.page({ userId, minTs: T0 + 5, limit: 2 })).listens.map((l) => l.listenedAt - T0)).toEqual([7, 6]);
     expect((await repos.listens.page({ userId, minTs: T0 + 2, maxTs: T0 + 6, limit: 10 })).listens.map((l) => l.listenedAt - T0)).toEqual([5, 4, 3]);
 
-    const other = (await repos.users.create("bob", T0))!.id;
+    const other = (await repos.users.create("a2", "bob", T0))!.id;
     expect(await repos.listens.page({ userId: other, limit: 5 })).toEqual({ listens: [], oldestListenTs: null, latestListenTs: null });
   });
 

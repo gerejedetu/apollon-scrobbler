@@ -1,39 +1,34 @@
 /** Minimal in-memory `Repositories` used to test services without a database. */
 import type { PlayingNow, StoredListen, TopRow, User } from "@scrobbler/types";
-import type { Repositories } from "../src/index.ts";
+import type { Repositories, TokenVerifier } from "../src/index.ts";
+
+/** Raw token -> account id, standing in for the identity provider. */
+export function fakeVerifier(tokens: Map<string, string>): TokenVerifier {
+  return { verify: async (raw) => tokens.get(raw) ?? null };
+}
 
 export function fakeRepositories(): Repositories & { _listens: StoredListen[] } {
-  const users: User[] = [];
-  const tokens = new Map<string, number>();
+  const users: (User & { authUserId: string })[] = [];
   const listens: StoredListen[] = [];
   const playing = new Map<number, PlayingNow>();
   const imports = new Map<string, number>();
-  const byId = (id: number) => users.find((u) => u.id === id) ?? null;
 
   return {
     _listens: listens,
     users: {
       async findByName(name) {
         const u = users.find((x) => x.name.toLowerCase() === name.toLowerCase());
-        return u ? { ...u, listenCount: listens.filter((l) => l.userId === u.id).length } : null;
+        return u ? { id: u.id, name: u.name, createdAt: u.createdAt, listenCount: listens.filter((l) => l.userId === u.id).length } : null;
       },
-      async create(name, createdAt) {
-        if (users.some((u) => u.name.toLowerCase() === name.toLowerCase())) return null;
+      async findByAuthId(authUserId) {
+        const u = users.find((x) => x.authUserId === authUserId);
+        return u ? { id: u.id, name: u.name, createdAt: u.createdAt, listenCount: u.listenCount } : null;
+      },
+      async create(authUserId, name, createdAt) {
+        if (users.some((u) => u.name.toLowerCase() === name.toLowerCase() || u.authUserId === authUserId)) return null;
         const user = { id: users.length + 1, name, createdAt, listenCount: 0 };
-        users.push(user);
+        users.push({ ...user, authUserId });
         return user;
-      },
-    },
-    tokens: {
-      async findUserByTokenHash(hash) {
-        const id = tokens.get(hash);
-        return id === undefined ? null : byId(id);
-      },
-      async add(userId, hash) {
-        tokens.set(hash, userId);
-      },
-      async revokeAll(userId) {
-        for (const [h, id] of tokens) if (id === userId) tokens.delete(h);
       },
     },
     listens: {

@@ -1,0 +1,25 @@
+{
+  "name": "@scrobbler/auth",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Accounts, sessions and ListenBrainz user tokens, powered by Better Auth (username + API key plugins).",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "test": "vp test",
+    "migration": "vpx ./scripts/print-migration.ts"
+  },
+  "dependencies": {
+    "@better-auth/api-key": "1.7.27",
+    "@scrobbler/core": "workspace:*",
+    "better-auth": "1.7.27"
+  },
+  "devDependencies": {
+    "@scrobbler/db-d1": "workspace:*",
+    "@scrobbler/testing": "workspace:*",
+    "@types/node": "catalog:",
+    "vite-plus": "catalog:",
+    "typescript": "catalog:"
+  }
+}

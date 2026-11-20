@@ -16,3 +16,11 @@ export function createMigratedD1(): SqliteD1 {
   }
   return db;
 }
+
+/** Inserts a bare Better Auth account row, so profiles can be created without running Better Auth. */
+export function insertAuthUser(db: SqliteD1, id: string, username = id): void {
+  const now = new Date().toISOString();
+  db.raw
+    .prepare('INSERT INTO "user" (id, name, email, emailVerified, createdAt, updatedAt, username) VALUES (?, ?, ?, 0, ?, ?, ?)')
+    .run(id, username, `${id}@example.test`, now, now, username.toLowerCase());
+}

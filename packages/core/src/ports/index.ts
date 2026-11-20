@@ -1,6 +1,7 @@
 /**
  * Ports: the only way core talks to the outside world.
  * A storage adapter (D1, Postgres, SQLite...) implements `Repositories`;
+ * an identity provider (Better Auth) implements `TokenVerifier`;
  * a cache adapter (KV, memory...) implements `Cache`.
  */
 import type {
@@ -14,17 +15,20 @@ import type {
   UserId,
 } from "@scrobbler/types";
 
+/**
+ * Scrobbler profiles. Each one belongs to exactly one account of the identity provider (`authUserId`);
+ * accounts, sessions and tokens themselves live with the identity provider, not here.
+ */
 export interface UserRepository {
   findByName(name: string): Promise<User | null>;
-  /** Returns null when the name is already taken (case-insensitive). */
-  create(name: string, createdAt: number): Promise<User | null>;
+  findByAuthId(authUserId: string): Promise<User | null>;
+  /** Returns null when the name or the account is already taken (names are case-insensitive). */
+  create(authUserId: string, name: string, createdAt: number): Promise<User | null>;
 }
 
-export interface TokenRepository {
-  /** `tokenHash` is the hex SHA-256 of the raw token; raw tokens are never stored. */
-  findUserByTokenHash(tokenHash: string): Promise<User | null>;
-  add(userId: UserId, tokenHash: string, createdAt: number): Promise<void>;
-  revokeAll(userId: UserId): Promise<void>;
+/** Checks a raw ListenBrainz-style user token and returns the identity provider's account id. */
+export interface TokenVerifier {
+  verify(rawToken: string): Promise<string | null>;
 }
 
 export interface ListenRepository {
@@ -52,7 +56,6 @@ export interface StatsRepository {
 
 export interface Repositories {
   users: UserRepository;
-  tokens: TokenRepository;
   listens: ListenRepository;
   playingNow: PlayingNowRepository;
   imports: ImportRepository;

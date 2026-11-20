@@ -1,20 +1,14 @@
 import type { User } from "@scrobbler/types";
-import { randomToken, sha256Hex } from "../crypto/index.ts";
+import { sha256Hex } from "../crypto/index.ts";
 import { ApiError } from "../errors/index.ts";
-import type { Cache, Clock, TokenRepository, UserRepository } from "../ports/index.ts";
-import { assertValidUserName } from "../users/service.ts";
+import type { Cache, TokenVerifier, UserRepository } from "../ports/index.ts";
 
-/** How long a token lookup is remembered by the (per-isolate) auth cache. Revocation takes up to this long. */
+/** How long a token check is remembered by the (per-isolate) auth cache. Revocation takes up to this long. */
 const AUTH_CACHE_TTL = 60;
-
-export interface IssuedToken {
-  user: User;
-  token: string;
-}
 
 /**
  * Reads the raw token from an `Authorization` header.
- * ListenBrainz uses `Token <uuid>`; `Bearer <uuid>` is accepted too.
+ * ListenBrainz uses `Token <token>`; `Bearer <token>` is accepted too.
  */
 export function tokenFromHeader(header: string | undefined | null): string | null {
   if (!header) return null;
@@ -25,18 +19,19 @@ export function tokenFromHeader(header: string | undefined | null): string | nul
 export class AuthService {
   constructor(
     private readonly users: UserRepository,
-    private readonly tokens: TokenRepository,
-    private readonly clock: Clock,
+    private readonly verifier: TokenVerifier,
     private readonly cache?: Cache,
   ) {}
 
-  /** Returns the token's owner, or null when the token is unknown. */
+  /** Returns the token's owner, or null when the token is unknown, revoked or expired. */
   async authenticate(rawToken: string): Promise<User | null> {
-    const hash = await sha256Hex(rawToken);
-    const key = `auth:${hash}`;
+    // Cache keys never hold the raw token.
+    const key = `auth:${await sha256Hex(rawToken)}`;
     const cached = await this.cache?.get<User>(key);
     if (cached) return cached;
-    const user = await this.tokens.findUserByTokenHash(hash);
+    const authUserId = await this.verifier.verify(rawToken);
+    if (!authUserId) return null;
+    const user = await this.users.findByAuthId(authUserId);
     if (user) await this.cache?.set(key, user, AUTH_CACHE_TTL);
     return user;
   }
@@ -47,25 +42,5 @@ export class AuthService {
     const user = await this.authenticate(raw);
     if (!user) throw ApiError.unauthorized();
     return user;
-  }
-
-  async createUser(name: unknown): Promise<IssuedToken> {
-    assertValidUserName(name);
-    const now = this.clock();
-    const user = await this.users.create(name, now);
-    if (!user) throw new ApiError(409, `User ${name} already exists.`);
-    const token = randomToken();
-    await this.tokens.add(user.id, await sha256Hex(token), now);
-    return { user, token };
-  }
-
-  /** Revokes every token of the user and issues a new one. */
-  async resetToken(name: string): Promise<IssuedToken> {
-    const user = await this.users.findByName(name);
-    if (!user) throw ApiError.notFound(`Cannot find user: ${name}`);
-    await this.tokens.revokeAll(user.id);
-    const token = randomToken();
-    await this.tokens.add(user.id, await sha256Hex(token), this.clock());
-    return { user, token };
   }
 }
