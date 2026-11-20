@@ -15,9 +15,14 @@ import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as ReglagesRouteRouteImport } from './routes/reglages/route'
 import { Route as ReglagesIndexRouteImport } from './routes/reglages/index'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
+import { Route as UUserNameRouteRouteImport } from './routes/u/$userName/route'
 import { Route as UUserNameIndexRouteImport } from './routes/u/$userName/index'
 import { Route as UUserNameHistoriqueRouteImport } from './routes/u/$userName/historique'
 import { Route as UUserNameStatsRouteImport } from './routes/u/$userName/stats'
+import { Route as UUserNameArtistesArtistRouteImport } from './routes/u/$userName/artistes/$artist'
+import { Route as UUserNameTopsKindRouteImport } from './routes/u/$userName/tops/$kind'
+import { Route as UUserNameAlbumsArtistAlbumRouteImport } from './routes/u/$userName/albums/$artist.$album'
+import { Route as UUserNameTitresArtistTrackRouteImport } from './routes/u/$userName/titres/$artist.$track'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -49,32 +54,64 @@ const ReglagesTokensRoute = ReglagesTokensRouteImport.update({
   path: '/tokens',
   getParentRoute: () => ReglagesRouteRoute,
 } as any)
-const UUserNameIndexRoute = UUserNameIndexRouteImport.update({
-  id: '/u/$userName/',
-  path: '/u/$userName/',
+const UUserNameRouteRoute = UUserNameRouteRouteImport.update({
+  id: '/u/$userName',
+  path: '/u/$userName',
   getParentRoute: () => rootRouteImport,
+} as any)
+const UUserNameIndexRoute = UUserNameIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => UUserNameRouteRoute,
 } as any)
 const UUserNameHistoriqueRoute = UUserNameHistoriqueRouteImport.update({
-  id: '/u/$userName/historique',
-  path: '/u/$userName/historique',
-  getParentRoute: () => rootRouteImport,
+  id: '/historique',
+  path: '/historique',
+  getParentRoute: () => UUserNameRouteRoute,
 } as any)
 const UUserNameStatsRoute = UUserNameStatsRouteImport.update({
-  id: '/u/$userName/stats',
-  path: '/u/$userName/stats',
-  getParentRoute: () => rootRouteImport,
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => UUserNameRouteRoute,
 } as any)
+const UUserNameArtistesArtistRoute = UUserNameArtistesArtistRouteImport.update({
+  id: '/artistes/$artist',
+  path: '/artistes/$artist',
+  getParentRoute: () => UUserNameRouteRoute,
+} as any)
+const UUserNameTopsKindRoute = UUserNameTopsKindRouteImport.update({
+  id: '/tops/$kind',
+  path: '/tops/$kind',
+  getParentRoute: () => UUserNameRouteRoute,
+} as any)
+const UUserNameAlbumsArtistAlbumRoute =
+  UUserNameAlbumsArtistAlbumRouteImport.update({
+    id: '/albums/$artist/$album',
+    path: '/albums/$artist/$album',
+    getParentRoute: () => UUserNameRouteRoute,
+  } as any)
+const UUserNameTitresArtistTrackRoute =
+  UUserNameTitresArtistTrackRouteImport.update({
+    id: '/titres/$artist/$track',
+    path: '/titres/$artist/$track',
+    getParentRoute: () => UUserNameRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reglages': typeof ReglagesRouteRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/u/$userName': typeof UUserNameRouteRouteWithChildren
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/historique': typeof UUserNameHistoriqueRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/': typeof UUserNameIndexRoute
+  '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
+  '/u/$userName/tops/$kind': typeof UUserNameTopsKindRoute
+  '/u/$userName/albums/$artist/$album': typeof UUserNameAlbumsArtistAlbumRoute
+  '/u/$userName/titres/$artist/$track': typeof UUserNameTitresArtistTrackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,6 +122,10 @@ export interface FileRoutesByTo {
   '/u/$userName/historique': typeof UUserNameHistoriqueRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName': typeof UUserNameIndexRoute
+  '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
+  '/u/$userName/tops/$kind': typeof UUserNameTopsKindRoute
+  '/u/$userName/albums/$artist/$album': typeof UUserNameAlbumsArtistAlbumRoute
+  '/u/$userName/titres/$artist/$track': typeof UUserNameTitresArtistTrackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,11 +133,16 @@ export interface FileRoutesById {
   '/reglages': typeof ReglagesRouteRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/u/$userName': typeof UUserNameRouteRouteWithChildren
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/historique': typeof UUserNameHistoriqueRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/': typeof UUserNameIndexRoute
+  '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
+  '/u/$userName/tops/$kind': typeof UUserNameTopsKindRoute
+  '/u/$userName/albums/$artist/$album': typeof UUserNameAlbumsArtistAlbumRoute
+  '/u/$userName/titres/$artist/$track': typeof UUserNameTitresArtistTrackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,11 +151,16 @@ export interface FileRouteTypes {
     | '/reglages'
     | '/connexion'
     | '/inscription'
+    | '/u/$userName'
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/historique'
     | '/u/$userName/stats'
     | '/u/$userName/'
+    | '/u/$userName/artistes/$artist'
+    | '/u/$userName/tops/$kind'
+    | '/u/$userName/albums/$artist/$album'
+    | '/u/$userName/titres/$artist/$track'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,17 +171,26 @@ export interface FileRouteTypes {
     | '/u/$userName/historique'
     | '/u/$userName/stats'
     | '/u/$userName'
+    | '/u/$userName/artistes/$artist'
+    | '/u/$userName/tops/$kind'
+    | '/u/$userName/albums/$artist/$album'
+    | '/u/$userName/titres/$artist/$track'
   id:
     | '__root__'
     | '/'
     | '/reglages'
     | '/connexion'
     | '/inscription'
+    | '/u/$userName'
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/historique'
     | '/u/$userName/stats'
     | '/u/$userName/'
+    | '/u/$userName/artistes/$artist'
+    | '/u/$userName/tops/$kind'
+    | '/u/$userName/albums/$artist/$album'
+    | '/u/$userName/titres/$artist/$track'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -138,9 +198,7 @@ export interface RootRouteChildren {
   ReglagesRouteRoute: typeof ReglagesRouteRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
   InscriptionRoute: typeof InscriptionRoute
-  UUserNameHistoriqueRoute: typeof UUserNameHistoriqueRoute
-  UUserNameStatsRoute: typeof UUserNameStatsRoute
-  UUserNameIndexRoute: typeof UUserNameIndexRoute
+  UUserNameRouteRoute: typeof UUserNameRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -187,26 +245,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReglagesTokensRouteImport
       parentRoute: typeof ReglagesRouteRoute
     }
+    '/u/$userName': {
+      id: '/u/$userName'
+      path: '/u/$userName'
+      fullPath: '/u/$userName'
+      preLoaderRoute: typeof UUserNameRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/u/$userName/': {
       id: '/u/$userName/'
-      path: '/u/$userName'
+      path: '/'
       fullPath: '/u/$userName/'
       preLoaderRoute: typeof UUserNameIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof UUserNameRouteRoute
     }
     '/u/$userName/historique': {
       id: '/u/$userName/historique'
-      path: '/u/$userName/historique'
+      path: '/historique'
       fullPath: '/u/$userName/historique'
       preLoaderRoute: typeof UUserNameHistoriqueRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof UUserNameRouteRoute
     }
     '/u/$userName/stats': {
       id: '/u/$userName/stats'
-      path: '/u/$userName/stats'
+      path: '/stats'
       fullPath: '/u/$userName/stats'
       preLoaderRoute: typeof UUserNameStatsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
+    '/u/$userName/artistes/$artist': {
+      id: '/u/$userName/artistes/$artist'
+      path: '/artistes/$artist'
+      fullPath: '/u/$userName/artistes/$artist'
+      preLoaderRoute: typeof UUserNameArtistesArtistRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
+    '/u/$userName/tops/$kind': {
+      id: '/u/$userName/tops/$kind'
+      path: '/tops/$kind'
+      fullPath: '/u/$userName/tops/$kind'
+      preLoaderRoute: typeof UUserNameTopsKindRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
+    '/u/$userName/albums/$artist/$album': {
+      id: '/u/$userName/albums/$artist/$album'
+      path: '/albums/$artist/$album'
+      fullPath: '/u/$userName/albums/$artist/$album'
+      preLoaderRoute: typeof UUserNameAlbumsArtistAlbumRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
+    '/u/$userName/titres/$artist/$track': {
+      id: '/u/$userName/titres/$artist/$track'
+      path: '/titres/$artist/$track'
+      fullPath: '/u/$userName/titres/$artist/$track'
+      preLoaderRoute: typeof UUserNameTitresArtistTrackRouteImport
+      parentRoute: typeof UUserNameRouteRoute
     }
   }
 }
@@ -225,14 +318,36 @@ const ReglagesRouteRouteWithChildren = ReglagesRouteRoute._addFileChildren(
   ReglagesRouteRouteChildren,
 )
 
+interface UUserNameRouteRouteChildren {
+  UUserNameHistoriqueRoute: typeof UUserNameHistoriqueRoute
+  UUserNameStatsRoute: typeof UUserNameStatsRoute
+  UUserNameIndexRoute: typeof UUserNameIndexRoute
+  UUserNameArtistesArtistRoute: typeof UUserNameArtistesArtistRoute
+  UUserNameTopsKindRoute: typeof UUserNameTopsKindRoute
+  UUserNameAlbumsArtistAlbumRoute: typeof UUserNameAlbumsArtistAlbumRoute
+  UUserNameTitresArtistTrackRoute: typeof UUserNameTitresArtistTrackRoute
+}
+
+const UUserNameRouteRouteChildren: UUserNameRouteRouteChildren = {
+  UUserNameHistoriqueRoute: UUserNameHistoriqueRoute,
+  UUserNameStatsRoute: UUserNameStatsRoute,
+  UUserNameIndexRoute: UUserNameIndexRoute,
+  UUserNameArtistesArtistRoute: UUserNameArtistesArtistRoute,
+  UUserNameTopsKindRoute: UUserNameTopsKindRoute,
+  UUserNameAlbumsArtistAlbumRoute: UUserNameAlbumsArtistAlbumRoute,
+  UUserNameTitresArtistTrackRoute: UUserNameTitresArtistTrackRoute,
+}
+
+const UUserNameRouteRouteWithChildren = UUserNameRouteRoute._addFileChildren(
+  UUserNameRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReglagesRouteRoute: ReglagesRouteRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
   InscriptionRoute: InscriptionRoute,
-  UUserNameHistoriqueRoute: UUserNameHistoriqueRoute,
-  UUserNameStatsRoute: UUserNameStatsRoute,
-  UUserNameIndexRoute: UUserNameIndexRoute,
+  UUserNameRouteRoute: UUserNameRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

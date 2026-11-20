@@ -2,6 +2,7 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { loadViewer } from "../auth/index.ts";
+import { RootError, RootNotFound } from "../features/errors/index.ts";
 import { rememberOffset } from "../lib/timezone.ts";
 import appCss from "../styles.css?url";
 import { fontsHref } from "../ui/theme/index.ts";
@@ -23,6 +24,12 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
+  errorComponent: (props) => (
+    <RootDocument>
+      <RootError {...props} />
+    </RootDocument>
+  ),
+  notFoundComponent: RootNotFound,
 });
 
 function RootComponent() {

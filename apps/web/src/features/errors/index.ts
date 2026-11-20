@@ -1,1 +1,1 @@
-export { NotFound, RouteError } from "./Screens.tsx";
+export { NotFound, RootError, RootNotFound, RouteError } from "./Screens.tsx";
