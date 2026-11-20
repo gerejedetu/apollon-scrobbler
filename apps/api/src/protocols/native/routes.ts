@@ -107,12 +107,16 @@ export const nativeRoutes = new Hono<AppEnv>()
   })
   .get("/users/:userName/stats/activity", async (c) => {
     const user = await readableUser(c, c.req.param("userName"));
-    const { range, utcOffset } = c.req.query();
+    const { range, utcOffset, granularity } = c.req.query();
+    // Per week / month / year comes from insights; per day (the default) fills empty days with 0.
+    if (granularity && granularity !== "day")
+      return c.json(await c.var.services.insights.activity(user, c.req.query()));
     const r = await c.var.services.stats.activity(user, { range, utcOffset });
     return c.json({
       range: r.range,
       from: r.window.fromTs,
       to: r.window.toTs,
+      granularity: "day",
       utcOffset: Number(utcOffset ?? 0),
       days: r.data,
       lastUpdated: r.lastUpdated,
@@ -120,14 +124,7 @@ export const nativeRoutes = new Hono<AppEnv>()
   })
   .get("/users/:userName/stats/summary", async (c) => {
     const user = await readableUser(c, c.req.param("userName"));
-    const r = await c.var.services.stats.summary(user, { range: c.req.query("range") });
-    return c.json({
-      range: r.range,
-      from: r.window.fromTs,
-      to: r.window.toTs,
-      ...r.data,
-      lastUpdated: r.lastUpdated,
-    });
+    return c.json(await c.var.services.insights.overview(user, c.req.query()));
   })
   .get("/users/:userName/artists/:artistName", async (c) => {
     const user = await readableUser(c, c.req.param("userName"));

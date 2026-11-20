@@ -4,7 +4,7 @@
  */
 import { apiKeyVerifier, createAuth, type Auth } from "@scrobbler/auth";
 import { KvCache } from "@scrobbler/cache-kv";
-import { createServices, MemoryCache, type Services } from "@scrobbler/core";
+import { type Clock, createServices, MemoryCache, type Services } from "@scrobbler/core";
 import { createD1Repositories } from "@scrobbler/db-d1";
 import type { Context, MiddlewareHandler } from "hono";
 import type { AppEnv, Bindings } from "../env.ts";
@@ -44,16 +44,27 @@ function buildAuth(
   });
 }
 
-export const container: MiddlewareHandler<AppEnv> = async (c, next) => {
-  let auth: Auth | undefined;
-  const getAuth = () =>
-    (auth ??= buildAuth(c.env, new URL(c.req.url).origin, () => services, waitUntilOf(c)));
-  const services = createServices(
-    createD1Repositories(c.env.DB),
-    { verify: (raw) => apiKeyVerifier(getAuth()).verify(raw) },
-    { cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined, authCache },
-  );
-  c.set("services", services);
-  c.set("auth", getAuth);
-  await next();
-};
+export interface ContainerOptions {
+  /** Fixed clock for tests; production uses the system clock. */
+  clock?: Clock;
+}
+
+export const createContainer =
+  (options: ContainerOptions = {}): MiddlewareHandler<AppEnv> =>
+  async (c, next) => {
+    let auth: Auth | undefined;
+    const getAuth = () =>
+      (auth ??= buildAuth(c.env, new URL(c.req.url).origin, () => services, waitUntilOf(c)));
+    const services = createServices(
+      createD1Repositories(c.env.DB),
+      { verify: (raw) => apiKeyVerifier(getAuth()).verify(raw) },
+      {
+        cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined,
+        authCache,
+        clock: options.clock,
+      },
+    );
+    c.set("services", services);
+    c.set("auth", getAuth);
+    await next();
+  };

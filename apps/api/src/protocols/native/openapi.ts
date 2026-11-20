@@ -43,6 +43,443 @@ const range = {
 };
 const secured = [{ token: [] }, { session: [] }];
 
+const utcOffsetParam = {
+  name: "utcOffset",
+  in: "query",
+  schema: { type: "integer", minimum: -720, maximum: 840, default: 0 },
+  description:
+    "Minutes to add to UTC so hours and days follow local time (Paris: 60 in winter, 120 in summer).",
+};
+const q = (name: string, schema: Record<string, unknown>, description?: string) => ({
+  name,
+  in: "query",
+  schema,
+  ...(description ? { description } : {}),
+});
+const limitParam = (fallback: number) =>
+  q("limit", { type: "integer", minimum: 1, maximum: 100, default: fallback });
+const entityParam = q("entity", {
+  enum: ["artists", "recordings", "releases"],
+  default: "artists",
+});
+const granularityParam = q(
+  "granularity",
+  { enum: ["week", "month", "year"], default: "month" },
+  "Weeks start on Monday and are labelled by that Monday's date.",
+);
+const pathParam = (name: string, description: string) => ({
+  name,
+  in: "path",
+  required: true,
+  schema: { type: "string" },
+  description,
+});
+const entityItem = {
+  type: "object",
+  properties: {
+    artistName: { type: "string" },
+    trackName: { type: ["string", "null"] },
+    releaseName: { type: ["string", "null"] },
+    listenCount: { type: "integer" },
+  },
+};
+
+/** A read-only per-user insight: GET, public unless the profile is private, cached until new listens arrive. */
+function insight(
+  summary: string,
+  description: string,
+  parameters: unknown[],
+  properties: Record<string, unknown>,
+) {
+  return {
+    get: {
+      summary,
+      description,
+      tags: ["Insights"],
+      parameters: [userName, ...parameters],
+      responses: {
+        "200": ok(summary, {
+          type: "object",
+          properties: { ...properties, lastUpdated: { type: "integer" } },
+        }),
+        "400": errors["400"],
+        "404": errors["404"],
+      },
+    },
+  };
+}
+const rangeProps = {
+  range: { type: "string" },
+  from: { type: "integer" },
+  to: { type: "integer" },
+};
+const counted = (extra: Record<string, unknown> = {}) => ({
+  type: "array",
+  items: { ...entityItem, properties: { ...entityItem.properties, ...extra } },
+});
+
+const insightPaths = {
+  "/users/{userName}/stats/clock": insight(
+    "Listens per hour, per weekday, and the weekday × hour heatmap",
+    "`heatmap[weekday][hour]`, weekday 0 = Monday. All three come from one query, so they always agree.",
+    [range, utcOffsetParam],
+    {
+      ...rangeProps,
+      utcOffset: { type: "integer" },
+      hours: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { hour: { type: "integer" }, listenCount: { type: "integer" } },
+        },
+      },
+      weekdays: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { weekday: { type: "string" }, listenCount: { type: "integer" } },
+        },
+      },
+      heatmap: { type: "array", items: { type: "array", items: { type: "integer" } } },
+    },
+  ),
+  "/users/{userName}/stats/streaks": insight(
+    "Days in a row with at least one listen",
+    "The current streak is alive if the last listening day is today or yesterday (local time).",
+    [utcOffsetParam],
+    {
+      activeDays: { type: "integer" },
+      current: {
+        type: "object",
+        properties: {
+          days: { type: "integer" },
+          since: { type: ["string", "null"], format: "date" },
+        },
+      },
+      longest: {
+        type: ["object", "null"],
+        properties: { days: { type: "integer" }, from: { type: "string" }, to: { type: "string" } },
+      },
+    },
+  ),
+  "/users/{userName}/stats/discoveries": insight(
+    "Artists and tracks heard for the very first time in the range",
+    "`total` counts every discovery; `items` are the most played ones, with their all-time listen count.",
+    [range, limitParam(25)],
+    {
+      ...rangeProps,
+      artists: {
+        type: "object",
+        properties: {
+          total: { type: "integer" },
+          items: counted({ firstListenedAt: { type: "integer" } }),
+        },
+      },
+      tracks: {
+        type: "object",
+        properties: {
+          total: { type: "integer" },
+          items: counted({ firstListenedAt: { type: "integer" } }),
+        },
+      },
+    },
+  ),
+  "/users/{userName}/stats/forgotten": insight(
+    "Favourites not played for a while",
+    "Entities with at least `minListens` listens and none in the last `months` months, most played first.",
+    [
+      q("months", { type: "integer", minimum: 1, maximum: 120, default: 6 }),
+      q("minListens", { type: "integer", minimum: 1, default: 10 }),
+      entityParam,
+      limitParam(25),
+    ],
+    {
+      months: { type: "integer" },
+      minListens: { type: "integer" },
+      entity: { type: "string" },
+      items: counted({ lastListenedAt: { type: "integer" } }),
+    },
+  ),
+  "/users/{userName}/stats/on-repeat": insight(
+    "Tracks on repeat",
+    "Tracks played at least twice in the last 7 days and more than in the 7 days before.",
+    [limitParam(10)],
+    {
+      from: { type: "integer" },
+      to: { type: "integer" },
+      items: counted({
+        current: { type: "integer" },
+        previous: { type: "integer" },
+        change: { type: "integer" },
+      }),
+    },
+  ),
+  "/users/{userName}/stats/trends": insight(
+    "Rising and falling artists, tracks or albums",
+    "Compares the range with the previous period of the same length. `all_time` is refused.",
+    [{ ...range, schema: { ...range.schema, default: "this_month" } }, entityParam, limitParam(10)],
+    {
+      ...rangeProps,
+      previous: {
+        type: "object",
+        properties: { from: { type: "integer" }, to: { type: "integer" } },
+      },
+      rising: counted({
+        current: { type: "integer" },
+        previous: { type: "integer" },
+        change: { type: "integer" },
+      }),
+      falling: counted({
+        current: { type: "integer" },
+        previous: { type: "integer" },
+        change: { type: "integer" },
+      }),
+    },
+  ),
+  "/users/{userName}/stats/compare": insight(
+    "This period against the previous one",
+    "Totals of both periods and the change in percent (null when the previous period is empty). `all_time` is refused.",
+    [{ ...range, schema: { ...range.schema, default: "this_month" } }],
+    {
+      ...rangeProps,
+      current: { type: "object" },
+      before: { type: "object" },
+      changePercent: { type: "object", additionalProperties: { type: ["number", "null"] } },
+    },
+  ),
+  "/users/{userName}/stats/one-shots": insight(
+    "Tracks played exactly once",
+    "Most recent first.",
+    [range, limitParam(25)],
+    { ...rangeProps, total: { type: "integer" }, items: counted() },
+  ),
+  "/users/{userName}/stats/chart": insight(
+    "Top N of each period, for an animated ranking",
+    "One entry per week, month or year with its ranked items.",
+    [range, entityParam, granularityParam, limitParam(10), utcOffsetParam],
+    {
+      ...rangeProps,
+      entity: { type: "string" },
+      granularity: { type: "string" },
+      periods: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            period: { type: "string" },
+            items: counted({ rank: { type: "integer" }, period: { type: "string" } }),
+          },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/stats/diversity": insight(
+    "How varied the listening is",
+    "Shares are percentages of all listens in the range.",
+    [range],
+    {
+      ...rangeProps,
+      listenCount: { type: "integer" },
+      artistCount: { type: "integer" },
+      topArtistListens: { type: "integer" },
+      top10ArtistListens: { type: "integer" },
+      topArtistShare: { type: "number" },
+      top10ArtistShare: { type: "number" },
+      uniqueArtistRatio: { type: "number", description: "Distinct artists per 100 listens." },
+    },
+  ),
+  "/users/{userName}/stats/sessions": insight(
+    "Listening sessions",
+    "A session ends after `gapMinutes` without a listen.",
+    [range, q("gapMinutes", { type: "integer", minimum: 5, maximum: 1440, default: 30 })],
+    {
+      ...rangeProps,
+      gapMinutes: { type: "integer" },
+      sessionCount: { type: "integer" },
+      averageListens: { type: "number" },
+      averageDurationSeconds: {
+        type: "integer",
+        description: "From the first to the last listen of the session.",
+      },
+      longest: {
+        type: ["object", "null"],
+        properties: {
+          listenCount: { type: "integer" },
+          startedAt: { type: "integer" },
+          endedAt: { type: "integer" },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/stats/repeats": insight(
+    "Tracks played back to back",
+    "Each track's longest run of consecutive plays (2 or more), longest first, then most recent.",
+    [range, limitParam(10)],
+    {
+      ...rangeProps,
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            artistName: { type: "string" },
+            trackName: { type: "string" },
+            longestRun: { type: "integer" },
+            startedAt: { type: "integer" },
+          },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/stats/wrapped": insight(
+    "A year in review",
+    "Totals, top 5 artists / tracks / albums, busiest day and month, favourite hour, longest streak and session, discoveries.",
+    [
+      q("year", { type: "integer", minimum: 2002 }, "Defaults to the current year."),
+      utcOffsetParam,
+    ],
+    {
+      year: { type: "integer" },
+      listenCount: { type: "integer" },
+      artistCount: { type: "integer" },
+      listeningTimeMs: { type: "integer" },
+      activeDays: { type: "integer" },
+      longestStreakDays: { type: "integer" },
+      busiestDay: { type: ["object", "null"] },
+      busiestMonth: { type: ["object", "null"] },
+      favouriteHour: { type: ["object", "null"] },
+      topArtists: { type: "array" },
+      topTracks: { type: "array" },
+      topAlbums: { type: "array" },
+      newArtists: { type: "integer" },
+      newTracks: { type: "integer" },
+      longestSession: { type: ["object", "null"] },
+    },
+  ),
+  "/users/{userName}/stats/milestones": insight(
+    "The 1st, 10th, 100th, 1000th... listen",
+    "Milestones reached so far, and the next one.",
+    [],
+    {
+      listenCount: { type: "integer" },
+      next: { type: ["integer", "null"] },
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            n: { type: "integer" },
+            listenedAt: { type: "integer" },
+            artistName: { type: "string" },
+            trackName: { type: "string" },
+            releaseName: { type: ["string", "null"] },
+          },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/stats/on-this-day": insight(
+    "On this day in previous years",
+    "What was played on the same calendar day in each earlier year (up to 30 years back); years without listens are left out.",
+    [
+      q("date", { type: "string", format: "date" }, "Defaults to today (local time)."),
+      utcOffsetParam,
+      limitParam(5),
+    ],
+    {
+      date: { type: "string" },
+      years: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            year: { type: "integer" },
+            yearsAgo: { type: "integer" },
+            listenCount: { type: "integer" },
+            tracks: counted(),
+          },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/albums/{artistName}/{albumName}": insight(
+    "An album page",
+    "Totals and how each track of the album was played.",
+    [
+      pathParam("artistName", "Exact artist name, URL-encoded."),
+      pathParam("albumName", "Exact album name, URL-encoded."),
+      range,
+    ],
+    {
+      ...rangeProps,
+      artist: { type: "string" },
+      album: { type: "string" },
+      listenCount: { type: "integer" },
+      firstListenedAt: { type: ["integer", "null"] },
+      lastListenedAt: { type: ["integer", "null"] },
+      tracks: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            trackName: { type: "string" },
+            listenCount: { type: "integer" },
+            firstListenedAt: { type: "integer" },
+            lastListenedAt: { type: "integer" },
+          },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/tracks/{artistName}/{trackName}": insight(
+    "A track page",
+    "Totals, first and last listen, and plays per month.",
+    [
+      pathParam("artistName", "Exact artist name, URL-encoded."),
+      pathParam("trackName", "Exact track title, URL-encoded."),
+      range,
+      utcOffsetParam,
+    ],
+    {
+      ...rangeProps,
+      artist: { type: "string" },
+      track: { type: "string" },
+      listenCount: { type: "integer" },
+      firstListenedAt: { type: ["integer", "null"] },
+      lastListenedAt: { type: ["integer", "null"] },
+      byMonth: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { period: { type: "string" }, listenCount: { type: "integer" } },
+        },
+      },
+    },
+  ),
+  "/users/{userName}/artists/{artistName}/timeline": insight(
+    "An artist over time",
+    "Plays of one artist per week, month or year.",
+    [
+      pathParam("artistName", "Exact artist name, URL-encoded."),
+      range,
+      granularityParam,
+      utcOffsetParam,
+    ],
+    {
+      ...rangeProps,
+      artist: { type: "string" },
+      granularity: { type: "string" },
+      periods: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { period: { type: "string" }, listenCount: { type: "integer" } },
+        },
+      },
+    },
+  ),
+};
+
 export const openApiDocument = {
   openapi: "3.1.0",
   info: {
@@ -135,6 +572,7 @@ export const openApiDocument = {
     },
   },
   paths: {
+    ...insightPaths,
     "/me": {
       get: {
         summary: "The signed-in user",
@@ -264,12 +702,13 @@ export const openApiDocument = {
     },
     "/users/{userName}/stats/activity": {
       get: {
-        summary: "Listens per day, for a chart",
+        summary: "Listens per day, week, month or year, for a chart",
         description:
-          "Every day of the range is present, with 0 when nothing was played. `all_time` starts at the first listen.",
+          "`granularity=day` (default) returns `days`, where every day of the range is present (0 when nothing was played; `all_time` starts at the first listen). `week`, `month` and `year` return `periods` with only the periods that have listens.",
         parameters: [
           userName,
           range,
+          q("granularity", { enum: ["day", "week", "month", "year"], default: "day" }),
           {
             name: "utcOffset",
             in: "query",
@@ -286,6 +725,14 @@ export const openApiDocument = {
               from: { type: "integer" },
               to: { type: "integer" },
               utcOffset: { type: "integer" },
+              granularity: { type: "string" },
+              periods: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: { period: { type: "string" }, listenCount: { type: "integer" } },
+                },
+              },
               lastUpdated: { type: "integer" },
               days: {
                 type: "array",
@@ -306,8 +753,10 @@ export const openApiDocument = {
     },
     "/users/{userName}/stats/summary": {
       get: {
-        summary: "Totals: listens, artists, recordings, releases",
-        parameters: [userName, range],
+        summary: "Totals, busiest day, listening time and averages",
+        description:
+          "`listeningTime.totalMs` only adds up durations sent by clients (`durationMs`); `listensWithDuration` says how many listens had one.",
+        parameters: [userName, range, utcOffsetParam],
         responses: {
           "200": ok("Summary", {
             type: "object",
@@ -321,6 +770,20 @@ export const openApiDocument = {
               releaseCount: { type: "integer", description: "Distinct artist + album pairs." },
               firstListenedAt: { type: ["integer", "null"] },
               lastListenedAt: { type: ["integer", "null"] },
+              activeDays: { type: "integer" },
+              averagePerDay: { type: "number" },
+              averagePerActiveDay: { type: "number" },
+              busiestDay: {
+                type: ["object", "null"],
+                properties: { date: { type: "string" }, listenCount: { type: "integer" } },
+              },
+              listeningTime: {
+                type: "object",
+                properties: {
+                  totalMs: { type: "integer" },
+                  listensWithDuration: { type: "integer" },
+                },
+              },
               lastUpdated: { type: "integer" },
             },
           }),

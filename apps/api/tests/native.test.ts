@@ -189,7 +189,9 @@ describe("native API", () => {
         .replace("{entity}", "artists")
         .replace("{listenedAt}", String(T0))
         .replace("{id}", "x")
-        .replace("{artistName}", "Air");
+        .replace("{artistName}", "Air")
+        .replace("{albumName}", "Moon")
+        .replace("{trackName}", "x");
       for (const method of Object.keys(ops)) {
         const res = await api.request(`/v1${concrete}`, {
           method: method.toUpperCase(),

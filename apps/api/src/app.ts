@@ -1,17 +1,17 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { AppEnv } from "./env.ts";
-import { container } from "./http/container.ts";
+import { type ContainerOptions, createContainer } from "./http/container.ts";
 import { notFound, onError } from "./http/errors.ts";
 import { listenBrainzApi } from "./protocols/listenbrainz/index.ts";
 import { nativeApi } from "./protocols/native/index.ts";
 import { authRoutes } from "./routes/auth.ts";
 
-export function createApp() {
+export function createApp(options: ContainerOptions = {}) {
   const app = new Hono<AppEnv>();
   app.onError(onError);
   app.notFound(notFound);
-  app.use("*", container);
+  app.use("*", createContainer(options));
   app.get("/", (c) =>
     c.json({
       name: "scrobbler",

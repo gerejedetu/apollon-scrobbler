@@ -14,7 +14,7 @@ export interface TestApi {
   cookies: Record<string, string>;
 }
 
-export function testApi(overrides: Partial<Bindings> = {}): TestApi {
+export function testApi(overrides: Partial<Bindings> = {}, now?: number): TestApi {
   const db = createMigratedD1();
   const kv = new MemoryKV();
   const env: Bindings = {
@@ -25,7 +25,7 @@ export function testApi(overrides: Partial<Bindings> = {}): TestApi {
     TRUSTED_ORIGINS: "http://front.test",
     ...overrides,
   };
-  const app = createApp();
+  const app = createApp(now === undefined ? {} : { clock: () => now });
   const request = async (path: string, init?: RequestInit) => app.request(path, init, env);
 
   const api: TestApi = {

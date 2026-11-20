@@ -6,6 +6,22 @@
  */
 import type {
   ActivityQuery,
+  AlbumTrack,
+  Bucket,
+  BucketCount,
+  ChartEntry,
+  Discovery,
+  Diversity,
+  EntityCount,
+  EntityDetail,
+  EntityKey,
+  Forgotten,
+  InsightEntity,
+  InsightQuery,
+  Milestone,
+  Repeat,
+  SessionStats,
+  Trend,
   ArtistDetail,
   ArtistQuery,
   ListenPage,
@@ -65,12 +81,76 @@ export interface StatsRepository {
   artist(query: ArtistQuery): Promise<ArtistDetail | null>;
 }
 
+/** Extended statistics. Each method is one D1 round trip at most; results are cached by core. */
+export interface InsightsRepository {
+  /** Listen counts per time bucket, buckets without listens omitted, sorted by key. */
+  histogram(query: InsightQuery & { bucket: Bucket }): Promise<BucketCount[]>;
+  /** Distinct local days (days since 1970) with at least one listen, ascending. */
+  listeningDays(query: InsightQuery): Promise<number[]>;
+  /** Sum of `duration_ms` sent by clients, and how many listens carried one. */
+  duration(query: InsightQuery): Promise<{ totalMs: number; listensWithDuration: number }>;
+  /** Entities whose very first listen (over all time) falls in the window. */
+  discoveries(
+    query: InsightQuery & { entity: InsightEntity; limit: number },
+  ): Promise<{ total: number; items: Discovery[] }>;
+  /** Entities with at least `minListens` listens whose last listen is before `before`, most played first. */
+  forgotten(query: {
+    userId: UserId;
+    entity: InsightEntity;
+    before: number;
+    minListens: number;
+    limit: number;
+  }): Promise<Forgotten[]>;
+  /** Counts in `current` vs `previous`, for entities played in either. */
+  compare(query: {
+    userId: UserId;
+    entity: InsightEntity;
+    current: TimeWindow;
+    previous: TimeWindow;
+    limit: number;
+    order: "rising" | "falling" | "current";
+  }): Promise<Trend[]>;
+  /** Tracks played exactly once in the window. */
+  oneShots(
+    query: InsightQuery & { limit: number },
+  ): Promise<{ total: number; items: EntityCount[] }>;
+  /** Totals for one artist, track or album; null when never played in the window. */
+  entity(query: InsightQuery & { key: EntityKey }): Promise<EntityDetail | null>;
+  albumTracks(query: InsightQuery & { key: EntityKey }): Promise<AlbumTrack[]>;
+  /** Listen counts of one artist / track / album (or all listens without `key`) per month or year. */
+  timeline(
+    query: InsightQuery & { key?: EntityKey; bucket: "week" | "month" | "year" },
+  ): Promise<BucketCount[]>;
+  /** Top `limit` entities of each period. */
+  chart(
+    query: InsightQuery & {
+      entity: InsightEntity;
+      bucket: "week" | "month" | "year";
+      limit: number;
+    },
+  ): Promise<ChartEntry[]>;
+  diversity(query: InsightQuery): Promise<Diversity>;
+  /** A session ends after `gapSeconds` without a listen. */
+  sessions(query: InsightQuery & { gapSeconds: number }): Promise<SessionStats>;
+  /** Tracks played several times in a row, longest runs first. */
+  repeats(query: InsightQuery & { limit: number }): Promise<Repeat[]>;
+  /** The n-th listen of all time for each n (absent when the user has fewer listens). */
+  milestones(query: { userId: UserId; ns: number[] }): Promise<Milestone[]>;
+  /** Top tracks within each window (one per past year for "on this day"). */
+  topInWindows(query: {
+    userId: UserId;
+    windows: TimeWindow[];
+    limit: number;
+  }): Promise<{ listenCount: number; items: EntityCount[] }[]>;
+}
+
 export interface Repositories {
   users: UserRepository;
   listens: ListenRepository;
   playingNow: PlayingNowRepository;
   imports: ImportRepository;
   stats: StatsRepository;
+  insights: InsightsRepository;
 }
 
 export interface Cache {

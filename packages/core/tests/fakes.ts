@@ -1,6 +1,6 @@
 /** Minimal in-memory `Repositories` used to test services without a database. */
 import type { PlayingNow, StoredListen, TopRow, User } from "@scrobbler/types";
-import type { Repositories, TokenVerifier } from "../src/index.ts";
+import type { InsightsRepository, Repositories, TokenVerifier } from "../src/index.ts";
 
 /** Raw token -> account id, standing in for the identity provider. */
 export function fakeVerifier(tokens: Map<string, string>): TokenVerifier {
@@ -117,6 +117,10 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
         imports.set(`${userId}:${service}`, ts);
       },
     },
+    // Insights are SQL-heavy: they are tested against the real schema in db-d1 and apps/api, not faked here.
+    insights: new Proxy({} as InsightsRepository, {
+      get: () => () => Promise.reject(new Error("insights are not faked")),
+    }),
     stats: {
       async activity({ userId, window, utcOffsetSeconds }) {
         const days = new Map<number, number>();

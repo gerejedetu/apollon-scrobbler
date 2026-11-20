@@ -4,6 +4,7 @@
  */
 import { AuthService } from "./auth/service.ts";
 import { ImportService } from "./imports/service.ts";
+import { InsightsService } from "./insights/service.ts";
 import { ListenService } from "./listens/service.ts";
 import {
   type Cache,
@@ -29,6 +30,7 @@ export interface Services {
   listens: ListenService;
   stats: StatsService;
   imports: ImportService;
+  insights: InsightsService;
 }
 
 export function createServices(
@@ -43,5 +45,6 @@ export function createServices(
     listens: new ListenService(repos.listens, repos.playingNow, clock),
     stats: new StatsService(repos.stats, clock, options.cache),
     imports: new ImportService(repos.imports),
+    insights: new InsightsService(repos.insights, repos.stats, clock, options.cache),
   };
 }
