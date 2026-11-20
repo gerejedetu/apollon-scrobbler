@@ -10,7 +10,7 @@ describe("stats copy", () => {
     expect(dayPart(15).title).toBe("Tu es de l'après-midi.");
   });
   test("share of a window", () => {
-    const hours = Array.from({ length: 24 }, (_, h) => (h >= 20 ? 10 : 0));
+    const hours: number[] = Array.from({ length: 24 }, (_, h) => (h >= 20 ? 10 : 0));
     hours[0] = 40;
     expect(shareBetween(hours, 20, 24)).toBe(0.5);
     expect(shareBetween(Array(24).fill(0), 0, 4)).toBe(0);

@@ -14,6 +14,7 @@ import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as ReglagesRouteRouteImport } from './routes/reglages/route'
 import { Route as ReglagesIndexRouteImport } from './routes/reglages/index'
+import { Route as ReglagesImportRouteImport } from './routes/reglages/import'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
 import { Route as UUserNameRouteRouteImport } from './routes/u/$userName/route'
 import { Route as UUserNameIndexRouteImport } from './routes/u/$userName/index'
@@ -48,6 +49,11 @@ const ReglagesRouteRoute = ReglagesRouteRouteImport.update({
 const ReglagesIndexRoute = ReglagesIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => ReglagesRouteRoute,
+} as any)
+const ReglagesImportRoute = ReglagesImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => ReglagesRouteRoute,
 } as any)
 const ReglagesTokensRoute = ReglagesTokensRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
+  '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/bilan': typeof UUserNameBilanRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages': typeof ReglagesIndexRoute
   '/u/$userName/bilan': typeof UUserNameBilanRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
+  '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/bilan': typeof UUserNameBilanRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/connexion'
     | '/inscription'
     | '/u/$userName'
+    | '/reglages/import'
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/bilan'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/connexion'
     | '/inscription'
+    | '/reglages/import'
     | '/reglages/tokens'
     | '/reglages'
     | '/u/$userName/bilan'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/connexion'
     | '/inscription'
     | '/u/$userName'
+    | '/reglages/import'
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/bilan'
@@ -248,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/reglages/'
       preLoaderRoute: typeof ReglagesIndexRouteImport
+      parentRoute: typeof ReglagesRouteRoute
+    }
+    '/reglages/import': {
+      id: '/reglages/import'
+      path: '/import'
+      fullPath: '/reglages/import'
+      preLoaderRoute: typeof ReglagesImportRouteImport
       parentRoute: typeof ReglagesRouteRoute
     }
     '/reglages/tokens': {
@@ -324,11 +343,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface ReglagesRouteRouteChildren {
+  ReglagesImportRoute: typeof ReglagesImportRoute
   ReglagesTokensRoute: typeof ReglagesTokensRoute
   ReglagesIndexRoute: typeof ReglagesIndexRoute
 }
 
 const ReglagesRouteRouteChildren: ReglagesRouteRouteChildren = {
+  ReglagesImportRoute: ReglagesImportRoute,
   ReglagesTokensRoute: ReglagesTokensRoute,
   ReglagesIndexRoute: ReglagesIndexRoute,
 }

@@ -51,6 +51,9 @@ export function SettingsLayout({ userName, children }: { userName: string; child
           <Link to="/reglages/tokens" className={item}>
             Tokens d'API
           </Link>
+          <Link to="/reglages/import" className={item}>
+            Importer
+          </Link>
         </nav>
         <main
           className={css({
