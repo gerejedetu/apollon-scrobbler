@@ -17,6 +17,7 @@ import { Route as ReglagesIndexRouteImport } from './routes/reglages/index'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
 import { Route as UUserNameRouteRouteImport } from './routes/u/$userName/route'
 import { Route as UUserNameIndexRouteImport } from './routes/u/$userName/index'
+import { Route as UUserNameBilanRouteImport } from './routes/u/$userName/bilan'
 import { Route as UUserNameHistoriqueRouteImport } from './routes/u/$userName/historique'
 import { Route as UUserNameStatsRouteImport } from './routes/u/$userName/stats'
 import { Route as UUserNameArtistesArtistRouteImport } from './routes/u/$userName/artistes/$artist'
@@ -64,6 +65,11 @@ const UUserNameIndexRoute = UUserNameIndexRouteImport.update({
   path: '/',
   getParentRoute: () => UUserNameRouteRoute,
 } as any)
+const UUserNameBilanRoute = UUserNameBilanRouteImport.update({
+  id: '/bilan',
+  path: '/bilan',
+  getParentRoute: () => UUserNameRouteRoute,
+} as any)
 const UUserNameHistoriqueRoute = UUserNameHistoriqueRouteImport.update({
   id: '/historique',
   path: '/historique',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
+  '/u/$userName/bilan': typeof UUserNameBilanRoute
   '/u/$userName/historique': typeof UUserNameHistoriqueRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/': typeof UUserNameIndexRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/inscription': typeof InscriptionRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages': typeof ReglagesIndexRoute
+  '/u/$userName/bilan': typeof UUserNameBilanRoute
   '/u/$userName/historique': typeof UUserNameHistoriqueRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName': typeof UUserNameIndexRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
+  '/u/$userName/bilan': typeof UUserNameBilanRoute
   '/u/$userName/historique': typeof UUserNameHistoriqueRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/': typeof UUserNameIndexRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/u/$userName'
     | '/reglages/tokens'
     | '/reglages/'
+    | '/u/$userName/bilan'
     | '/u/$userName/historique'
     | '/u/$userName/stats'
     | '/u/$userName/'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/reglages/tokens'
     | '/reglages'
+    | '/u/$userName/bilan'
     | '/u/$userName/historique'
     | '/u/$userName/stats'
     | '/u/$userName'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/u/$userName'
     | '/reglages/tokens'
     | '/reglages/'
+    | '/u/$userName/bilan'
     | '/u/$userName/historique'
     | '/u/$userName/stats'
     | '/u/$userName/'
@@ -259,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserNameIndexRouteImport
       parentRoute: typeof UUserNameRouteRoute
     }
+    '/u/$userName/bilan': {
+      id: '/u/$userName/bilan'
+      path: '/bilan'
+      fullPath: '/u/$userName/bilan'
+      preLoaderRoute: typeof UUserNameBilanRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
     '/u/$userName/historique': {
       id: '/u/$userName/historique'
       path: '/historique'
@@ -319,6 +338,7 @@ const ReglagesRouteRouteWithChildren = ReglagesRouteRoute._addFileChildren(
 )
 
 interface UUserNameRouteRouteChildren {
+  UUserNameBilanRoute: typeof UUserNameBilanRoute
   UUserNameHistoriqueRoute: typeof UUserNameHistoriqueRoute
   UUserNameStatsRoute: typeof UUserNameStatsRoute
   UUserNameIndexRoute: typeof UUserNameIndexRoute
@@ -329,6 +349,7 @@ interface UUserNameRouteRouteChildren {
 }
 
 const UUserNameRouteRouteChildren: UUserNameRouteRouteChildren = {
+  UUserNameBilanRoute: UUserNameBilanRoute,
   UUserNameHistoriqueRoute: UUserNameHistoriqueRoute,
   UUserNameStatsRoute: UUserNameStatsRoute,
   UUserNameIndexRoute: UUserNameIndexRoute,
