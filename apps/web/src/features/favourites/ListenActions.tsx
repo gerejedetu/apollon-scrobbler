@@ -12,19 +12,25 @@ export function ListenActions({ listen, onDelete }: { listen: Listen; onDelete: 
   const obsession = fav.isObsession(listen);
   return (
     <ActionMenu
-      label={`Actions pour ${listen.track}`}
+      label={`Actions sur l'écoute de ${listen.track}`}
       items={[
         {
           value: "love",
           label: loved ? "Retirer des coups de cœur" : "Coup de cœur",
-          icon: <HeartIcon filled={loved} />,
+          icon: <HeartIcon color="#B4232A" filled={loved} />,
         },
         {
           value: "obsession",
           label: obsession ? "Ce n'est plus mon obsession" : "Mon obsession du moment",
-          icon: <FlameIcon />,
+          icon: <FlameIcon color="#6E44FF" />,
         },
-        { value: "delete", label: "Supprimer cette écoute…", icon: <TrashIcon />, tone: "danger" },
+        {
+          value: "delete",
+          label: "Supprimer cette écoute",
+          icon: <TrashIcon />,
+          tone: "danger",
+          separated: true,
+        },
       ]}
       onSelect={(value) => {
         if (value === "love") void fav.toggleLove(listen);

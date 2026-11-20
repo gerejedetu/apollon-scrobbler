@@ -1,6 +1,6 @@
 import * as menu from "@zag-js/menu";
 import { normalizeProps, Portal, useMachine } from "@zag-js/react";
-import { useId, type ReactNode } from "react";
+import { Fragment, useId, type ReactNode } from "react";
 import { css } from "styled-system/css";
 
 export interface MenuItem {
@@ -8,6 +8,8 @@ export interface MenuItem {
   label: string;
   icon?: ReactNode;
   tone?: "danger";
+  /** Draws a line above the item (the design separates the destructive action). */
+  separated?: boolean;
 }
 
 const trigger = css({
@@ -20,21 +22,21 @@ const trigger = css({
   border: 0,
   borderRadius: "14px",
   bg: "transparent",
-  color: "muted",
-  _hover: { bg: "chip", color: "ink" },
-  "&[data-state=open]": { bg: "chip", color: "ink" },
+  color: "ink",
+  _hover: { bg: "chip" },
+  "&[data-state=open]": { bg: "chip" },
   "&:focus-visible": { outline: "2px solid token(colors.violet)", outlineOffset: "1px" },
 });
 const content = css({
-  minWidth: "220px",
-  bg: "panel",
-  borderRadius: "field",
-  px: "14px",
-  py: "6px",
+  width: "248px",
+  p: "6px",
+  boxSizing: "border-box",
+  bg: "page",
+  border: "1px solid token(colors.rule)",
+  borderRadius: "card",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.10)",
   display: "flex",
   flexDirection: "column",
-  fontSize: "13px",
-  boxShadow: "0 6px 24px rgba(0,0,0,0.12)",
   outline: "none",
   zIndex: 20,
 });
@@ -42,15 +44,18 @@ const item = css({
   display: "flex",
   alignItems: "center",
   gap: "10px",
-  py: "9px",
-  cursor: "pointer",
+  height: "36px",
+  px: "10px",
+  borderRadius: "field",
+  fontSize: "13px",
   color: "ink",
-  "&:not(:last-child)": { borderBottom: "1px solid token(colors.rule)" },
-  "&[data-highlighted]": { color: "violet" },
-  "&[data-tone=danger][data-highlighted]": { color: "danger" },
+  cursor: "pointer",
+  "&[data-highlighted]": { bg: "field" },
+  "&[data-tone=danger]": { color: "danger" },
 });
+const separator = css({ height: "1px", mx: "4px", my: "6px", bg: "rule" });
 
-/** The "⋯" actions menu of the design (grey panel, icon + label rows), driven by Zag's menu machine. */
+/** The "⋯" dropdown of a listen (white panel, icon + label rows), driven by Zag's menu machine. */
 export function ActionMenu({
   label,
   items,
@@ -70,24 +75,22 @@ export function ActionMenu({
     <>
       <button {...api.getTriggerProps()} aria-label={label} className={trigger}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <circle cx="5" cy="12" r="1.6" />
-          <circle cx="12" cy="12" r="1.6" />
-          <circle cx="19" cy="12" r="1.6" />
+          <circle cx="5" cy="12" r="1.8" />
+          <circle cx="12" cy="12" r="1.8" />
+          <circle cx="19" cy="12" r="1.8" />
         </svg>
       </button>
       <Portal>
         <div {...api.getPositionerProps()}>
           <div {...api.getContentProps()} className={content}>
             {items.map((i) => (
-              <div
-                key={i.value}
-                {...api.getItemProps({ value: i.value })}
-                data-tone={i.tone}
-                className={item}
-              >
-                {i.icon}
-                {i.label}
-              </div>
+              <Fragment key={i.value}>
+                {i.separated ? <div {...api.getSeparatorProps()} className={separator} /> : null}
+                <div {...api.getItemProps({ value: i.value })} data-tone={i.tone} className={item}>
+                  {i.icon}
+                  {i.label}
+                </div>
+              </Fragment>
             ))}
           </div>
         </div>
