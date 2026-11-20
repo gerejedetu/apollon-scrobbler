@@ -1,0 +1,11 @@
+{
+  "name": "@scrobbler/testing",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Test doubles for Cloudflare bindings (D1 on node:sqlite, KV in memory). Node only, never bundled into a Worker.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "test": "vp test" },
+  "devDependencies": { "@types/node": "catalog:", "vite-plus": "catalog:", "typescript": "catalog:" }
+}
