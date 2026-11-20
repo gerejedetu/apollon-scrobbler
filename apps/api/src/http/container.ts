@@ -23,6 +23,7 @@ function waitUntilOf(c: Context<AppEnv>): ((p: Promise<unknown>) => void) | unde
 
 function buildAuth(
   env: Bindings,
+  origin: string,
   services: () => Services,
   waitUntil?: (p: Promise<unknown>) => void,
 ): Auth {
@@ -30,7 +31,7 @@ function buildAuth(
     // The D1 binding is passed as-is; Better Auth detects it and uses its D1 dialect.
     database: env.DB as never,
     secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.BASE_URL,
+    baseURL: env.BASE_URL || origin,
     trustedOrigins: (env.TRUSTED_ORIGINS ?? "")
       .split(",")
       .map((o) => o.trim())
@@ -45,7 +46,8 @@ function buildAuth(
 
 export const container: MiddlewareHandler<AppEnv> = async (c, next) => {
   let auth: Auth | undefined;
-  const getAuth = () => (auth ??= buildAuth(c.env, () => services, waitUntilOf(c)));
+  const getAuth = () =>
+    (auth ??= buildAuth(c.env, new URL(c.req.url).origin, () => services, waitUntilOf(c)));
   const services = createServices(
     createD1Repositories(c.env.DB),
     { verify: (raw) => apiKeyVerifier(getAuth()).verify(raw) },

@@ -8,7 +8,8 @@ export interface Bindings {
   DB: D1Like;
   CACHE?: KVLike;
   BETTER_AUTH_SECRET: string;
-  BASE_URL: string;
+  /** Public URL of the Worker; defaults to the request's origin. */
+  BASE_URL?: string;
   TRUSTED_ORIGINS?: string;
   DISABLE_SIGNUP?: string;
 }
