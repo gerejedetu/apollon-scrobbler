@@ -22,6 +22,7 @@
     "TRUSTED_ORIGINS": "",
     "DISABLE_SIGNUP": "false",
   },
+  // Real D1/KV IDs are not committed: deploy with `vp run deploy` (scripts/with-cloudflare-ids.mjs).
   // Optional var BASE_URL: public URL for Better Auth; defaults to the request origin.
   // Secret (not here): BETTER_AUTH_SECRET. Local: .dev.vars; production: wrangler secret put BETTER_AUTH_SECRET
 }

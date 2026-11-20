@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "test": "vp test",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/with-cloudflare-ids.mjs deploy",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote"
+    "db:migrate:remote": "node scripts/with-cloudflare-ids.mjs d1 migrations apply DB --remote"
   },
   "dependencies": {
     "@scrobbler/auth": "workspace:*",

@@ -1,2 +1,5 @@
 .wrangler
 .dev.vars
+.env.cloudflare
+wrangler.deploy.jsonc
+!.env.cloudflare.example

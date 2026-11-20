@@ -69,4 +69,4 @@ cd apps/api && vp run dev   # local Worker on :8787 (copy .dev.vars.example to .
 - Errors leave the API as `{ "code": <status>, "error": "<message>" }` (`ApiError` in core).
 - Timestamps are Unix seconds (UTC) everywhere.
 - Every module gets tests; behaviour that mirrors ListenBrainz cites its rule in a comment.
-- Never commit secrets: `.dev.vars` and `.env*` are ignored; production secrets go through `wrangler secret put`.
+- Never commit secrets or account-specific IDs: `.dev.vars`, `.env*` are ignored; production secrets go through `wrangler secret put`. `wrangler.jsonc` keeps placeholder D1/KV IDs; the real ones live in `apps/api/.env.cloudflare` and `vp run deploy` / `vp run db:migrate:remote` inject them.
