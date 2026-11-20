@@ -7,10 +7,9 @@ import {
   formatNumericDate,
   formatPeriodMonth,
 } from "../../lib/format/index.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
-import { albumSeed } from "../listens/index.ts";
 import { BigFigure, EntityTitle, fillMonths, PeriodBars, recordOf } from "./shared.tsx";
+import { AlbumCover } from "../listens/index.ts";
 
 /** A track: totals and how it was played month by month. `album` comes from where the visitor clicked. */
 export function TrackPage({
@@ -59,7 +58,13 @@ export function TrackPage({
       <section
         className={css({ display: "flex", flexWrap: "wrap", gap: "28px", alignItems: "center" })}
       >
-        <Cover seed={albumSeed(track.artist, album)} mbid={mbid} size={140} />
+        <AlbumCover
+          artist={track.artist}
+          album={album}
+          track={track.track}
+          mbid={mbid}
+          size={140}
+        />
         <div className={css({ flex: "1 1 320px" })}>
           <EntityTitle
             kind="TITRE"

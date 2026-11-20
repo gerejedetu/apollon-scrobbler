@@ -2,11 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { AlbumPage as Album } from "../../api/index.ts";
 import { barWidth, formatAgo, formatCount, formatDate } from "../../lib/format/index.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { capsLabel, Stat } from "../../ui/primitives/index.ts";
-import { albumSeed } from "../listens/index.ts";
 import { EntityTitle } from "./shared.tsx";
+import { AlbumCover } from "../listens/index.ts";
 
 /** An album: the sleeve with totals, first and last listen, and its tracks by plays. */
 export function AlbumPage({
@@ -53,7 +52,7 @@ export function AlbumPage({
             gap: "16px",
           })}
         >
-          <Cover seed={albumSeed(album.artist, album.album)} title={album.album} mbid={mbid} />
+          <AlbumCover artist={album.artist} album={album.album} title={album.album} mbid={mbid} />
           <div className={css({ display: "flex", justifyContent: "space-around" })}>
             <Stat align="center" value={formatCount(album.listenCount)} label="ÉCOUTES" />
             <Stat align="center" value={formatCount(album.tracks.length)} label="TITRES" />

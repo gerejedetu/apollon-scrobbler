@@ -19,11 +19,11 @@ import {
 } from "../../lib/format/index.ts";
 import { RANGES, rangeLabel } from "../../lib/ranges.ts";
 import { AxisLabels, Bars } from "../../ui/charts/index.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { ChevronDown, ChevronRight } from "../../ui/icons.tsx";
 import { BlockHeading, CountBadge, Empty, Stat } from "../../ui/primitives/index.ts";
-import { albumSeed, ListenItem, ListenRow } from "../listens/index.ts";
+import { ListenItem, ListenRow } from "../listens/index.ts";
 import { AlbumCard, coverGrid } from "./cards.tsx";
+import { AlbumCover } from "../listens/index.ts";
 
 const stack14 = css({ display: "flex", flexDirection: "column", gap: "14px" });
 const stack12 = css({ display: "flex", flexDirection: "column", gap: "12px" });
@@ -188,8 +188,10 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
           borderRadius: "field",
         })}
       >
-        <Cover
-          seed={albumSeed(nowPlaying.artist, nowPlaying.album)}
+        <AlbumCover
+          artist={nowPlaying.artist}
+          album={nowPlaying.album}
+          track={nowPlaying.track}
           mbid={nowPlaying.mbids?.release}
           size={48}
         />

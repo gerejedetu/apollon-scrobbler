@@ -12,13 +12,12 @@ import {
   monthKey,
 } from "../../lib/format/index.ts";
 import { RANGES } from "../../lib/ranges.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { ArrowUpRight } from "../../ui/icons.tsx";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { BlockHeading, pill, Stat } from "../../ui/primitives/index.ts";
 import { TextTabs } from "../../ui/zag/index.ts";
-import { albumSeed, artistSeed } from "../listens/index.ts";
 import { EntityTitle, PeriodBars, recordOf } from "./shared.tsx";
+import { AlbumCover, ArtistCover } from "../listens/index.ts";
 
 type Granularity = Timeline["granularity"];
 
@@ -74,7 +73,7 @@ export function ArtistPage({
           alignItems: "flex-start",
         })}
       >
-        <Cover seed={artistSeed(artist.artist)} round size={200} />
+        <ArtistCover artist={artist.artist} size={200} />
         <div
           className={css({
             flex: "1 1 360px",
@@ -180,7 +179,7 @@ export function ArtistPage({
                   minWidth: 0,
                 })}
               >
-                <Cover seed={albumSeed(artist.artist, a.album)} mbid={a.releaseMbid} />
+                <AlbumCover artist={artist.artist} album={a.album} mbid={a.releaseMbid} />
                 <span
                   className={css({
                     display: "flex",
@@ -272,7 +271,7 @@ export function ArtistPage({
               >
                 {i + 1}
               </span>
-              <Cover seed={albumSeed(artist.artist, t.album)} size={36} />
+              <AlbumCover artist={artist.artist} album={t.album} track={t.track} size={36} />
               <span
                 className={css({
                   flex: 1,

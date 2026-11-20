@@ -7,9 +7,8 @@ import {
   formatDayString,
   formatMonthYear,
 } from "../../lib/format/index.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { displayHeading, NewTag } from "../../ui/primitives/index.ts";
-import { albumSeed, artistSeed } from "../listens/index.ts";
+import { AlbumCover, ArtistCover } from "../listens/index.ts";
 
 const heading = css({
   display: "flex",
@@ -61,11 +60,11 @@ export function FirstTimes({
             })}
           >
             <span className={css({ position: "relative", display: "block" })}>
-              <Cover
-                seed={
-                  d.trackName ? albumSeed(d.artistName, d.releaseName) : artistSeed(d.artistName)
-                }
-              />
+              {d.trackName ? (
+                <AlbumCover artist={d.artistName} album={d.releaseName} track={d.trackName} />
+              ) : (
+                <ArtistCover artist={d.artistName} />
+              )}
               <NewTag className={css({ position: "absolute", left: "8px", top: "8px" })} />
             </span>
             <span
@@ -119,7 +118,7 @@ export function ForgottenList({ userName, forgotten }: { userName: string; forgo
               })}
             >
               <span className={css({ filter: "grayscale(0.6)", flexShrink: 0 })}>
-                <Cover seed={albumSeed(f.artistName, f.releaseName)} size={64} />
+                <AlbumCover artist={f.artistName} album={f.releaseName} size={64} />
               </span>
               <span
                 className={css({

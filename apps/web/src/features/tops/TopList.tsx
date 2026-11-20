@@ -3,10 +3,9 @@ import { css } from "styled-system/css";
 import type { Range, Top, TopItem } from "../../api/index.ts";
 import { barWidth, formatCount } from "../../lib/format/index.ts";
 import { RANGES } from "../../lib/ranges.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { Button, Empty, pill } from "../../ui/primitives/index.ts";
-import { albumSeed, artistSeed } from "../listens/index.ts";
 import type { Kind } from "./kinds.ts";
+import { AlbumCover, ArtistCover } from "../listens/index.ts";
 
 const row = css({
   display: "flex",
@@ -94,14 +93,17 @@ export function TopList({
               >
                 {i + 1}
               </span>
-              <Cover
-                seed={
-                  kind === "artistes" ? artistSeed(item.artist) : albumSeed(item.artist, item.album)
-                }
-                round={kind === "artistes"}
-                mbid={kind === "artistes" ? null : item.mbids?.release}
-                size={36}
-              />
+              {kind === "artistes" ? (
+                <ArtistCover artist={item.artist} size={36} />
+              ) : (
+                <AlbumCover
+                  artist={item.artist}
+                  album={item.album}
+                  track={item.track}
+                  mbid={item.mbids?.release}
+                  size={36}
+                />
+              )}
               <span
                 className={css({
                   flex: 1,

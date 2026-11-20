@@ -1,8 +1,7 @@
 import { css } from "styled-system/css";
 import type { Listen, Track } from "../../api/index.ts";
 import { formatListenedAt } from "../../lib/format/index.ts";
-import { Cover } from "../../ui/cover/index.ts";
-import { albumSeed } from "./seeds.ts";
+import { AlbumCover } from "./covers.tsx";
 
 const row = css({
   display: "flex",
@@ -26,7 +25,13 @@ export function ListenRow({
   return (
     <div className={row}>
       <div className={css({ width: "40px", flexShrink: 0 })}>
-        <Cover seed={albumSeed(track.artist, track.album)} mbid={track.mbids?.release} size={40} />
+        <AlbumCover
+          artist={track.artist}
+          album={track.album}
+          track={track.track}
+          mbid={track.mbids?.release}
+          size={40}
+        />
       </div>
       <div
         className={css({

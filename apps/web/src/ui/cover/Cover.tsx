@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { css, cx } from "styled-system/css";
-import { artworkUrl } from "./artwork.ts";
+import { artworkSources, type Lookup } from "./artwork.ts";
 import { coverPattern } from "./pattern.ts";
 
 const frame = css({
@@ -24,11 +24,13 @@ interface CoverProps {
   size?: number;
   /** MusicBrainz release MBID: shows the real sleeve when the Cover Art Archive has one. */
   mbid?: string | null;
+  /** Otherwise (or if that fails), find the artwork by name. */
+  lookup?: Lookup;
   className?: string;
 }
 
 /** A square sleeve (round for artists): no radius, no shadow, a motif in two colours. */
-export function Cover({ seed, title, round, size, mbid, className }: CoverProps) {
+export function Cover({ seed, title, round, size, mbid, lookup, className }: CoverProps) {
   const p = coverPattern(seed);
   const fg = { background: p.fg };
   return (
@@ -125,29 +127,34 @@ export function Cover({ seed, title, round, size, mbid, className }: CoverProps)
           {title}
         </span>
       ) : null}
-      <Artwork src={artworkUrl(mbid, size !== undefined && size <= 64 ? 250 : 500)} />
+      <Artwork
+        sources={artworkSources(mbid, lookup, size !== undefined && size <= 64 ? 250 : 500)}
+      />
     </div>
   );
 }
 
-/** The real sleeve over the pattern; removed if it fails (also when it failed before hydration). */
-function Artwork({ src }: { src: string | null }) {
-  const [failed, setFailed] = useState(false);
+/** The real sleeve over the pattern: tries each source in turn (also failures before hydration), else nothing. */
+function Artwork({ sources }: { sources: string[] }) {
+  const key = sources.join("|");
+  const [index, setIndex] = useState(0);
   const ref = useRef<HTMLImageElement>(null);
+  useEffect(() => setIndex(0), [key]);
   useEffect(() => {
-    setFailed(false);
     const img = ref.current;
-    if (img?.complete && img.naturalWidth === 0) setFailed(true);
-  }, [src]);
-  if (!src || failed) return null;
+    if (img?.complete && img.naturalWidth === 0) setIndex((i) => i + 1);
+  }, [key, index]);
+  const src = sources[index];
+  if (!src) return null;
   return (
     <img
       ref={ref}
+      key={src}
       src={src}
       alt=""
       loading="lazy"
       decoding="async"
-      onError={() => setFailed(true)}
+      onError={() => setIndex((i) => i + 1)}
       className={css({
         position: "absolute",
         inset: 0,

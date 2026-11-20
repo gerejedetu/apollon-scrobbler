@@ -1,6 +1,6 @@
 /**
- * Real artwork from the Cover Art Archive (MusicBrainz), by release MBID. Imports from Last.fm and most
- * scrobblers carry it. The image sits over the pattern, which stays when there is no artwork.
+ * Where a sleeve can come from, best first: the Cover Art Archive by release MBID, then the Worker's
+ * /covers lookup by name (src/edge/covers.ts). When every source fails the generated pattern stays.
  */
 const MBID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -13,4 +13,32 @@ export function artworkUrl(
   return releaseMbid && MBID.test(releaseMbid)
     ? `https://coverartarchive.org/release/${releaseMbid.toLowerCase()}/front-${size}`
     : null;
+}
+
+/** What to look up by name: an artist's picture, or an album's (or a track's album) sleeve. */
+export type Lookup =
+  | { kind: "artist"; artist: string }
+  | { kind: "album"; artist: string; album?: string | null; track?: string | null };
+
+export function lookupUrl(lookup: Lookup | undefined, size: ArtworkSize = 250): string | null {
+  if (!lookup?.artist) return null;
+  const params = new URLSearchParams({
+    artist: lookup.artist,
+    size: size === 250 ? "medium" : "big",
+  });
+  if (lookup.kind === "artist") params.set("kind", "artist");
+  else {
+    if (!lookup.album && !lookup.track) return null;
+    if (lookup.album) params.set("album", lookup.album);
+    else if (lookup.track) params.set("track", lookup.track);
+  }
+  return `/covers?${params.toString()}`;
+}
+
+export function artworkSources(
+  mbid: string | null | undefined,
+  lookup: Lookup | undefined,
+  size: ArtworkSize,
+): string[] {
+  return [artworkUrl(mbid, size), lookupUrl(lookup, size)].filter((s): s is string => Boolean(s));
 }

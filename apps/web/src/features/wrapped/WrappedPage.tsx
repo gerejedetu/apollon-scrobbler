@@ -12,10 +12,9 @@ import {
   formatShare,
   formatTime,
 } from "../../lib/format/index.ts";
-import { Cover } from "../../ui/cover/index.ts";
 import { Main } from "../../ui/layout/index.ts";
 import { capsLabel, pill } from "../../ui/primitives/index.ts";
-import { albumSeed, artistSeed } from "../listens/index.ts";
+import { AlbumCover, ArtistCover } from "../listens/index.ts";
 
 const narrow = css({ textStyle: "narrow" });
 const rankRow = css({
@@ -205,7 +204,7 @@ export function WrappedPage({
                   params={{ userName, artist: top.artist }}
                   className={css({ display: "block", width: "100%", maxWidth: "360px" })}
                 >
-                  <Cover seed={artistSeed(top.artist)} round />
+                  <ArtistCover artist={top.artist} />
                 </Link>
                 <div className={css({ display: "flex", flexDirection: "column", gap: "4px" })}>
                   <span
@@ -236,7 +235,7 @@ export function WrappedPage({
                       className={rankRow}
                     >
                       <span className={rank}>{i + 2}</span>
-                      <Cover seed={artistSeed(a.artist)} round size={32} />
+                      <ArtistCover artist={a.artist} size={32} />
                       <span className={css({ flex: 1, fontSize: "13px", fontWeight: "500" })}>
                         {a.artist}
                       </span>
@@ -272,7 +271,7 @@ export function WrappedPage({
                       textDecoration: "none",
                     })}
                   >
-                    <Cover seed={albumSeed(a.artist, a.album)} title={a.album} />
+                    <AlbumCover artist={a.artist} album={a.album} title={a.album} />
                     <span
                       className={css({
                         display: "flex",
@@ -419,14 +418,16 @@ export function WrappedPage({
                         _hover: { color: "page" },
                       })}
                     >
-                      <Cover
-                        seed={
-                          d.trackName
-                            ? albumSeed(d.artistName, d.releaseName)
-                            : artistSeed(d.artistName)
-                        }
-                        size={36}
-                      />
+                      {d.trackName ? (
+                        <AlbumCover
+                          artist={d.artistName}
+                          album={d.releaseName}
+                          track={d.trackName}
+                          size={36}
+                        />
+                      ) : (
+                        <ArtistCover artist={d.artistName} size={36} />
+                      )}
                       <span
                         className={css({
                           flex: 1,
