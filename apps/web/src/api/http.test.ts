@@ -32,9 +32,8 @@ describe("http client", () => {
     await http.patch("/v1/me", { private: true });
     expect(calls[0]?.init?.method).toBe("PATCH");
     expect(calls[0]?.init?.body).toBe('{"private":true}');
-    expect((calls[0]?.init?.headers as Record<string, string>)["content-type"]).toBe(
-      "application/json",
-    );
+    const headers = (calls[0]?.init?.headers ?? {}) as Record<string, string>;
+    expect(headers["content-type"]).toBe("application/json");
   });
 
   test("errors carry the API's status and message", async () => {

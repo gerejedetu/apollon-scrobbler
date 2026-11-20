@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as InscriptionRouteImport } from './routes/inscription'
+import { Route as ReglagesRouteRouteImport } from './routes/reglages/route'
 import { Route as ReglagesIndexRouteImport } from './routes/reglages/index'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
 import { Route as UUserNameIndexRouteImport } from './routes/u/$userName/index'
@@ -33,15 +34,20 @@ const InscriptionRoute = InscriptionRouteImport.update({
   path: '/inscription',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReglagesIndexRoute = ReglagesIndexRouteImport.update({
-  id: '/reglages/',
-  path: '/reglages/',
+const ReglagesRouteRoute = ReglagesRouteRouteImport.update({
+  id: '/reglages',
+  path: '/reglages',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReglagesIndexRoute = ReglagesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReglagesRouteRoute,
+} as any)
 const ReglagesTokensRoute = ReglagesTokensRouteImport.update({
-  id: '/reglages/tokens',
-  path: '/reglages/tokens',
-  getParentRoute: () => rootRouteImport,
+  id: '/tokens',
+  path: '/tokens',
+  getParentRoute: () => ReglagesRouteRoute,
 } as any)
 const UUserNameIndexRoute = UUserNameIndexRouteImport.update({
   id: '/u/$userName/',
@@ -61,6 +67,7 @@ const UUserNameStatsRoute = UUserNameStatsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/reglages': typeof ReglagesRouteRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/reglages': typeof ReglagesRouteRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
@@ -94,6 +102,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/reglages'
     | '/connexion'
     | '/inscription'
     | '/reglages/tokens'
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/reglages'
     | '/connexion'
     | '/inscription'
     | '/reglages/tokens'
@@ -125,10 +135,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ReglagesRouteRoute: typeof ReglagesRouteRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
   InscriptionRoute: typeof InscriptionRoute
-  ReglagesTokensRoute: typeof ReglagesTokensRoute
-  ReglagesIndexRoute: typeof ReglagesIndexRoute
   UUserNameHistoriqueRoute: typeof UUserNameHistoriqueRoute
   UUserNameStatsRoute: typeof UUserNameStatsRoute
   UUserNameIndexRoute: typeof UUserNameIndexRoute
@@ -157,19 +166,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reglages': {
+      id: '/reglages'
+      path: '/reglages'
+      fullPath: '/reglages'
+      preLoaderRoute: typeof ReglagesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reglages/': {
       id: '/reglages/'
-      path: '/reglages'
+      path: '/'
       fullPath: '/reglages/'
       preLoaderRoute: typeof ReglagesIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReglagesRouteRoute
     }
     '/reglages/tokens': {
       id: '/reglages/tokens'
-      path: '/reglages/tokens'
+      path: '/tokens'
       fullPath: '/reglages/tokens'
       preLoaderRoute: typeof ReglagesTokensRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReglagesRouteRoute
     }
     '/u/$userName/': {
       id: '/u/$userName/'
@@ -195,12 +211,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ConnexionRoute: ConnexionRoute,
-  InscriptionRoute: InscriptionRoute,
+interface ReglagesRouteRouteChildren {
+  ReglagesTokensRoute: typeof ReglagesTokensRoute
+  ReglagesIndexRoute: typeof ReglagesIndexRoute
+}
+
+const ReglagesRouteRouteChildren: ReglagesRouteRouteChildren = {
   ReglagesTokensRoute: ReglagesTokensRoute,
   ReglagesIndexRoute: ReglagesIndexRoute,
+}
+
+const ReglagesRouteRouteWithChildren = ReglagesRouteRoute._addFileChildren(
+  ReglagesRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  ReglagesRouteRoute: ReglagesRouteRouteWithChildren,
+  ConnexionRoute: ConnexionRoute,
+  InscriptionRoute: InscriptionRoute,
   UUserNameHistoriqueRoute: UUserNameHistoriqueRoute,
   UUserNameStatsRoute: UUserNameStatsRoute,
   UUserNameIndexRoute: UUserNameIndexRoute,

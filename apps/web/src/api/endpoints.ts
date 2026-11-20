@@ -3,10 +3,21 @@ import { type Http, segment } from "./http.ts";
 import type * as T from "./types.ts";
 
 const v1 = "/v1";
+const auth = "/api/auth";
 
 export function createEndpoints(http: Http) {
   const user = (name: string) => `${v1}/users/${segment(name)}`;
   return {
+    /** ListenBrainz user tokens = Better Auth API keys of the signed-in account. */
+    tokens: {
+      list: async () =>
+        (await http.get<{ apiKeys: T.ApiKey[] } | T.ApiKey[]>(`${auth}/api-key/list`)) as
+          | { apiKeys: T.ApiKey[] }
+          | T.ApiKey[],
+      create: (name: string) => http.post<T.CreatedApiKey>(`${auth}/api-key/create`, { name }),
+      delete: (keyId: string) =>
+        http.post<{ success: boolean }>(`${auth}/api-key/delete`, { keyId }),
+    },
     me: {
       get: () => http.get<T.Me>(`${v1}/me`),
       update: (patch: { private?: boolean }) => http.patch<T.Me>(`${v1}/me`, patch),

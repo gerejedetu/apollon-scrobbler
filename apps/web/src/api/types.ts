@@ -273,3 +273,18 @@ export interface TrackPage extends Ranged {
   lastListenedAt: number | null;
   byMonth: { period: string; listenCount: number }[];
 }
+
+/** A Better Auth API key as listed (the secret itself is only returned once, at creation). */
+export interface ApiKey {
+  id: string;
+  name: string | null;
+  /** First characters of the key, to recognise it. */
+  start: string | null;
+  createdAt: string;
+  lastRequest?: string | null;
+  enabled?: boolean;
+}
+
+export interface CreatedApiKey extends ApiKey {
+  key: string;
+}

@@ -71,23 +71,14 @@ export function AppHeader({ userName }: { userName: string | null }) {
               <Link
                 to="/reglages"
                 aria-label="Mon compte"
+                title={userName}
                 className={css({
                   width: "28px",
                   height: "28px",
                   borderRadius: "14px",
                   bg: "avatar",
-                  color: "avatarInk",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textDecoration: "none",
-                  textStyle: "wide",
-                  fontSize: "12px",
-                  _hover: { color: "avatarInk" },
                 })}
-              >
-                {userName.charAt(0).toUpperCase()}
-              </Link>
+              />
             </>
           ) : (
             <Link to="/connexion" className={css({ fontSize: "13px", textDecoration: "none" })}>
