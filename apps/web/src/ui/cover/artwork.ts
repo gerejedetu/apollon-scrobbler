@@ -20,11 +20,15 @@ export type Lookup =
   | { kind: "artist"; artist: string }
   | { kind: "album"; artist: string; album?: string | null; track?: string | null };
 
+export const LOOKUP_VERSION = "2";
+
 export function lookupUrl(lookup: Lookup | undefined, size: ArtworkSize = 250): string | null {
   if (!lookup?.artist) return null;
+  // `v` changes when the lookup gets smarter, so misses cached by an older version are retried.
   const params = new URLSearchParams({
     artist: lookup.artist,
     size: size === 250 ? "medium" : "big",
+    v: LOOKUP_VERSION,
   });
   if (lookup.kind === "artist") params.set("kind", "artist");
   else {

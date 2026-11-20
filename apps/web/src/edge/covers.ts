@@ -98,22 +98,31 @@ export function pickImage(item: DeezerItem | undefined, q: CoverQuery): string |
     : null;
 }
 
+/**
+ * The artwork, `null` when every search answered and none had artwork (a miss worth caching), or
+ * `undefined` when a search failed (rate limit, network): then nothing is cached and the next view retries.
+ */
 export async function findCover(
   q: CoverQuery,
   fetcher: typeof fetch = fetch,
-): Promise<string | null> {
+): Promise<string | null | undefined> {
+  let failed = false;
   for (const path of searches(q)) {
     try {
       const res = await fetcher(DEEZER + path, { headers: { accept: "application/json" } });
-      if (!res.ok) continue;
-      const body = (await res.json()) as { data?: DeezerItem[] };
-      const image = pickImage(body.data?.[0], q);
+      const body = res.ok ? ((await res.json()) as { data?: DeezerItem[]; error?: unknown }) : null;
+      // Deezer reports quota errors with a 200 and an `error` object.
+      if (!body || body.error || !Array.isArray(body.data)) {
+        failed = true;
+        continue;
+      }
+      const image = pickImage(body.data[0], q);
       if (image) return image;
     } catch {
-      // Network hiccup: try the next search, then give up (the pattern stays).
+      failed = true;
     }
   }
-  return null;
+  return failed ? undefined : null;
 }
 
 interface EdgeCache {
@@ -136,6 +145,8 @@ export async function handleCovers(
   const cached = await deps.cache?.match(key);
   if (cached) return cached;
   const image = await findCover(q, deps.fetcher);
+  if (image === undefined)
+    return new Response(null, { status: 503, headers: { "cache-control": "no-store" } });
   const response = image
     ? new Response(null, {
         status: 302,
