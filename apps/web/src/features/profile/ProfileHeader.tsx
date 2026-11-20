@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { estimateListeningMs } from "../../lib/listening-time.ts";
 import { css } from "styled-system/css";
 import type { Me, Summary } from "../../api/index.ts";
 import { formatCompact, formatCount, formatDate, formatHours } from "../../lib/format/index.ts";
@@ -22,7 +23,11 @@ export function ProfileHeader({
       ? `Première écoute le ${formatDate(summary.firstListenedAt)}`
       : null;
   const status = me ? (me.private ? "profil privé" : "profil public") : null;
-  const hours = summary.listeningTime.totalMs;
+  const hours = estimateListeningMs(
+    summary.listenCount,
+    summary.listeningTime.totalMs,
+    summary.listeningTime.listensWithDuration,
+  );
   return (
     <section
       className={css({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "24px" })}
@@ -88,7 +93,7 @@ export function ProfileHeader({
             align="center"
             value={`≈ ${formatHours(hours)}`}
             label="D'ÉCOUTE"
-            title="Seules les écoutes envoyées avec leur durée sont comptées"
+            title="Estimé : les écoutes sans durée (imports Last.fm) comptent pour une durée moyenne de titre"
           />
         ) : null}
       </div>

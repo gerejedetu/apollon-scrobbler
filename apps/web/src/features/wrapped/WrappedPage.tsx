@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { estimateFromTotal } from "../../lib/listening-time.ts";
 import { css } from "styled-system/css";
 import type { Wrapped } from "../../api/index.ts";
 import {
@@ -60,7 +61,7 @@ export function WrappedPage({
     { length: Math.max(1, thisYear - firstYear + 1) },
     (_, i) => thisYear - i,
   );
-  const hours = Math.round(w.listeningTimeMs / 3_600_000);
+  const hours = Math.round(estimateFromTotal(w.listenCount, w.listeningTimeMs) / 3_600_000);
   const [top, ...next] = w.topArtists;
   const totals = [
     { value: formatCount(w.listenCount), label: "écoutes" },

@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { estimateListeningMs } from "../../lib/listening-time.ts";
 import { css } from "styled-system/css";
 import type { Compare, Range, Summary } from "../../api/index.ts";
 import { formatChange, formatCount, formatDate, formatHours } from "../../lib/format/index.ts";
@@ -25,7 +26,11 @@ export function Hero({
   const change = compare?.changePercent.listenCount;
   const from = summary.from > 0 ? summary.from : (summary.firstListenedAt ?? summary.to);
   const days = Math.max(1, Math.ceil((summary.to - from) / 86_400));
-  const hours = summary.listeningTime.totalMs;
+  const hours = estimateListeningMs(
+    summary.listenCount,
+    summary.listeningTime.totalMs,
+    summary.listeningTime.listensWithDuration,
+  );
   return (
     <section className={css({ display: "flex", flexDirection: "column", gap: "28px" })}>
       <div
