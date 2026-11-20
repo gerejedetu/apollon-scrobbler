@@ -24,13 +24,20 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
               name: u.name,
               createdAt: u.createdAt,
               listenCount: listens.filter((l) => l.userId === u.id).length,
+              isPrivate: u.isPrivate,
             }
           : null;
       },
       async findByAuthId(authUserId) {
         const u = users.find((x) => x.authUserId === authUserId);
         return u
-          ? { id: u.id, name: u.name, createdAt: u.createdAt, listenCount: u.listenCount }
+          ? {
+              id: u.id,
+              name: u.name,
+              createdAt: u.createdAt,
+              listenCount: u.listenCount,
+              isPrivate: u.isPrivate,
+            }
           : null;
       },
       async create(authUserId, name, createdAt) {
@@ -40,9 +47,16 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           )
         )
           return null;
-        const user = { id: users.length + 1, name, createdAt, listenCount: 0 };
+        const user = { id: users.length + 1, name, createdAt, listenCount: 0, isPrivate: false };
         users.push({ ...user, authUserId });
         return user;
+      },
+      async setPrivate(userId, isPrivate) {
+        const u = users.find((x) => x.id === userId);
+        if (!u) return null;
+        u.isPrivate = isPrivate;
+        const { authUserId: _a, ...user } = u;
+        return { ...user };
       },
     },
     listens: {
@@ -104,6 +118,62 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
       },
     },
     stats: {
+      async activity({ userId, window, utcOffsetSeconds }) {
+        const days = new Map<number, number>();
+        for (const l of listens) {
+          if (l.userId !== userId || l.listenedAt < window.fromTs || l.listenedAt > window.toTs)
+            continue;
+          const day = Math.floor((l.listenedAt + utcOffsetSeconds) / 86_400);
+          days.set(day, (days.get(day) ?? 0) + 1);
+        }
+        return [...days]
+          .sort((a, b) => a[0] - b[0])
+          .map(([day, listenCount]) => ({ day, listenCount }));
+      },
+      async summary(userId, window) {
+        const mine = listens.filter(
+          (l) =>
+            l.userId === userId && l.listenedAt >= window.fromTs && l.listenedAt <= window.toTs,
+        );
+        const times = mine.map((l) => l.listenedAt);
+        return {
+          listenCount: mine.length,
+          artistCount: new Set(mine.map((l) => l.artistName)).size,
+          recordingCount: new Set(mine.map((l) => `${l.artistName}|${l.trackName}`)).size,
+          releaseCount: new Set(
+            mine.filter((l) => l.releaseName).map((l) => `${l.artistName}|${l.releaseName}`),
+          ).size,
+          firstListenedAt: times.length ? Math.min(...times) : null,
+          lastListenedAt: times.length ? Math.max(...times) : null,
+        };
+      },
+      async artist({ userId, artistName, window, limit }) {
+        const mine = listens.filter(
+          (l) =>
+            l.userId === userId &&
+            l.artistName === artistName &&
+            l.listenedAt >= window.fromTs &&
+            l.listenedAt <= window.toTs,
+        );
+        if (mine.length === 0) return null;
+        const byTrack = new Map<string, number>();
+        for (const l of mine) byTrack.set(l.trackName, (byTrack.get(l.trackName) ?? 0) + 1);
+        const tracks = [...byTrack].sort((a, b) => b[1] - a[1]);
+        return {
+          artistName,
+          artistMbids: [],
+          listenCount: mine.length,
+          trackCount: tracks.length,
+          firstListenedAt: Math.min(...mine.map((l) => l.listenedAt)),
+          lastListenedAt: Math.max(...mine.map((l) => l.listenedAt)),
+          topTracks: tracks.slice(0, limit).map(([trackName, listenCount]) => ({
+            trackName,
+            releaseName: null,
+            recordingMbid: null,
+            listenCount,
+          })),
+        };
+      },
       async top({ userId, window, limit, offset }) {
         const counts = new Map<string, TopRow>();
         for (const l of listens) {

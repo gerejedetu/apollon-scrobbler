@@ -188,15 +188,132 @@ describe("native API", () => {
         .replace("{userName}", "alice")
         .replace("{entity}", "artists")
         .replace("{listenedAt}", String(T0))
-        .replace("{id}", "x");
+        .replace("{id}", "x")
+        .replace("{artistName}", "Air");
       for (const method of Object.keys(ops)) {
         const res = await api.request(`/v1${concrete}`, {
           method: method.toUpperCase(),
           headers: { "content-type": "application/json" },
           body: method === "get" ? undefined : "{}",
         });
-        expect(res.status, `${method} ${path}`).not.toBe(404);
+        const body = res.status === 404 ? ((await res.json()) as { error: string }).error : "";
+        expect(body, `${method} ${path}`).not.toBe("Not found.");
       }
     }
+  });
+});
+
+describe("private profiles", () => {
+  test("only the owner reads a private profile, on both APIs", async () => {
+    const bobToken = await api.signUp("bob");
+    await api.json(
+      "/v1/listens",
+      send("POST", { listens: [{ listenedAt: T0, artist: "Air", track: "x" }] }),
+    );
+    const patch = await api.json("/v1/me", send("PATCH", { private: true }));
+    expect(patch.body).toMatchObject({ userName: "Alice", private: true });
+
+    const paths = [
+      "/v1/users/alice/listens",
+      "/v1/users/alice/now-playing",
+      "/v1/users/alice/stats/artists",
+      "/v1/users/alice/stats/summary",
+      "/v1/users/alice/stats/activity",
+      "/v1/users/alice/artists/Air",
+      "/1/user/alice/listens",
+      "/1/user/alice/listen-count",
+      "/1/user/alice/playing-now",
+      "/1/stats/user/alice/artists",
+      "/1/latest-import?user_name=alice",
+    ];
+    for (const path of paths) {
+      expect((await api.json(path)).body, `anonymous ${path}`).toEqual({
+        code: 404,
+        error: "Cannot find user: alice",
+      });
+      expect(
+        (await api.json(path, { headers: { authorization: `Token ${bobToken}` } })).status,
+        `bob ${path}`,
+      ).toBe(404);
+      expect(
+        (await api.json(path, { headers: { authorization: `Token ${token}` } })).status,
+        `owner ${path}`,
+      ).toBe(200);
+    }
+    // The owner's browser session works too.
+    expect(
+      (await api.json("/v1/users/alice/listens", { headers: { cookie: api.cookies.Alice! } }))
+        .status,
+    ).toBe(200);
+    // A bad token is an error, not an anonymous read.
+    expect(
+      (await api.json("/v1/users/alice/listens", { headers: { authorization: "Token nope" } }))
+        .status,
+    ).toBe(401);
+
+    expect((await api.json("/v1/me", send("PATCH", { private: "yes" }))).status).toBe(400);
+    await api.json("/v1/me", send("PATCH", { private: false }));
+    expect((await api.json("/v1/users/alice/listens")).status).toBe(200);
+  });
+});
+
+describe("more stats", () => {
+  test("activity, summary and the artist page", async () => {
+    const DAY = 86_400;
+    await api.json(
+      "/v1/listens",
+      send("POST", {
+        listens: [
+          {
+            listenedAt: T0 - 2 * DAY,
+            artist: "Air",
+            track: "Playground Love",
+            album: "The Virgin Suicides",
+          },
+          {
+            listenedAt: T0 - 2 * DAY + 300,
+            artist: "Air",
+            track: "Playground Love",
+            album: "The Virgin Suicides",
+          },
+          { listenedAt: T0, artist: "Air", track: "Kelly Watch the Stars", album: "Moon Safari" },
+          { listenedAt: T0 + 60, artist: "Moby", track: "Porcelain" },
+        ],
+      }),
+    );
+
+    const activity = await api.json("/v1/users/alice/stats/activity");
+    expect(activity.body.days.slice(0, 3)).toEqual([
+      { date: "2023-11-12", listenCount: 2 },
+      { date: "2023-11-13", listenCount: 0 },
+      { date: "2023-11-14", listenCount: 2 },
+    ]);
+    expect(
+      (await api.json("/v1/users/alice/stats/activity?utcOffset=120")).body.days.slice(0, 3),
+    ).toEqual([
+      { date: "2023-11-13", listenCount: 2 },
+      { date: "2023-11-14", listenCount: 0 },
+      { date: "2023-11-15", listenCount: 2 },
+    ]);
+
+    expect((await api.json("/v1/users/alice/stats/summary")).body).toMatchObject({
+      range: "all_time",
+      listenCount: 4,
+      artistCount: 2,
+      recordingCount: 3,
+      releaseCount: 2,
+      firstListenedAt: T0 - 2 * DAY,
+      lastListenedAt: T0 + 60,
+    });
+
+    const air = await api.json(`/v1/users/alice/artists/${encodeURIComponent("Air")}?limit=1`);
+    expect(air.body).toMatchObject({
+      artist: "Air",
+      listenCount: 3,
+      trackCount: 2,
+      topTracks: [{ track: "Playground Love", album: "The Virgin Suicides", listenCount: 2 }],
+    });
+    expect(air.body.topTracks).toHaveLength(1);
+    expect((await api.json("/v1/users/alice/artists/Nobody")).status).toBe(404);
   });
 });

@@ -166,3 +166,85 @@ describe("users, imports, stats", () => {
     await rejects(s.stats.top(fresh, "artists", { range: "decade" }), 400);
   });
 });
+
+describe("private profiles", () => {
+  test("a private profile is readable by its owner only, and looks unknown to others", async () => {
+    const { user: alice } = await signUp("alice");
+    const { user: bob } = await signUp("bob");
+    expect((await s.users.requireReadable("alice", null)).name).toBe("alice");
+    const hidden = await s.users.setPrivate(alice, true);
+    expect(hidden.isPrivate).toBe(true);
+    expect((await s.users.requireReadable("alice", hidden)).name).toBe("alice");
+    await rejects(s.users.requireReadable("alice", bob), 404);
+    await rejects(s.users.requireReadable("alice", null), 404);
+    await rejects(s.users.setPrivate(alice, "yes"), 400);
+    await s.users.setPrivate(alice, false);
+    expect((await s.users.requireReadable("alice", null)).isPrivate).toBe(false);
+  });
+});
+
+describe("more stats", () => {
+  const DAY = 86_400;
+  // 2023-11-14 22:13:20 UTC is T0.
+  async function seed() {
+    const { user } = await signUp("alice");
+    const at = [T0 - 2 * DAY, T0 - 2 * DAY + 60, T0, T0 + 7200];
+    await s.listens.submit(user, {
+      listen_type: "import",
+      payload: at.map((t, i) => ({
+        listened_at: t,
+        track_metadata: {
+          artist_name: i === 3 ? "Moby" : "Air",
+          track_name: `T${i % 2}`,
+          release_name: "R",
+        },
+      })),
+    });
+    return s.users.requireByName("alice");
+  }
+
+  test("activity fills empty days with 0 and follows the UTC offset", async () => {
+    const user = await seed();
+    now = T0 + 8000;
+    const utc = await s.stats.activity(user, {});
+    expect(utc.data).toEqual([
+      { date: "2023-11-12", listenCount: 2 },
+      { date: "2023-11-13", listenCount: 0 },
+      { date: "2023-11-14", listenCount: 1 },
+      { date: "2023-11-15", listenCount: 1 },
+    ]);
+    // +2 h: T0 (22:13 UTC) moves to the 15th, next to T0 + 7200.
+    const paris = await s.stats.activity(user, { utcOffset: "120" });
+    expect(paris.data.at(-1)).toEqual({ date: "2023-11-15", listenCount: 2 });
+    await rejects(s.stats.activity(user, { utcOffset: "9999" }), 400);
+  });
+
+  test("summary counts listens, artists, recordings and releases", async () => {
+    const user = await seed();
+    now = T0 + 8000;
+    expect((await s.stats.summary(user, {})).data).toEqual({
+      listenCount: 4,
+      artistCount: 2,
+      recordingCount: 3,
+      releaseCount: 2,
+      firstListenedAt: T0 - 2 * DAY,
+      lastListenedAt: T0 + 7200,
+    });
+  });
+
+  test("artist page lists top tracks; unknown artists are 404", async () => {
+    const user = await seed();
+    now = T0 + 8000;
+    const air = await s.stats.artist(user, "Air", {});
+    expect(air.data).toMatchObject({
+      artistName: "Air",
+      listenCount: 3,
+      trackCount: 2,
+      topTracks: [
+        { trackName: "T0", listenCount: 2 },
+        { trackName: "T1", listenCount: 1 },
+      ],
+    });
+    await rejects(s.stats.artist(user, "Nobody", {}), 404);
+  });
+});

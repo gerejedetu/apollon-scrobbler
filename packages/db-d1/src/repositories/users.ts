@@ -22,5 +22,11 @@ export function d1Users(db: D1Like): UserRepository {
         name,
         createdAt,
       ),
+    setPrivate: (userId, isPrivate) =>
+      one(
+        `UPDATE users SET is_private = ?2 WHERE id = ?1 RETURNING ${USER_COLUMNS}`,
+        userId,
+        isPrivate ? 1 : 0,
+      ),
   };
 }

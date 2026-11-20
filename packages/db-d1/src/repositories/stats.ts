@@ -62,5 +62,91 @@ export function d1Stats(db: D1Like): StatsRepository {
       }));
       return { rows: out, total: ((total?.results[0] ?? { n: 0 }) as { n: number }).n };
     },
+
+    async activity({ userId, window, utcOffsetSeconds }) {
+      const { results } = await db
+        .prepare(
+          "SELECT (listened_at + CAST(?4 AS INTEGER)) / 86400 AS day, count(*) AS listen_count FROM listens WHERE user_id = ?1 AND listened_at BETWEEN ?2 AND ?3 GROUP BY day ORDER BY day",
+        )
+        .bind(userId, window.fromTs, window.toTs, utcOffsetSeconds)
+        .all<{ day: number; listen_count: number }>();
+      return results.map((r) => ({ day: r.day, listenCount: r.listen_count }));
+    },
+
+    async summary(userId, window) {
+      // One pass over the window; the composite key separates artist and title with a NUL character.
+      const row = await db
+        .prepare(
+          `SELECT count(*) AS listens, count(DISTINCT artist_name) AS artists,
+                  count(DISTINCT artist_name || char(0) || track_name) AS recordings,
+                  count(DISTINCT artist_name || char(0) || release_name) AS releases,
+                  min(listened_at) AS first, max(listened_at) AS last
+           FROM listens WHERE user_id = ?1 AND listened_at BETWEEN ?2 AND ?3`,
+        )
+        .bind(userId, window.fromTs, window.toTs)
+        .first<{
+          listens: number;
+          artists: number;
+          recordings: number;
+          releases: number;
+          first: number | null;
+          last: number | null;
+        }>();
+      return {
+        listenCount: row?.listens ?? 0,
+        artistCount: row?.artists ?? 0,
+        recordingCount: row?.recordings ?? 0,
+        releaseCount: row?.releases ?? 0,
+        firstListenedAt: row?.first ?? null,
+        lastListenedAt: row?.last ?? null,
+      };
+    },
+
+    async artist({ userId, artistName, window, limit }) {
+      // Both statements are bounded by the (user_id, artist_name, listened_at) index.
+      const where = "WHERE user_id = ?1 AND artist_name = ?2 AND listened_at BETWEEN ?3 AND ?4";
+      const [head, tracks] = await db.batch([
+        db
+          .prepare(
+            `SELECT count(*) AS listens, count(DISTINCT track_name) AS tracks, min(listened_at) AS first, max(listened_at) AS last, max(artist_mbids) AS artist_mbids FROM listens ${where}`,
+          )
+          .bind(userId, artistName, window.fromTs, window.toTs),
+        db
+          .prepare(
+            `SELECT track_name, max(release_name) AS release_name, max(recording_mbid) AS recording_mbid, count(*) AS listen_count FROM listens ${where} GROUP BY track_name ORDER BY listen_count DESC, track_name LIMIT ?5`,
+          )
+          .bind(userId, artistName, window.fromTs, window.toTs, limit),
+      ]);
+      const h = head?.results[0] as
+        | {
+            listens: number;
+            tracks: number;
+            first: number | null;
+            last: number | null;
+            artist_mbids: string | null;
+          }
+        | undefined;
+      if (!h || h.listens === 0) return null;
+      const rows = (tracks?.results ?? []) as {
+        track_name: string;
+        release_name: string | null;
+        recording_mbid: string | null;
+        listen_count: number;
+      }[];
+      return {
+        artistName,
+        artistMbids: parseJson<string[]>(h.artist_mbids, []),
+        listenCount: h.listens,
+        trackCount: h.tracks,
+        firstListenedAt: h.first,
+        lastListenedAt: h.last,
+        topTracks: rows.map((r) => ({
+          trackName: r.track_name,
+          releaseName: r.release_name,
+          recordingMbid: r.recording_mbid,
+          listenCount: r.listen_count,
+        })),
+      };
+    },
   };
 }

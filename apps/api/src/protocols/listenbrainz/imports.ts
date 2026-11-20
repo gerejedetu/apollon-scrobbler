@@ -2,14 +2,14 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../../env.ts";
 import { jsonBody } from "../../http/errors.ts";
-import { requireUser } from "../../http/require-user.ts";
+import { requireUser, readableUser } from "../../http/require-user.ts";
 import { ApiError } from "@scrobbler/core";
 
 export const importRoutes = new Hono<AppEnv>()
   .get("/latest-import", async (c) => {
     const name = c.req.query("user_name");
     if (!name) throw ApiError.badRequest("user_name is required.");
-    const user = await c.var.services.users.requireByName(name);
+    const user = await readableUser(c, name);
     const latest = await c.var.services.imports.latest(user, c.req.query("service"));
     return c.json({ musicbrainz_id: user.name, latest_import: latest });
   })

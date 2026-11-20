@@ -28,6 +28,24 @@ export class UserService {
     return user;
   }
 
+  /**
+   * The user, if `viewer` may read their listens and stats. A private profile looks exactly like an
+   * unknown user to everyone else, so its existence is not revealed.
+   */
+  async requireReadable(name: string, viewer: User | null): Promise<User> {
+    const user = await this.requireByName(name);
+    if (user.isPrivate && viewer?.id !== user.id)
+      throw ApiError.notFound(`Cannot find user: ${name}`);
+    return user;
+  }
+
+  async setPrivate(user: User, isPrivate: unknown): Promise<User> {
+    if (typeof isPrivate !== "boolean") throw ApiError.badRequest("private must be true or false.");
+    const updated = await this.users.setPrivate(user.id, isPrivate);
+    if (!updated) throw ApiError.notFound(`Cannot find user: ${user.name}`);
+    return updated;
+  }
+
   async requireByAuthId(authUserId: string): Promise<User> {
     const user = await this.users.findByAuthId(authUserId);
     if (!user) throw ApiError.notFound("This account has no scrobbler profile.");

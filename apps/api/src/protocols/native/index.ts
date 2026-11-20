@@ -14,7 +14,7 @@ export const nativeApi = new Hono<AppEnv>()
     cors({
       origin: "*",
       allowHeaders: ["Authorization", "Content-Type"],
-      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
   )
   .get("/openapi.json", (c) => c.json(openApiDocument))

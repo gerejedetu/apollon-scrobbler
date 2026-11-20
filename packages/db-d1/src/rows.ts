@@ -6,6 +6,7 @@ export interface UserRow {
   name: string;
   created_at: number;
   listen_count: number;
+  is_private: number;
 }
 
 export interface ListenRow {
@@ -22,13 +23,19 @@ export interface ListenRow {
   additional_info: string | null;
 }
 
-export const USER_COLUMNS = "id, name, created_at, listen_count";
+export const USER_COLUMNS = "id, name, created_at, listen_count, is_private";
 
 export const LISTEN_COLUMNS =
   "user_id, listened_at, inserted_at, recording_msid, artist_name, track_name, release_name, recording_mbid, release_mbid, artist_mbids, additional_info";
 
 export function toUser(row: UserRow): User {
-  return { id: row.id, name: row.name, createdAt: row.created_at, listenCount: row.listen_count };
+  return {
+    id: row.id,
+    name: row.name,
+    createdAt: row.created_at,
+    listenCount: row.listen_count,
+    isPrivate: row.is_private === 1,
+  };
 }
 
 export function parseJson<T>(raw: string | null, fallback: T): T {

@@ -239,3 +239,87 @@ describe("stats", () => {
     ]);
   });
 });
+
+describe("private flag", () => {
+  test("setPrivate toggles and is returned with the user", async () => {
+    expect((await repos.users.findByName("alice"))?.isPrivate).toBe(false);
+    expect((await repos.users.setPrivate(userId, true))?.isPrivate).toBe(true);
+    expect((await repos.users.findByAuthId("a1"))?.isPrivate).toBe(true);
+    expect(await repos.users.setPrivate(9999, true)).toBeNull();
+  });
+});
+
+describe("activity, summary, artist", () => {
+  const DAY = 86_400;
+  beforeEach(async () => {
+    const at = [0, 60, DAY, DAY + 3600];
+    await repos.listens.insertMany(
+      userId,
+      at.map((t, i) =>
+        listen(i, {
+          listenedAt: T0 + t,
+          artistName: i < 3 ? "Air" : "Moby",
+          trackName: `T${i % 2}`,
+          releaseName: i === 0 ? null : "R",
+        }),
+      ),
+      T0,
+    );
+  });
+  const window = { fromTs: 0, toTs: T0 + 10 * DAY };
+
+  test("activity groups by shifted day", async () => {
+    const days = await repos.stats.activity({ userId, window, utcOffsetSeconds: 0 });
+    const d0 = Math.floor(T0 / DAY);
+    expect(days).toEqual([
+      { day: d0, listenCount: 2 },
+      { day: d0 + 1, listenCount: 2 },
+    ]);
+    // T0 is 22:13 UTC: +2 h pushes every listen to the next local day.
+    const shifted = await repos.stats.activity({ userId, window, utcOffsetSeconds: 7200 });
+    expect(shifted).toEqual([
+      { day: d0 + 1, listenCount: 2 },
+      { day: d0 + 2, listenCount: 2 },
+    ]);
+  });
+
+  test("summary in one statement", async () => {
+    db.roundTrips = 0;
+    expect(await repos.stats.summary(userId, window)).toEqual({
+      listenCount: 4,
+      artistCount: 2,
+      recordingCount: 3,
+      releaseCount: 2,
+      firstListenedAt: T0,
+      lastListenedAt: T0 + DAY + 3600,
+    });
+    expect(db.roundTrips).toBe(1);
+    expect((await repos.stats.summary(userId, { fromTs: 0, toTs: 1 })).listenCount).toBe(0);
+  });
+
+  test("artist detail with top tracks, one round trip, and the artist index is used", async () => {
+    db.roundTrips = 0;
+    const air = await repos.stats.artist({ userId, artistName: "Air", window, limit: 10 });
+    expect(db.roundTrips).toBe(1);
+    expect(air).toMatchObject({
+      artistName: "Air",
+      listenCount: 3,
+      trackCount: 2,
+      firstListenedAt: T0,
+      lastListenedAt: T0 + DAY,
+      topTracks: [
+        { trackName: "T0", listenCount: 2, releaseName: "R" },
+        { trackName: "T1", listenCount: 1 },
+      ],
+    });
+    expect(
+      await repos.stats.artist({ userId, artistName: "Nobody", window, limit: 10 }),
+    ).toBeNull();
+    const plan = db.raw
+      .prepare(
+        "EXPLAIN QUERY PLAN SELECT count(*) FROM listens WHERE user_id = 1 AND artist_name = 'Air' AND listened_at BETWEEN 0 AND 1",
+      )
+      .all() as { detail: string }[];
+    expect(plan.map((p) => p.detail).join(" ")).toContain("listens_user_artist_time");
+  });
+});

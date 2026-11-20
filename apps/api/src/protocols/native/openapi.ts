@@ -13,7 +13,34 @@ const errors = {
   "401": ok("Missing or invalid token", ref("Error")),
   "404": ok("Unknown user", ref("Error")),
 };
-const userName = { name: "userName", in: "path", required: true, schema: { type: "string" } };
+const userName = {
+  name: "userName",
+  in: "path",
+  required: true,
+  schema: { type: "string" },
+  description:
+    "Case-insensitive. A private profile is readable only by its owner (send the token or session); others get 404.",
+};
+const range = {
+  name: "range",
+  in: "query",
+  schema: {
+    enum: [
+      "this_week",
+      "this_month",
+      "this_year",
+      "week",
+      "month",
+      "quarter",
+      "half_yearly",
+      "year",
+      "all_time",
+    ],
+    default: "all_time",
+  },
+  description:
+    "this_* = current period so far; week, month, quarter, half_yearly, year = last complete one (UTC).",
+};
 const secured = [{ token: [] }, { session: [] }];
 
 export const openApiDocument = {
@@ -36,6 +63,15 @@ export const openApiDocument = {
       session: { type: "apiKey", in: "cookie", name: "better-auth.session_token" },
     },
     schemas: {
+      Me: {
+        type: "object",
+        properties: {
+          userName: { type: "string" },
+          listenCount: { type: "integer" },
+          createdAt: { type: "integer" },
+          private: { type: "boolean" },
+        },
+      },
       Error: {
         type: "object",
         required: ["code", "error"],
@@ -103,15 +139,20 @@ export const openApiDocument = {
       get: {
         summary: "The signed-in user",
         security: secured,
+        responses: { "200": ok("Profile", ref("Me")), "401": errors["401"] },
+      },
+      patch: {
+        summary: "Update the signed-in user's settings",
+        description:
+          "`private: true` hides the profile: its listens, now playing and stats answer 404 to everyone but the owner (with their token or session), exactly as for an unknown user.",
+        security: secured,
+        requestBody: {
+          required: true,
+          content: json({ type: "object", properties: { private: { type: "boolean" } } }),
+        },
         responses: {
-          "200": ok("Profile", {
-            type: "object",
-            properties: {
-              userName: { type: "string" },
-              listenCount: { type: "integer" },
-              createdAt: { type: "integer" },
-            },
-          }),
+          "200": ok("Updated profile", ref("Me")),
+          "400": errors["400"],
           "401": errors["401"],
         },
       },
@@ -119,7 +160,10 @@ export const openApiDocument = {
     "/listens": {
       post: {
         summary: "Submit up to 1000 listens",
-        description: "Duplicates (same time and track) are ignored.",
+        description:
+          "Idempotent: a listen identical to one already stored (same user, same `listenedAt`, same `track`) is ignored, " +
+          "so clients can safely resend after a network failure. `accepted` counts the listens received, `inserted` " +
+          "the new ones (a full resend answers `inserted: 0`).",
         security: secured,
         requestBody: {
           required: true,
@@ -155,7 +199,10 @@ export const openApiDocument = {
     "/now-playing": {
       put: {
         summary: "Set what is playing now",
-        description: "Expires after durationMs, or 8 minutes without it.",
+        description:
+          'Replaces the previous entry. It expires on its own, so a closed player does not stay "playing" forever: ' +
+          "after `durationMs` when given (capped at 1 hour), otherwise after 8 minutes (ListenBrainz's default). " +
+          "Now-playing is not a listen: submit the listen to `/listens` when the track is done.",
         security: secured,
         requestBody: { required: true, content: json(ref("Track")) },
         responses: { "204": ok("Set"), "400": errors["400"], "401": errors["401"] },
@@ -215,6 +262,120 @@ export const openApiDocument = {
         },
       },
     },
+    "/users/{userName}/stats/activity": {
+      get: {
+        summary: "Listens per day, for a chart",
+        description:
+          "Every day of the range is present, with 0 when nothing was played. `all_time` starts at the first listen.",
+        parameters: [
+          userName,
+          range,
+          {
+            name: "utcOffset",
+            in: "query",
+            schema: { type: "integer", minimum: -720, maximum: 840, default: 0 },
+            description:
+              "Minutes to add to UTC to cut days at local midnight (Paris: 60 in winter, 120 in summer).",
+          },
+        ],
+        responses: {
+          "200": ok("Activity", {
+            type: "object",
+            properties: {
+              range: { type: "string" },
+              from: { type: "integer" },
+              to: { type: "integer" },
+              utcOffset: { type: "integer" },
+              lastUpdated: { type: "integer" },
+              days: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    date: { type: "string", format: "date" },
+                    listenCount: { type: "integer" },
+                  },
+                },
+              },
+            },
+          }),
+          "400": errors["400"],
+          "404": errors["404"],
+        },
+      },
+    },
+    "/users/{userName}/stats/summary": {
+      get: {
+        summary: "Totals: listens, artists, recordings, releases",
+        parameters: [userName, range],
+        responses: {
+          "200": ok("Summary", {
+            type: "object",
+            properties: {
+              range: { type: "string" },
+              from: { type: "integer" },
+              to: { type: "integer" },
+              listenCount: { type: "integer" },
+              artistCount: { type: "integer" },
+              recordingCount: { type: "integer", description: "Distinct artist + title pairs." },
+              releaseCount: { type: "integer", description: "Distinct artist + album pairs." },
+              firstListenedAt: { type: ["integer", "null"] },
+              lastListenedAt: { type: ["integer", "null"] },
+              lastUpdated: { type: "integer" },
+            },
+          }),
+          "400": errors["400"],
+          "404": errors["404"],
+        },
+      },
+    },
+    "/users/{userName}/artists/{artistName}": {
+      get: {
+        summary: "An artist's page: totals and most played tracks",
+        parameters: [
+          userName,
+          {
+            name: "artistName",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Exact artist name, URL-encoded.",
+          },
+          range,
+          { name: "limit", in: "query", schema: { type: "integer", default: 25, maximum: 100 } },
+        ],
+        responses: {
+          "200": ok("Artist", {
+            type: "object",
+            properties: {
+              range: { type: "string" },
+              from: { type: "integer" },
+              to: { type: "integer" },
+              artist: { type: "string" },
+              mbids: { type: "array", items: { type: "string", format: "uuid" } },
+              listenCount: { type: "integer" },
+              trackCount: { type: "integer" },
+              firstListenedAt: { type: ["integer", "null"] },
+              lastListenedAt: { type: ["integer", "null"] },
+              lastUpdated: { type: "integer" },
+              topTracks: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    track: { type: "string" },
+                    album: { type: ["string", "null"] },
+                    recordingMbid: { type: ["string", "null"] },
+                    listenCount: { type: "integer" },
+                  },
+                },
+              },
+            },
+          }),
+          "404": ok("Unknown user, or no listen of this artist in the range", ref("Error")),
+        },
+      },
+    },
     "/users/{userName}/stats/{entity}": {
       get: {
         summary: "Top artists, recordings or releases",
@@ -226,24 +387,7 @@ export const openApiDocument = {
             required: true,
             schema: { enum: ["artists", "recordings", "releases"] },
           },
-          {
-            name: "range",
-            in: "query",
-            schema: {
-              enum: [
-                "this_week",
-                "this_month",
-                "this_year",
-                "week",
-                "month",
-                "quarter",
-                "half_yearly",
-                "year",
-                "all_time",
-              ],
-              default: "all_time",
-            },
-          },
+          range,
           { name: "limit", in: "query", schema: { type: "integer", default: 25, maximum: 100 } },
           { name: "offset", in: "query", schema: { type: "integer", default: 0 } },
         ],

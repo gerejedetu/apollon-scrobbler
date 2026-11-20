@@ -5,10 +5,15 @@
  * a cache adapter (KV, memory...) implements `Cache`.
  */
 import type {
+  ActivityQuery,
+  ArtistDetail,
+  ArtistQuery,
   ListenPage,
   ListenQuery,
   NewListen,
   PlayingNow,
+  Summary,
+  TimeWindow,
   TopQuery,
   TopResult,
   User,
@@ -24,6 +29,7 @@ export interface UserRepository {
   findByAuthId(authUserId: string): Promise<User | null>;
   /** Returns null when the name or the account is already taken (names are case-insensitive). */
   create(authUserId: string, name: string, createdAt: number): Promise<User | null>;
+  setPrivate(userId: UserId, isPrivate: boolean): Promise<User | null>;
 }
 
 /** Checks a raw ListenBrainz-style user token and returns the identity provider's account id. */
@@ -52,6 +58,11 @@ export interface ImportRepository {
 
 export interface StatsRepository {
   top(query: TopQuery): Promise<TopResult>;
+  /** Listen counts per local day; `day` = days since 1970-01-01 after applying the offset. Days without listens are omitted. */
+  activity(query: ActivityQuery): Promise<{ day: number; listenCount: number }[]>;
+  summary(userId: UserId, window: TimeWindow): Promise<Summary>;
+  /** Null when the user has no listen of this artist in the window. */
+  artist(query: ArtistQuery): Promise<ArtistDetail | null>;
 }
 
 export interface Repositories {

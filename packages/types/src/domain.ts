@@ -12,6 +12,8 @@ export interface User {
   createdAt: number;
   /** Maintained by the storage layer on every insert and delete. */
   listenCount: number;
+  /** When true, only the owner can read this user's listens and stats. */
+  isPrivate: boolean;
 }
 
 /** A listen validated by core and ready to be stored. */
@@ -89,4 +91,51 @@ export interface StatsResult extends TopResult {
   range: StatsRange;
   window: TimeWindow;
   lastUpdated: number;
+}
+
+export interface ActivityQuery {
+  userId: UserId;
+  window: TimeWindow;
+  /** Shift applied before cutting days, so days follow the viewer's local midnight. */
+  utcOffsetSeconds: number;
+}
+
+export interface ActivityDay {
+  /** Local calendar day, `YYYY-MM-DD`. */
+  date: string;
+  listenCount: number;
+}
+
+export interface Summary {
+  listenCount: number;
+  artistCount: number;
+  recordingCount: number;
+  releaseCount: number;
+  firstListenedAt: number | null;
+  lastListenedAt: number | null;
+}
+
+export interface ArtistTrack {
+  trackName: string;
+  releaseName: string | null;
+  recordingMbid: string | null;
+  listenCount: number;
+}
+
+export interface ArtistDetail {
+  artistName: string;
+  artistMbids: string[];
+  listenCount: number;
+  firstListenedAt: number | null;
+  lastListenedAt: number | null;
+  topTracks: ArtistTrack[];
+  /** Distinct tracks of this artist in the window. */
+  trackCount: number;
+}
+
+export interface ArtistQuery {
+  userId: UserId;
+  artistName: string;
+  window: TimeWindow;
+  limit: number;
 }

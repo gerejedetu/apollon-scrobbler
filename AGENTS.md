@@ -52,6 +52,7 @@ the container. Better Auth needs its own adapter for that database too.
 - Accounts, sessions and API keys are Better Auth's (`user`, `session`, `account`, `verification`, `apikey`).
 - A ListenBrainz user token is a Better Auth API key, sent as `Authorization: Token <key>`.
 - The scrobbler profile (`users` row) is created by the `user.create.after` hook; its `name` is the username.
+- Private profiles (`users.is_private`): every read of a user's data goes through `readableUser()` (apps/api/src/http/require-user.ts), which 404s for anyone but the owner. New read routes must use it.
 - Token checks are cached per isolate for 60 s (`AUTH_CACHE_TTL`), so a revoked key keeps working up to that long.
 
 ## Commands
