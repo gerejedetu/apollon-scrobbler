@@ -69,7 +69,7 @@ export class InsightsService {
     // Small histories are cheaper to recompute than to cache (see cache/policy.ts).
     if (!this.cache || user.listenCount < this.cacheMinListens) return compute();
     const version = byListenCount ? user.listenCount : "any";
-    const key = `insights:v1:${user.id}:${version}:${name}:${JSON.stringify(params)}`;
+    const key = `insights:v2:${user.id}:${version}:${name}:${JSON.stringify(params)}`;
     const hit = await this.cache.get<T>(key);
     if (hit !== null && hit !== undefined) return hit;
     const value = await compute();
@@ -473,7 +473,9 @@ export class InsightsService {
         ...this.meta(r),
         ...d,
         // Percentages of all listens in the range.
-        top10ArtistShare: share(d.top10ArtistListens),
+        // A joint listen counts for each of its artists, so the top 10 can add up to more than all
+        // listens: capped at 100 %.
+        top10ArtistShare: Math.min(100, share(d.top10ArtistListens)),
         topArtistShare: share(d.topArtistListens),
         uniqueArtistRatio: share(d.artistCount),
       };

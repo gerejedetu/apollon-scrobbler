@@ -72,7 +72,7 @@ export class StatsService {
     const window = rangeWindow(range, now);
 
     // Open-ended windows (this_*, all_time) end "now": key on their start only, the listen count covers new data.
-    const key = `stats:v1:${user.id}:${user.listenCount}:${entity}:${range}:${window.fromTs}:${limit}:${offset}`;
+    const key = `stats:v2:${user.id}:${user.listenCount}:${entity}:${range}:${window.fromTs}:${limit}:${offset}`;
     const cached = await this.cacheFor(user)?.get<StatsResult>(key);
     if (cached) return cached;
 
@@ -95,7 +95,7 @@ export class StatsService {
     const range = parseRange(rawRange);
     const now = this.clock();
     const window = rangeWindow(range, now);
-    const key = `stats:v1:${user.id}:${user.listenCount}:${kind}:${range}:${window.fromTs}`;
+    const key = `stats:v2:${user.id}:${user.listenCount}:${kind}:${range}:${window.fromTs}`;
     const cached = await this.cacheFor(user)?.get<Windowed<T>>(key);
     if (cached) return cached;
     const result: Windowed<T> = { range, window, lastUpdated: now, data: await compute(window) };

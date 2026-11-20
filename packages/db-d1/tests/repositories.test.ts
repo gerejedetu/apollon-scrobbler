@@ -323,3 +323,94 @@ describe("activity, summary, artist", () => {
     expect(plan.map((p) => p.detail).join(" ")).toContain("listens_user_artist_time");
   });
 });
+
+describe("joint credits", () => {
+  const JOINT = "Peso Pluma & Estevan Plazola";
+  const all = { fromTs: 0, toTs: T0 + 100 };
+
+  beforeEach(async () => {
+    await repos.listens.insertMany(
+      userId,
+      [
+        listen(1, { artistName: JOINT, trackName: "Duo", releaseName: "Split" }),
+        listen(2, { artistName: "Peso Pluma", trackName: "Solo", releaseName: "Solo LP" }),
+        listen(3, { artistName: "Simon & Garfunkel", trackName: "Boxer" }),
+      ],
+      T0,
+    );
+  });
+
+  test("a joint listen counts for each artist; bands stay whole", async () => {
+    const { rows, total } = await repos.stats.top({
+      userId,
+      entity: "artists",
+      window: all,
+      limit: 10,
+      offset: 0,
+    });
+    expect(Object.fromEntries(rows.map((r) => [r.artistName, r.listenCount]))).toEqual({
+      "Peso Pluma": 2,
+      "Estevan Plazola": 1,
+      "Simon & Garfunkel": 1,
+    });
+    expect(total).toBe(3);
+    const summary = await repos.stats.summary(userId, all);
+    expect(summary.listenCount).toBe(3);
+    expect(summary.artistCount).toBe(3);
+  });
+
+  test("tracks and albums keep the credit as written", async () => {
+    const { rows } = await repos.stats.top({
+      userId,
+      entity: "recordings",
+      window: all,
+      limit: 10,
+      offset: 0,
+    });
+    expect(rows.map((r) => r.artistName).sort()).toEqual(
+      [JOINT, "Peso Pluma", "Simon & Garfunkel"].sort(),
+    );
+  });
+
+  test("an artist page includes joint credits", async () => {
+    const page = await repos.stats.artist({
+      userId,
+      artistName: "Peso Pluma",
+      window: all,
+      limit: 10,
+    });
+    expect(page?.listenCount).toBe(2);
+    expect(page?.topTracks.map((t) => t.trackName).sort()).toEqual(["Duo", "Solo"]);
+    const partner = await repos.stats.artist({
+      userId,
+      artistName: "Estevan Plazola",
+      window: all,
+      limit: 10,
+    });
+    expect(partner?.listenCount).toBe(1);
+  });
+
+  test("diversity counts listens once and artists per name", async () => {
+    const d = await repos.insights.diversity({ userId, window: all, utcOffsetSeconds: 0 });
+    expect(d.listenCount).toBe(3);
+    expect(d.artistCount).toBe(3);
+    expect(d.topArtistListens).toBe(2);
+  });
+
+  test("re-importing the same credit adds nothing twice", async () => {
+    const inserted = await repos.listens.insertMany(
+      userId,
+      [listen(1, { artistName: JOINT, trackName: "Duo" })],
+      T0,
+    );
+    expect(inserted).toBe(0);
+    const { rows } = await repos.stats.top({
+      userId,
+      entity: "artists",
+      window: all,
+      limit: 10,
+      offset: 0,
+    });
+    expect(rows.find((r) => r.artistName === "Estevan Plazola")?.listenCount).toBe(1);
+  });
+});

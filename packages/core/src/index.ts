@@ -1,5 +1,6 @@
 export * from "./ports/index.ts";
 export { ApiError } from "./errors/index.ts";
+export { creditPairs, KEEP_WHOLE, splitArtistCredit } from "./artists/credits.ts";
 export { sha256Hex, uuidV5, timingSafeEqual } from "./crypto/index.ts";
 export { LISTEN_LIMITS } from "./listens/limits.ts";
 export {

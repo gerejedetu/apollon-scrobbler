@@ -1,25 +1,36 @@
 import type { StatsRepository } from "@scrobbler/core";
 import type { StatsEntity, TopRow } from "@scrobbler/types";
+import { ARTIST, ARTIST_LISTENS, creditedTo } from "../artists.ts";
 import type { D1Like } from "../d1.ts";
 import { parseJson } from "../rows.ts";
 
 interface EntitySql {
-  /** Extra columns besides artist_name and the count. */
+  /** Columns besides the count (artist_name first). */
   select: string;
+  from: string;
   group: string;
   filter: string;
 }
 
 const ENTITIES: Record<StatsEntity, EntitySql> = {
-  artists: { select: "max(artist_mbids) AS artist_mbids", group: "artist_name", filter: "" },
+  // A joint credit counts for each of its artists; its MBIDs belong to the credit, so they are dropped.
+  artists: {
+    select: `${ARTIST} AS artist_name, max(CASE WHEN artist IS NULL THEN artist_mbids END) AS artist_mbids`,
+    from: ARTIST_LISTENS,
+    group: ARTIST,
+    filter: "",
+  },
   recordings: {
     select:
-      "track_name, max(release_name) AS release_name, max(recording_mbid) AS recording_mbid, max(release_mbid) AS release_mbid, max(artist_mbids) AS artist_mbids",
+      "artist_name, track_name, max(release_name) AS release_name, max(recording_mbid) AS recording_mbid, max(release_mbid) AS release_mbid, max(artist_mbids) AS artist_mbids",
+    from: "listens",
     group: "artist_name, track_name",
     filter: "",
   },
   releases: {
-    select: "release_name, max(release_mbid) AS release_mbid, max(artist_mbids) AS artist_mbids",
+    select:
+      "artist_name, release_name, max(release_mbid) AS release_mbid, max(artist_mbids) AS artist_mbids",
+    from: "listens",
     group: "artist_name, release_name",
     filter: " AND release_name IS NOT NULL",
   },
@@ -44,11 +55,13 @@ export function d1Stats(db: D1Like): StatsRepository {
       const [rows, total] = await db.batch([
         db
           .prepare(
-            `SELECT artist_name, ${e.select}, count(*) AS listen_count FROM listens ${where} GROUP BY ${e.group} ORDER BY listen_count DESC, ${e.group} LIMIT ?4 OFFSET ?5`,
+            `SELECT ${e.select}, count(*) AS listen_count FROM ${e.from} ${where} GROUP BY ${e.group} ORDER BY listen_count DESC, ${e.group} LIMIT ?4 OFFSET ?5`,
           )
           .bind(userId, window.fromTs, window.toTs, limit, offset),
         db
-          .prepare(`SELECT count(*) AS n FROM (SELECT 1 FROM listens ${where} GROUP BY ${e.group})`)
+          .prepare(
+            `SELECT count(*) AS n FROM (SELECT 1 FROM ${e.from} ${where} GROUP BY ${e.group})`,
+          )
           .bind(userId, window.fromTs, window.toTs),
       ]);
       const out: TopRow[] = ((rows?.results ?? []) as StatsRow[]).map((r) => ({
@@ -77,7 +90,8 @@ export function d1Stats(db: D1Like): StatsRepository {
       // One pass over the window; the composite key separates artist and title with a NUL character.
       const row = await db
         .prepare(
-          `SELECT count(*) AS listens, count(DISTINCT artist_name) AS artists,
+          `SELECT count(*) AS listens,
+                  (SELECT count(DISTINCT ${ARTIST}) FROM ${ARTIST_LISTENS} WHERE user_id = ?1 AND listened_at BETWEEN ?2 AND ?3) AS artists,
                   count(DISTINCT artist_name || char(0) || track_name) AS recordings,
                   count(DISTINCT artist_name || char(0) || release_name) AS releases,
                   min(listened_at) AS first, max(listened_at) AS last
@@ -103,12 +117,13 @@ export function d1Stats(db: D1Like): StatsRepository {
     },
 
     async artist({ userId, artistName, window, limit }) {
-      // All three statements are bounded by the (user_id, artist_name, listened_at) index.
-      const where = "WHERE user_id = ?1 AND artist_name = ?2 AND listened_at BETWEEN ?3 AND ?4";
+      // All three statements are bounded by the (user_id, artist_name, listened_at) index, once per credit
+      // naming the artist (their own name and joint credits).
+      const where = `WHERE user_id = ?1 AND ${creditedTo(2)} AND listened_at BETWEEN ?3 AND ?4`;
       const [head, tracks, albums] = await db.batch([
         db
           .prepare(
-            `SELECT count(*) AS listens, count(DISTINCT track_name) AS tracks, count(DISTINCT release_name) AS albums, min(listened_at) AS first, max(listened_at) AS last, max(artist_mbids) AS artist_mbids FROM listens ${where}`,
+            `SELECT count(*) AS listens, count(DISTINCT track_name) AS tracks, count(DISTINCT release_name) AS albums, min(listened_at) AS first, max(listened_at) AS last, max(CASE WHEN artist_name = ?2 THEN artist_mbids END) AS artist_mbids FROM listens ${where}`,
           )
           .bind(userId, artistName, window.fromTs, window.toTs),
         db

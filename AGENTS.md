@@ -57,6 +57,10 @@ the container. Better Auth needs its own adapter for that database too.
   - `users.listen_count` is maintained in the same batch via `changes()`, never by counting;
   - every listen read is bounded by the `(user_id, listened_at, track_name)` index;
   - stats are cached in KV, keyed by the user's listen count (new listens invalidate naturally).
+- Artist-level stats count a joint credit ("A & B", "A feat. B") for each artist: core's `splitArtistCredit` decides
+  the split, `artist_credits` (0005) stores it for joint credits only, written in the insert batch; queries go through
+  `packages/db-d1/src/artists.ts`. Tracks and albums keep the credit as written. After changing the split rules,
+  rerun `vp run db:backfill-credits:remote` in apps/api and bump the stats cache key version.
 - Tests assert round trips through `SqliteD1.roundTrips`; keep hot paths at one round trip.
 
 ## Auth

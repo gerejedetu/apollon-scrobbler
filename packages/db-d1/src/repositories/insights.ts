@@ -1,12 +1,14 @@
 /**
  * SQL for the extended statistics. Every method is one statement or one batch (one round trip), and every
  * statement is bounded by an index on (user_id, listened_at, ...) or (user_id, artist_name, listened_at).
+ * Artist-level results count a joint credit ("A & B") for each artist it names (see ../artists.ts).
  *
  * Bound JS numbers can arrive as REAL, so offsets used in arithmetic are CAST to INTEGER: otherwise
  * `/ 86400` would not be an integer division.
  */
 import type { InsightsRepository } from "@scrobbler/core";
 import type { Bucket, EntityKey, InsightEntity } from "@scrobbler/types";
+import { ARTIST, ARTIST_LISTENS, creditedTo } from "../artists.ts";
 import type { D1Like } from "../d1.ts";
 
 /** Local time of a listen, given the offset bound at `?${n}`. */
@@ -32,23 +34,28 @@ function bucketExpr(bucket: Exclude<Bucket, "hour_weekday">, t: string): string 
 
 interface EntitySql {
   cols: string;
+  from: string;
   group: string;
   filter: string;
 }
 
 const ENTITY: Record<InsightEntity, EntitySql> = {
+  // A joint credit counts for each of its artists (see ../artists.ts).
   artists: {
-    cols: "artist_name, NULL AS track_name, NULL AS release_name",
-    group: "artist_name",
+    cols: `${ARTIST} AS artist_name, NULL AS track_name, NULL AS release_name`,
+    from: ARTIST_LISTENS,
+    group: ARTIST,
     filter: "",
   },
   recordings: {
     cols: "artist_name, track_name, max(release_name) AS release_name",
+    from: "listens",
     group: "artist_name, track_name",
     filter: "",
   },
   releases: {
     cols: "artist_name, NULL AS track_name, release_name",
+    from: "listens",
     group: "artist_name, release_name",
     filter: " AND release_name IS NOT NULL",
   },
@@ -69,10 +76,13 @@ function toKey(r: Row) {
   };
 }
 
-/** WHERE fragment for one artist / track / album, with its parameters appended to `params`. */
+/**
+ * WHERE fragment for one artist / track / album, with its parameters appended to `params`. The artist
+ * matches its own credit and the joint credits naming it.
+ */
 function keyFilter(key: EntityKey, params: unknown[]): string {
   params.push(key.artistName);
-  let sql = ` AND artist_name = ?${params.length}`;
+  let sql = ` AND ${creditedTo(params.length)}`;
   if (key.trackName) {
     params.push(key.trackName);
     sql += ` AND track_name = ?${params.length}`;
@@ -147,7 +157,7 @@ export function d1Insights(db: D1Like): InsightsRepository {
       const rows = await all<Row & { first: number; total: number }>(
         `WITH firsts AS (
            SELECT ${e.cols}, min(listened_at) AS first, count(*) AS listen_count
-           FROM listens WHERE user_id = ?1${e.filter} GROUP BY ${e.group}
+           FROM ${e.from} WHERE user_id = ?1${e.filter} GROUP BY ${e.group}
          )
          SELECT *, (SELECT count(*) FROM firsts WHERE first BETWEEN ?2 AND ?3) AS total
          FROM firsts WHERE first BETWEEN ?2 AND ?3 ORDER BY listen_count DESC, first LIMIT ?4`,
@@ -170,7 +180,7 @@ export function d1Insights(db: D1Like): InsightsRepository {
       const e = ENTITY[entity];
       const rows = await all<Row & { last: number }>(
         `SELECT ${e.cols}, count(*) AS listen_count, max(listened_at) AS last
-         FROM listens WHERE user_id = ?1${e.filter} GROUP BY ${e.group}
+         FROM ${e.from} WHERE user_id = ?1${e.filter} GROUP BY ${e.group}
          HAVING last < ?2 AND listen_count >= ?3 ORDER BY listen_count DESC LIMIT ?4`,
         userId,
         before,
@@ -194,7 +204,7 @@ export function d1Insights(db: D1Like): InsightsRepository {
       const rows = await all<Row & { cur: number; prev: number; change: number }>(
         `SELECT ${e.cols}, sum(listened_at >= ?4) AS cur, sum(listened_at <= ?3) AS prev,
                 sum(listened_at >= ?4) - sum(listened_at <= ?3) AS change, 0 AS listen_count
-         FROM listens WHERE user_id = ?1 AND listened_at BETWEEN ?2 AND ?5${e.filter}
+         FROM ${e.from} WHERE user_id = ?1 AND listened_at BETWEEN ?2 AND ?5${e.filter}
          GROUP BY ${e.group} ORDER BY ${by}, ${e.group} LIMIT ?6`,
         userId,
         previous.fromTs,
@@ -270,7 +280,7 @@ export function d1Insights(db: D1Like): InsightsRepository {
         `SELECT * FROM (
            SELECT ${period} AS period, ${e.cols}, count(*) AS listen_count,
                   row_number() OVER (PARTITION BY ${period} ORDER BY count(*) DESC, ${e.group}) AS rk
-           FROM listens WHERE ${WINDOW}${e.filter} GROUP BY period, ${e.group}
+           FROM ${e.from} WHERE ${WINDOW}${e.filter} GROUP BY period, ${e.group}
          ) WHERE rk <= ?5 ORDER BY period, rk`,
         userId,
         window.fromTs,
@@ -293,8 +303,9 @@ export function d1Insights(db: D1Like): InsightsRepository {
         top10: number | null;
         top: number | null;
       }>(
-        `WITH a AS (SELECT artist_name, count(*) AS c FROM listens WHERE ${WINDOW} GROUP BY artist_name)
-         SELECT (SELECT sum(c) FROM a) AS listens, (SELECT count(*) FROM a) AS artists,
+        // Artists count joint credits once per artist; the listen total counts each listen once.
+        `WITH a AS (SELECT ${ARTIST} AS who, count(*) AS c FROM ${ARTIST_LISTENS} WHERE ${WINDOW} GROUP BY who)
+         SELECT (SELECT count(*) FROM listens WHERE ${WINDOW}) AS listens, (SELECT count(*) FROM a) AS artists,
                 (SELECT sum(c) FROM (SELECT c FROM a ORDER BY c DESC LIMIT 10)) AS top10,
                 (SELECT max(c) FROM a) AS top`,
         userId,

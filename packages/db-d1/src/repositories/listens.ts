@@ -1,5 +1,6 @@
-import type { ListenRepository } from "@scrobbler/core";
+import { creditPairs, type ListenRepository } from "@scrobbler/core";
 import type { NewListen } from "@scrobbler/types";
+import { INSERT_CREDITS_SQL } from "../artists.ts";
 import type { D1Like, D1StatementLike } from "../d1.ts";
 import { jsonOrNull, LISTEN_COLUMNS, type ListenRow, toListen } from "../rows.ts";
 
@@ -62,12 +63,19 @@ export function d1Listens(db: D1Like): ListenRepository {
     async insertMany(userId, listens, insertedAt) {
       if (listens.length === 0) return 0;
       const statements: D1StatementLike[] = [];
+      // Joint credits ("A & B") get their artists recorded in the same batch, so stats see them at once.
+      const pairs = creditPairs(listens.map((l) => l.artistName));
+      if (pairs.length) statements.push(db.prepare(INSERT_CREDITS_SQL).bind(JSON.stringify(pairs)));
+      const first = statements.length;
       for (const chunk of chunkBySize(listens.map(toTuple))) {
         statements.push(db.prepare(INSERT_SQL).bind(userId, insertedAt, chunk));
         statements.push(db.prepare(BUMP_COUNT_SQL).bind(userId, 1));
       }
       const results = await db.batch(statements);
-      return results.filter((_, i) => i % 2 === 0).reduce((n, r) => n + r.meta.changes, 0);
+      return results
+        .slice(first)
+        .filter((_, i) => i % 2 === 0)
+        .reduce((n, r) => n + r.meta.changes, 0);
     },
 
     async page({ userId, minTs, maxTs, limit }) {
