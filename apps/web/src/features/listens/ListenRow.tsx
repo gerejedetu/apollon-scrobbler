@@ -1,8 +1,7 @@
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 import { css } from "styled-system/css";
 import type { Listen, Track } from "../../api/index.ts";
 import { formatListenedAt } from "../../lib/format/index.ts";
-import { Button } from "../../ui/primitives/index.ts";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { AlbumCover } from "../../ui/cover/index.ts";
 
@@ -74,65 +73,15 @@ export function ListenRow({
   );
 }
 
-/** A stored listen; its owner can act on it, and deleting asks first, in the row itself. */
+/** A stored listen; its owner can act on it from the "⋯" menu (deleting is immediate). */
 export function ListenItem({ listen, now }: { listen: Listen; now?: number }) {
   const fav = useFavourites();
-  const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
   if (fav.isDeleted(listen)) return null;
-  if (confirming)
-    return (
-      <div
-        className={css({
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: "12px 16px",
-          py: "14px",
-          px: "8px",
-          bg: "dangerBg",
-          borderTop: "1px solid token(colors.ruleSoft)",
-          fontSize: "13px",
-        })}
-      >
-        <span
-          className={css({
-            flex: "1 1 200px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-          })}
-        >
-          <b className={css({ fontWeight: "600" })}>Supprimer l'écoute de « {listen.track} » ?</b>
-          <span className={css({ fontSize: "12px", color: "dangerInk" })}>
-            Elle disparaît de ton historique et de tes stats.
-          </span>
-        </span>
-        <span className={css({ display: "flex", gap: "8px" })}>
-          <Button tone="outline" size="xs" onClick={() => setConfirming(false)} disabled={busy}>
-            Annuler
-          </Button>
-          <Button
-            tone="danger"
-            size="xs"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              await fav.deleteListen(listen);
-              setBusy(false);
-              setConfirming(false);
-            }}
-          >
-            Supprimer
-          </Button>
-        </span>
-      </div>
-    );
   return (
     <ListenRow
       track={listen}
       when={formatListenedAt(listen.listenedAt, now)}
-      actions={<ListenActions listen={listen} onDelete={() => setConfirming(true)} />}
+      actions={<ListenActions listen={listen} onDelete={() => void fav.deleteListen(listen)} />}
     />
   );
 }

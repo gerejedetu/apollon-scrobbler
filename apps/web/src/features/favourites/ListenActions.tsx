@@ -4,7 +4,7 @@ import { FlameIcon, HeartIcon, TrashIcon } from "../../ui/icons.tsx";
 import { ActionMenu } from "../../ui/zag/index.ts";
 import { useFavourites } from "./context.tsx";
 
-/** The "⋯" of a listen, for its owner: love, obsession, delete (asks first, see ListenItem). */
+/** The "⋯" of a listen, for its owner: love, obsession, delete. */
 export function ListenActions({ listen, onDelete }: { listen: Listen; onDelete: () => void }) {
   const fav = useFavourites();
   if (!fav.owner) return null;
