@@ -168,6 +168,8 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           artistMbids: [],
           listenCount: mine.length,
           trackCount: tracks.length,
+          albumCount: 0,
+          albums: [],
           firstListenedAt: Math.min(...mine.map((l) => l.listenedAt)),
           lastListenedAt: Math.max(...mine.map((l) => l.listenedAt)),
           topTracks: tracks.slice(0, limit).map(([trackName, listenCount]) => ({

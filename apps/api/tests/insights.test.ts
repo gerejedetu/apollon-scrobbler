@@ -3,6 +3,7 @@
  * The fixture is small and hand-checkable; times are UTC unless a test passes utcOffset.
  */
 import { beforeAll, describe, expect, test } from "vite-plus/test";
+import { openApiDocument } from "../src/protocols/native/openapi.ts";
 import { testApi, type TestApi } from "./helpers.ts";
 
 const at = (iso: string) => Date.parse(iso) / 1000;
@@ -365,5 +366,40 @@ describe("pages and evolution (17-26)", () => {
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
       body: '{"private":false}',
     });
+  });
+});
+
+describe("the spec documents every field", () => {
+  type Schema = { properties?: Record<string, Schema>; items?: Schema; type?: unknown };
+  /** Returns the paths of response fields missing from the schema (objects and arrays are checked recursively). */
+  function undocumented(value: unknown, schema: Schema | undefined, path: string): string[] {
+    if (!schema || value === null || typeof value !== "object") return [];
+    if (Array.isArray(value))
+      return value.length && schema.items ? undocumented(value[0], schema.items, `${path}[]`) : [];
+    if (!schema.properties) return [];
+    return Object.entries(value).flatMap(([k, v]) =>
+      k in schema.properties!
+        ? undocumented(v, schema.properties![k], `${path}.${k}`)
+        : [`${path}.${k}`],
+    );
+  }
+
+  test.each([
+    ["/users/{userName}/stats/wrapped", "/stats/wrapped?year=2026"],
+    ["/users/{userName}/stats/summary", "/stats/summary"],
+    ["/users/{userName}/stats/streaks", "/stats/streaks"],
+    ["/users/{userName}/stats/sessions", "/stats/sessions"],
+    ["/users/{userName}/stats/discoveries", "/stats/discoveries"],
+    ["/users/{userName}/stats/milestones", "/stats/milestones"],
+    ["/users/{userName}/stats/on-this-day", "/stats/on-this-day?date=2026-11-19"],
+    ["/users/{userName}/artists/{artistName}", "/artists/Air"],
+    ["/users/{userName}/albums/{artistName}/{albumName}", "/albums/Air/Moon%20Safari"],
+  ])("%s", async (specPath, url) => {
+    const paths = openApiDocument.paths as unknown as Record<
+      string,
+      { get: { responses: { "200": { content: { "application/json": { schema: Schema } } } } } }
+    >;
+    const schema = paths[specPath]!.get.responses["200"].content["application/json"].schema;
+    expect(undocumented(await get(url), schema, "")).toEqual([]);
   });
 });

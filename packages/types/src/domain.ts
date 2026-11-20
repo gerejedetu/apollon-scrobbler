@@ -122,6 +122,16 @@ export interface ArtistTrack {
   listenCount: number;
 }
 
+export interface ArtistAlbum {
+  releaseName: string;
+  releaseMbid: string | null;
+  listenCount: number;
+  /** Distinct tracks of this album that were played. */
+  trackCount: number;
+  firstListenedAt: number;
+  lastListenedAt: number;
+}
+
 export interface ArtistDetail {
   artistName: string;
   artistMbids: string[];
@@ -129,6 +139,10 @@ export interface ArtistDetail {
   firstListenedAt: number | null;
   lastListenedAt: number | null;
   topTracks: ArtistTrack[];
+  /** This artist's albums, most played first. */
+  albums: ArtistAlbum[];
+  /** Distinct albums of this artist in the window. */
+  albumCount: number;
   /** Distinct tracks of this artist in the window. */
   trackCount: number;
 }

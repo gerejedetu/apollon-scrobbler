@@ -141,6 +141,7 @@ export const nativeRoutes = new Hono<AppEnv>()
       mbids: r.data.artistMbids,
       listenCount: r.data.listenCount,
       trackCount: r.data.trackCount,
+      albumCount: r.data.albumCount,
       firstListenedAt: r.data.firstListenedAt,
       lastListenedAt: r.data.lastListenedAt,
       topTracks: r.data.topTracks.map((t) => ({
@@ -148,6 +149,14 @@ export const nativeRoutes = new Hono<AppEnv>()
         album: t.releaseName,
         recordingMbid: t.recordingMbid,
         listenCount: t.listenCount,
+      })),
+      albums: r.data.albums.map((a) => ({
+        album: a.releaseName,
+        releaseMbid: a.releaseMbid,
+        listenCount: a.listenCount,
+        trackCount: a.trackCount,
+        firstListenedAt: a.firstListenedAt,
+        lastListenedAt: a.lastListenedAt,
       })),
       lastUpdated: r.lastUpdated,
     });

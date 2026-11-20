@@ -316,6 +316,10 @@ describe("more stats", () => {
       topTracks: [{ track: "Playground Love", album: "The Virgin Suicides", listenCount: 2 }],
     });
     expect(air.body.topTracks).toHaveLength(1);
+    expect(air.body.albumCount).toBe(2);
+    expect(
+      air.body.albums.map((a: { album: string; listenCount: number }) => [a.album, a.listenCount]),
+    ).toEqual([["The Virgin Suicides", 2]]);
     expect((await api.json("/v1/users/alice/artists/Nobody")).status).toBe(404);
   });
 });

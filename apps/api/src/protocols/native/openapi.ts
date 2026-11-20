@@ -108,6 +108,15 @@ function insight(
     },
   };
 }
+const nullableObject = (properties: Record<string, unknown>, description?: string) => ({
+  type: ["object", "null"],
+  properties,
+  ...(description ? { description } : {}),
+});
+const list = (properties: Record<string, unknown>) => ({
+  type: "array",
+  items: { type: "object", properties },
+});
 const rangeProps = {
   range: { type: "string" },
   from: { type: "integer" },
@@ -148,6 +157,7 @@ const insightPaths = {
     "The current streak is alive if the last listening day is today or yesterday (local time).",
     [utcOffsetParam],
     {
+      utcOffset: { type: "integer" },
       activeDays: { type: "integer" },
       current: {
         type: "object",
@@ -340,20 +350,52 @@ const insightPaths = {
     ],
     {
       year: { type: "integer" },
+      utcOffset: { type: "integer" },
+      from: { type: "integer" },
+      to: { type: "integer" },
+      recordingCount: { type: "integer" },
+      releaseCount: { type: "integer" },
+      firstListenedAt: { type: ["integer", "null"] },
+      lastListenedAt: { type: ["integer", "null"] },
       listenCount: { type: "integer" },
       artistCount: { type: "integer" },
       listeningTimeMs: { type: "integer" },
       activeDays: { type: "integer" },
       longestStreakDays: { type: "integer" },
-      busiestDay: { type: ["object", "null"] },
-      busiestMonth: { type: ["object", "null"] },
-      favouriteHour: { type: ["object", "null"] },
-      topArtists: { type: "array" },
-      topTracks: { type: "array" },
-      topAlbums: { type: "array" },
+      busiestDay: nullableObject(
+        { date: { type: "string", format: "date" }, listenCount: { type: "integer" } },
+        "Local calendar day with the most listens.",
+      ),
+      busiestMonth: nullableObject({
+        month: { type: "string", description: "YYYY-MM" },
+        listenCount: { type: "integer" },
+      }),
+      favouriteHour: nullableObject({
+        hour: { type: "integer", minimum: 0, maximum: 23, description: "Local hour." },
+        listenCount: { type: "integer" },
+      }),
+      topArtists: list({ artist: { type: "string" }, listenCount: { type: "integer" } }),
+      topTracks: list({
+        artist: { type: "string" },
+        track: { type: "string" },
+        listenCount: { type: "integer" },
+      }),
+      topAlbums: list({
+        artist: { type: "string" },
+        album: { type: "string" },
+        listenCount: { type: "integer" },
+      }),
       newArtists: { type: "integer" },
       newTracks: { type: "integer" },
-      longestSession: { type: ["object", "null"] },
+      topDiscoveries: counted({ firstListenedAt: { type: "integer" } }),
+      longestSession: nullableObject(
+        {
+          listenCount: { type: "integer" },
+          startedAt: { type: "integer" },
+          endedAt: { type: "integer" },
+        },
+        "Listens with less than 30 minutes between them.",
+      ),
     },
   ),
   "/users/{userName}/stats/milestones": insight(
@@ -387,6 +429,7 @@ const insightPaths = {
       limitParam(5),
     ],
     {
+      utcOffset: { type: "integer" },
       date: { type: "string" },
       years: {
         type: "array",
@@ -794,7 +837,7 @@ export const openApiDocument = {
     },
     "/users/{userName}/artists/{artistName}": {
       get: {
-        summary: "An artist's page: totals and most played tracks",
+        summary: "An artist's page: totals, most played tracks and albums",
         parameters: [
           userName,
           {
@@ -821,6 +864,23 @@ export const openApiDocument = {
               firstListenedAt: { type: ["integer", "null"] },
               lastListenedAt: { type: ["integer", "null"] },
               lastUpdated: { type: "integer" },
+              albumCount: { type: "integer" },
+              albums: {
+                type: "array",
+                description:
+                  "This artist's albums in the range, most played first (up to `limit`).",
+                items: {
+                  type: "object",
+                  properties: {
+                    album: { type: "string" },
+                    releaseMbid: { type: ["string", "null"] },
+                    listenCount: { type: "integer" },
+                    trackCount: { type: "integer" },
+                    firstListenedAt: { type: "integer" },
+                    lastListenedAt: { type: "integer" },
+                  },
+                },
+              },
               topTracks: {
                 type: "array",
                 items: {
