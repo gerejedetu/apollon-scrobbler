@@ -5,7 +5,7 @@ browse your listening history, and get detailed listening stats and a yearly "Wr
 handing your data to a third party. A free, open source alternative to Last.fm and a self-hostable
 ListenBrainz server, built on Cloudflare Workers, D1 and KV with Hono and Better Auth.
 
-![Profile page with top albums, on repeat, milestones and recent activity](docs/screenshots/profile.jpg)
+![Profile page with top albums, on repeat, milestones and recent activity](docs/screenshots/profile.png)
 
 ## Why
 
@@ -31,17 +31,13 @@ ListenBrainz server, built on Cloudflare Workers, D1 and KV with Hono and Better
 
 The web front is called **Needle**. Its interface is currently in French.
 
-| Listening stats                                                                                                                     | Listening clock                                                                                        |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| ![Listening stats for the month: listens, artists, albums and tracks compared with the previous period](docs/screenshots/stats.jpg) | ![Daily listening chart and listening clock by hour and weekday](docs/screenshots/listening-clock.jpg) |
+| Listening stats                                                                                                                     | Top artists                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| ![Listening stats for the month: listens, artists, albums and tracks compared with the previous period](docs/screenshots/stats.png) | ![Top artists for the month with period filters](docs/screenshots/top-artists.png) |
 
-| Year in review                                                                                                 | Artist of the year                                                                               |
-| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| ![Year in review: total listens, artists, tracks, albums and active days](docs/screenshots/year-in-review.jpg) | ![Year in review: artist of the year and runners-up](docs/screenshots/year-in-review-artist.jpg) |
-
-| Listening history                                                    | Artist page                                                                                       |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| ![Listening history with album covers](docs/screenshots/history.jpg) | ![Artist page with play counts, first listen and a monthly timeline](docs/screenshots/artist.jpg) |
+| Year in review                                                                                                 | Artist page                                                                                       |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| ![Year in review: total listens, artists, tracks, albums and active days](docs/screenshots/year-in-review.png) | ![Artist page with play counts, first listen and a monthly timeline](docs/screenshots/artist.png) |
 
 ## Compatible scrobbling apps
 
