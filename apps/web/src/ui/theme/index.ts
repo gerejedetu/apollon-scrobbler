@@ -15,3 +15,6 @@ const radii = {
 
 export const tokens = { colors, fonts, radii };
 export const semanticTokens = {};
+
+/** Phone-first: below `sm` secondary columns (bars beside lists) are hidden. */
+export const breakpoints = { sm: "640px", md: "768px", lg: "1024px" };
