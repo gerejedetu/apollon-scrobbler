@@ -18,7 +18,7 @@ export interface CoverQuery {
 }
 
 export function readCoverQuery(url: URL): CoverQuery | null {
-  const artist = url.searchParams.get("artist")?.trim();
+  const artist = url.searchParams.get("artist")?.replace(/\s+/g, " ").trim();
   if (!artist || artist.length > 300) return null;
   const kind = url.searchParams.get("kind") === "artist" ? "artist" : "album";
   const album = url.searchParams.get("album")?.trim() || undefined;
@@ -44,8 +44,25 @@ export function cleanTitle(title: string): string {
     .trim();
 }
 
-/** Searches to try, most precise first. */
+/**
+ * The lead artist of a credit: "Peso Pluma & Estevan Plazola" → "Peso Pluma", "A feat. B" → "A".
+ * Only used as a fallback after the full credit, so names like "Earth, Wind & Fire" still match first.
+ */
+export function primaryArtist(artist: string): string {
+  const lead = artist
+    .split(/\s*(?:&|\+|,|;|\/|\s(?:feat\.?|ft\.?|featuring|with|avec|x|vs\.?|et|and)\s)\s*/i)[0]
+    ?.trim();
+  return lead || artist;
+}
+
+/** Searches to try, most precise first; then the same with the lead artist alone. */
 export function searches(q: CoverQuery): string[] {
+  const lead = primaryArtist(q.artist);
+  const full = searchesFor(q);
+  return lead === q.artist ? full : [...full, ...searchesFor({ ...q, artist: lead })];
+}
+
+function searchesFor(q: CoverQuery): string[] {
   const quote = (s: string) => `"${s.replace(/"/g, "")}"`;
   if (q.kind === "artist") return [`/search/artist?q=${encodeURIComponent(q.artist)}&limit=1`];
   const out: string[] = [];

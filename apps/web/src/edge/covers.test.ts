@@ -1,5 +1,12 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import { cleanTitle, findCover, handleCovers, readCoverQuery, searches } from "./covers.ts";
+import {
+  cleanTitle,
+  findCover,
+  handleCovers,
+  primaryArtist,
+  readCoverQuery,
+  searches,
+} from "./covers.ts";
 import { lookupUrl } from "../ui/cover/artwork.ts";
 
 const IMG = "https://cdn-images.dzcdn.net/images/cover/abc/500x500-000000-80-0-0.jpg";
@@ -20,6 +27,28 @@ describe("cover lookup", () => {
     });
     expect(readCoverQuery(new URL("https://x/covers?artist=A"))).toBeNull();
     expect(lookupUrl({ kind: "album", artist: "A" })).toBeNull();
+  });
+
+  test("the lead artist of a credit", () => {
+    expect(primaryArtist("Peso Pluma & Estevan Plazola")).toBe("Peso Pluma");
+    expect(primaryArtist("Peso Pluma\n & \nEstevan Plazola".replace(/\s+/g, " "))).toBe(
+      "Peso Pluma",
+    );
+    expect(primaryArtist("Jennie feat. Doechii")).toBe("Jennie");
+    expect(primaryArtist("Peso Pluma, Tito Double P")).toBe("Peso Pluma");
+    expect(primaryArtist("Bad Bunny x Jhayco")).toBe("Bad Bunny");
+    expect(primaryArtist("Charli XCX")).toBe("Charli XCX");
+    expect(primaryArtist("Nicki Minaj")).toBe("Nicki Minaj");
+  });
+
+  test("full credit first, then the lead artist", () => {
+    const q = readCoverQuery(
+      new URL("https://x/covers?artist=Peso%20Pluma%20%26%20Estevan%20Plazola&album=B"),
+    )!;
+    const all = searches(q);
+    expect(all).toHaveLength(4);
+    expect(decodeURIComponent(all[0]!)).toContain('artist:"Peso Pluma & Estevan Plazola"');
+    expect(decodeURIComponent(all[2]!)).toContain('artist:"Peso Pluma"');
   });
 
   test("titles lose decorations that make search miss", () => {
