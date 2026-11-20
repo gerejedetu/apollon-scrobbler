@@ -1,5 +1,5 @@
 /** Minimal in-memory `Repositories` used to test services without a database. */
-import type { PlayingNow, StoredListen, TopRow, User } from "@scrobbler/types";
+import type { FavouriteTrack, PlayingNow, StoredListen, TopRow, User } from "@scrobbler/types";
 import type { InsightsRepository, Repositories, TokenVerifier } from "../src/index.ts";
 
 /** Raw token -> account id, standing in for the identity provider. */
@@ -13,8 +13,34 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
   const playing = new Map<number, PlayingNow>();
   const imports = new Map<string, number>();
 
+  const loved = new Map<string, FavouriteTrack>();
+  const obsessions = new Map<number, FavouriteTrack>();
+  const lovedKey = (userId: number, artist: string, track: string) =>
+    `${userId}\u0000${artist}\u0000${track}`;
   return {
     _listens: listens,
+    favourites: {
+      async love(userId, t) {
+        loved.set(lovedKey(userId, t.artistName, t.trackName), t);
+      },
+      async unlove(userId, artist, track) {
+        loved.delete(lovedKey(userId, artist, track));
+      },
+      async loved(userId, limit, offset) {
+        const mine = [...loved.entries()]
+          .filter(([k]) => k.startsWith(`${userId}\u0000`))
+          .map(([, t]) => t)
+          .sort((a, b) => b.at - a.at);
+        return { items: mine.slice(offset, offset + limit), total: mine.length };
+      },
+      async setObsession(userId, t) {
+        if (t) obsessions.set(userId, t);
+        else obsessions.delete(userId);
+      },
+      async obsession(userId) {
+        return obsessions.get(userId) ?? null;
+      },
+    },
     users: {
       async findByName(name) {
         const u = users.find((x) => x.name.toLowerCase() === name.toLowerCase());

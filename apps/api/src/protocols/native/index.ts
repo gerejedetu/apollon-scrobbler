@@ -5,6 +5,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { AppEnv } from "../../env.ts";
+import { favouriteRoutes } from "./favourites.ts";
 import { openApiDocument } from "./openapi.ts";
 import { insightRoutes } from "./insights.ts";
 import { nativeRoutes } from "./routes.ts";
@@ -36,4 +37,5 @@ export const nativeApi = new Hono<AppEnv>()
 </html>`),
   )
   .route("/", insightRoutes)
+  .route("/", favouriteRoutes)
   .route("/", nativeRoutes);

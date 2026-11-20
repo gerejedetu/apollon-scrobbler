@@ -153,3 +153,13 @@ export interface ArtistQuery {
   window: TimeWindow;
   limit: number;
 }
+
+/** A track the user loves, or their current obsession. `at` is when it was set (Unix seconds). */
+export interface FavouriteTrack {
+  artistName: string;
+  trackName: string;
+  releaseName: string | null;
+  recordingMbid: string | null;
+  releaseMbid: string | null;
+  at: number;
+}

@@ -3,6 +3,7 @@
  * Apps call this once per request (it is cheap: plain objects, no I/O).
  */
 import { AuthService } from "./auth/service.ts";
+import { FavouriteService } from "./favourites/service.ts";
 import { ImportService } from "./imports/service.ts";
 import { InsightsService } from "./insights/service.ts";
 import { ListenService } from "./listens/service.ts";
@@ -33,6 +34,7 @@ export interface Services {
   stats: StatsService;
   imports: ImportService;
   insights: InsightsService;
+  favourites: FavouriteService;
 }
 
 export function createServices(
@@ -54,5 +56,6 @@ export function createServices(
       options.cache,
       options.cacheMinListens,
     ),
+    favourites: new FavouriteService(repos.favourites, clock),
   };
 }

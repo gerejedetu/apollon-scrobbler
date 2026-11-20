@@ -599,6 +599,39 @@ const baseDocument = {
           },
         ],
       },
+      FavouriteInput: {
+        type: "object",
+        required: ["artist", "track"],
+        properties: {
+          artist: { type: "string" },
+          track: { type: "string" },
+          album: { type: ["string", "null"] },
+          mbids: {
+            type: "object",
+            properties: {
+              recording: { type: ["string", "null"] },
+              release: { type: ["string", "null"] },
+            },
+          },
+        },
+      },
+      Favourite: {
+        type: "object",
+        properties: {
+          artist: { type: "string" },
+          track: { type: "string" },
+          album: { type: ["string", "null"] },
+          mbids: {
+            type: "object",
+            properties: {
+              recording: { type: ["string", "null"] },
+              release: { type: ["string", "null"] },
+            },
+          },
+          lovedAt: { type: "integer", description: "When it was loved (loved list)." },
+          since: { type: "integer", description: "Since when it is the obsession." },
+        },
+      },
       Listen: {
         allOf: [
           ref("Track"),
@@ -636,6 +669,77 @@ const baseDocument = {
           "200": ok("Updated profile", ref("Me")),
           "400": errors["400"],
           "401": errors["401"],
+        },
+      },
+    },
+    "/me/loved": {
+      put: {
+        summary: "Love a track",
+        security: secured,
+        requestBody: { required: true, content: json(ref("FavouriteInput")) },
+        responses: { "204": ok("Loved"), "400": errors["400"], "401": errors["401"] },
+      },
+      delete: {
+        summary: "Stop loving a track",
+        security: secured,
+        parameters: [
+          q("artist", { type: "string" }, "Artist, exactly as loved."),
+          q("track", { type: "string" }, "Title, exactly as loved."),
+        ],
+        responses: {
+          "204": ok("Removed (or was not loved)"),
+          "400": errors["400"],
+          "401": errors["401"],
+        },
+      },
+    },
+    "/me/obsession": {
+      put: {
+        summary: "Set the current obsession",
+        security: secured,
+        requestBody: { required: true, content: json(ref("FavouriteInput")) },
+        responses: { "204": ok("Set"), "400": errors["400"], "401": errors["401"] },
+      },
+      delete: {
+        summary: "Clear the current obsession",
+        security: secured,
+        responses: { "204": ok("Cleared"), "401": errors["401"] },
+      },
+    },
+    "/users/{userName}/loved": {
+      get: {
+        summary: "A user's loved tracks, newest first",
+        parameters: [
+          userName,
+          q("limit", { type: "integer", minimum: 1, maximum: 100, default: 50 }),
+          q("offset", { type: "integer", minimum: 0, default: 0 }),
+        ],
+        responses: {
+          "200": ok("Loved tracks", {
+            type: "object",
+            properties: {
+              userName: { type: "string" },
+              total: { type: "integer" },
+              items: { type: "array", items: ref("Favourite") },
+            },
+          }),
+          "404": errors["404"],
+        },
+      },
+    },
+    "/users/{userName}/obsession": {
+      get: {
+        summary: "A user's current obsession",
+        parameters: [userName],
+        responses: {
+          "200": ok("Obsession", {
+            type: "object",
+            properties: {
+              userName: { type: "string" },
+              obsession: { oneOf: [ref("Favourite"), { type: "null" }] },
+            },
+          }),
+          "404": errors["404"],
         },
       },
     },

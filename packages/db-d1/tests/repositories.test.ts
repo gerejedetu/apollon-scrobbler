@@ -414,3 +414,39 @@ describe("joint credits", () => {
     expect(rows.find((r) => r.artistName === "Estevan Plazola")?.listenCount).toBe(1);
   });
 });
+
+describe("favourites", () => {
+  const t = (track: string, at: number) => ({
+    artistName: "Air",
+    trackName: track,
+    releaseName: null,
+    recordingMbid: null,
+    releaseMbid: null,
+    at,
+  });
+
+  test("loved tracks: upsert keeps the first date, newest first, unlove", async () => {
+    await repos.favourites.love(userId, t("One", 10));
+    await repos.favourites.love(userId, { ...t("Two", 20), releaseName: "Moon Safari" });
+    await repos.favourites.love(userId, t("One", 30));
+    db.roundTrips = 0;
+    const page = await repos.favourites.loved(userId, 10, 0);
+    expect(db.roundTrips).toBe(1);
+    expect(page.total).toBe(2);
+    expect(page.items.map((i) => [i.trackName, i.at])).toEqual([
+      ["Two", 20],
+      ["One", 10],
+    ]);
+    await repos.favourites.unlove(userId, "Air", "Two");
+    expect((await repos.favourites.loved(userId, 10, 0)).total).toBe(1);
+  });
+
+  test("obsession: set, replace, clear", async () => {
+    expect(await repos.favourites.obsession(userId)).toBeNull();
+    await repos.favourites.setObsession(userId, t("One", 1));
+    await repos.favourites.setObsession(userId, t("Two", 2));
+    expect((await repos.favourites.obsession(userId))?.trackName).toBe("Two");
+    await repos.favourites.setObsession(userId, null);
+    expect(await repos.favourites.obsession(userId)).toBeNull();
+  });
+});

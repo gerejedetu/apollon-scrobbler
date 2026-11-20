@@ -153,6 +153,62 @@ describe("native API", () => {
     ).toBe(0);
   });
 
+  test("loved tracks and obsession", async () => {
+    const auth = { authorization: `Bearer ${token}` };
+    expect((await api.json("/v1/users/alice/loved")).body).toEqual({
+      userName: "Alice",
+      total: 0,
+      items: [],
+    });
+    const love = (body: unknown) => api.request("/v1/me/loved", send("PUT", body));
+    expect(
+      (
+        await love({
+          artist: "Air",
+          track: "La femme d'argent",
+          album: "Moon Safari",
+          mbids: { release: MBID },
+        })
+      ).status,
+    ).toBe(204);
+    expect((await love({ artist: "Air", track: "" })).status).toBe(400);
+    expect(
+      (await api.request("/v1/me/loved", send("PUT", { artist: "Air", track: "x" }, {}))).status,
+    ).toBe(401);
+    const loved = (await api.json("/v1/users/alice/loved")).body;
+    expect(loved.total).toBe(1);
+    expect(loved.items[0]).toMatchObject({
+      artist: "Air",
+      track: "La femme d'argent",
+      album: "Moon Safari",
+      mbids: { recording: null, release: MBID },
+    });
+    expect(typeof loved.items[0].lovedAt).toBe("number");
+    const q = new URLSearchParams({ artist: "Air", track: "La femme d'argent" });
+    expect(
+      (await api.request(`/v1/me/loved?${q}`, { method: "DELETE", headers: auth })).status,
+    ).toBe(204);
+    expect((await api.json("/v1/users/alice/loved")).body.total).toBe(0);
+
+    expect((await api.json("/v1/users/alice/obsession")).body.obsession).toBeNull();
+    expect(
+      (
+        await api.request(
+          "/v1/me/obsession",
+          send("PUT", { artist: "Air", track: "Kelly Watch the Stars" }),
+        )
+      ).status,
+    ).toBe(204);
+    expect((await api.json("/v1/users/alice/obsession")).body.obsession).toMatchObject({
+      artist: "Air",
+      track: "Kelly Watch the Stars",
+    });
+    expect(
+      (await api.request("/v1/me/obsession", { method: "DELETE", headers: auth })).status,
+    ).toBe(204);
+    expect((await api.json("/v1/users/alice/obsession")).body.obsession).toBeNull();
+  });
+
   test("stats return 200 with empty items, and 404 on unknown entities", async () => {
     expect((await api.json("/v1/users/alice/stats/artists")).body).toMatchObject({
       entity: "artists",

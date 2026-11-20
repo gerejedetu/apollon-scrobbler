@@ -43,6 +43,10 @@ export const TAGS = [
     name: "Listens",
     description: "Sending, reading and deleting listens, and what is playing now.",
   },
+  {
+    name: "Favourites",
+    description: "Loved tracks and the current obsession, as on Last.fm.",
+  },
   { name: "Stats", description: "Top lists, totals and listening activity over a range." },
   {
     name: "Insights",
@@ -74,6 +78,41 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     description:
       "Changes settings of the signed-in user. Only the fields sent are changed. `private: true` hides the profile: its listens, now playing and every statistic answer 404 to anyone but the owner, as if the user did not exist.",
     requestExample: { private: true },
+  },
+  "PUT /me/loved": {
+    operationId: "loveTrack",
+    tag: "Favourites",
+    description:
+      "Adds a track (artist + title) to your loved tracks; loving it again keeps the first date. `album` and MusicBrainz ids are optional and only help show artwork.",
+    requestExample: { artist: "Air", track: "La femme d'argent", album: "Moon Safari" },
+  },
+  "DELETE /me/loved": {
+    operationId: "unloveTrack",
+    tag: "Favourites",
+    description: "Removes a track from your loved tracks. Answers 204 even if it was not loved.",
+  },
+  "PUT /me/obsession": {
+    operationId: "setObsession",
+    tag: "Favourites",
+    description:
+      "Makes a track your current obsession, replacing the previous one. Shown on your profile.",
+    requestExample: { artist: "Peso Pluma", track: "Bellakeo" },
+  },
+  "DELETE /me/obsession": {
+    operationId: "clearObsession",
+    tag: "Favourites",
+    description: "Clears your current obsession: your profile no longer shows one.",
+  },
+  "GET /users/{userName}/loved": {
+    operationId: "listLoved",
+    tag: "Favourites",
+    description:
+      "A user's loved tracks, most recently loved first, `limit` per page with `offset`; `total` counts them all.",
+  },
+  "GET /users/{userName}/obsession": {
+    operationId: "getObsession",
+    tag: "Favourites",
+    description: "A user's current obsession, or `obsession: null`.",
   },
   "POST /listens": {
     operationId: "submitListens",

@@ -15,6 +15,7 @@ import type {
   EntityCount,
   EntityDetail,
   EntityKey,
+  FavouriteTrack,
   Forgotten,
   InsightEntity,
   InsightQuery,
@@ -144,8 +145,28 @@ export interface InsightsRepository {
   }): Promise<{ listenCount: number; items: EntityCount[] }[]>;
 }
 
+/**
+ * Loved tracks ("coups de cœur", one row per artist + title) and the current obsession (at most one track
+ * per user, shown on the profile). Both are keyed by names, like listens, so they survive re-imports.
+ */
+export interface FavouriteRepository {
+  /** Adds or refreshes a loved track. */
+  love(userId: UserId, track: FavouriteTrack): Promise<void>;
+  unlove(userId: UserId, artistName: string, trackName: string): Promise<void>;
+  /** Newest first. */
+  loved(
+    userId: UserId,
+    limit: number,
+    offset: number,
+  ): Promise<{ items: FavouriteTrack[]; total: number }>;
+  /** Replaces the obsession, or clears it with null. */
+  setObsession(userId: UserId, track: FavouriteTrack | null): Promise<void>;
+  obsession(userId: UserId): Promise<FavouriteTrack | null>;
+}
+
 export interface Repositories {
   users: UserRepository;
+  favourites: FavouriteRepository;
   listens: ListenRepository;
   playingNow: PlayingNowRepository;
   imports: ImportRepository;
