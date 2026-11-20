@@ -8,7 +8,7 @@ import {
   formatMonthYear,
 } from "../../lib/format/index.ts";
 import { displayHeading, NewTag } from "../../ui/primitives/index.ts";
-import { AlbumCover, ArtistCover } from "../listens/index.ts";
+import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 
 const heading = css({
   display: "flex",

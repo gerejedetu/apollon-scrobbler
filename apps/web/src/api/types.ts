@@ -289,3 +289,27 @@ export interface ApiKey {
 export interface CreatedApiKey extends ApiKey {
   key: string;
 }
+
+/** A loved track or the obsession, with when it was set. */
+export interface Favourite {
+  artist: string;
+  track: string;
+  album: string | null;
+  mbids: { recording: string | null; release: string | null };
+  lovedAt?: number;
+  since?: number;
+}
+
+export interface LovedPage {
+  userName: string;
+  total: number;
+  items: Favourite[];
+}
+
+/** What identifies a track for loving it or making it the obsession. */
+export interface TrackRef {
+  artist: string;
+  track: string;
+  album?: string | null;
+  mbids?: { recording?: string | null; release?: string | null };
+}

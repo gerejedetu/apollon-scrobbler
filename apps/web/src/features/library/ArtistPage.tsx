@@ -17,7 +17,7 @@ import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { BlockHeading, pill, Stat } from "../../ui/primitives/index.ts";
 import { TextTabs } from "../../ui/zag/index.ts";
 import { EntityTitle, PeriodBars, recordOf } from "./shared.tsx";
-import { AlbumCover, ArtistCover } from "../listens/index.ts";
+import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 
 type Granularity = Timeline["granularity"];
 

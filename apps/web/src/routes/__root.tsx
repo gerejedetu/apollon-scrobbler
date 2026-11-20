@@ -5,6 +5,7 @@ import { loadViewer } from "../auth/index.ts";
 import { RootError, RootNotFound } from "../features/errors/index.ts";
 import { rememberOffset } from "../lib/timezone.ts";
 import appCss from "../styles.css?url";
+import { ToastProvider } from "../ui/feedback/index.ts";
 import { fontsHref } from "../ui/theme/index.ts";
 
 export const Route = createRootRoute({
@@ -36,7 +37,9 @@ function RootComponent() {
   useEffect(rememberOffset, []);
   return (
     <RootDocument>
-      <Outlet />
+      <ToastProvider>
+        <Outlet />
+      </ToastProvider>
     </RootDocument>
   );
 }

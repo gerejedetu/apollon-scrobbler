@@ -5,7 +5,7 @@ import { barWidth, formatCount } from "../../lib/format/index.ts";
 import { RANGES } from "../../lib/ranges.ts";
 import { Button, Empty, pill } from "../../ui/primitives/index.ts";
 import type { Kind } from "./kinds.ts";
-import { AlbumCover, ArtistCover } from "../listens/index.ts";
+import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 
 const row = css({
   display: "flex",

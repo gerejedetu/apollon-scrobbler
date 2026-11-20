@@ -14,7 +14,7 @@ import {
 } from "../../lib/format/index.ts";
 import { Main } from "../../ui/layout/index.ts";
 import { capsLabel, pill } from "../../ui/primitives/index.ts";
-import { AlbumCover, ArtistCover } from "../listens/index.ts";
+import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 
 const narrow = css({ textStyle: "narrow" });
 const rankRow = css({

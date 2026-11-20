@@ -1,5 +1,5 @@
 /** One function per /v1 operation the front uses. Paths and parameters mirror the OpenAPI document. */
-import { type Http, segment } from "./http.ts";
+import { type Http, segment, withQuery } from "./http.ts";
 import type * as T from "./types.ts";
 
 const v1 = "/v1";
@@ -18,6 +18,19 @@ export function createEndpoints(http: Http) {
       delete: (keyId: string) =>
         http.post<{ success: boolean }>(`${auth}/api-key/delete`, { keyId }),
     },
+    favourites: {
+      loved: (name: string, q: { limit?: number; offset?: number } = {}) =>
+        http.get<T.LovedPage>(`${user(name)}/loved`, q),
+      love: (track: T.TrackRef) => http.put<void>(`${v1}/me/loved`, track),
+      unlove: (track: { artist: string; track: string }) =>
+        http.delete<void>(
+          withQuery(`${v1}/me/loved`, { artist: track.artist, track: track.track }),
+        ),
+      obsession: (name: string) =>
+        http.get<{ userName: string; obsession: T.Favourite | null }>(`${user(name)}/obsession`),
+      setObsession: (track: T.TrackRef) => http.put<void>(`${v1}/me/obsession`, track),
+      clearObsession: () => http.delete<void>(`${v1}/me/obsession`),
+    },
     me: {
       get: () => http.get<T.Me>(`${v1}/me`),
       update: (patch: { private?: boolean }) => http.patch<T.Me>(`${v1}/me`, patch),
@@ -28,6 +41,9 @@ export function createEndpoints(http: Http) {
         http.post<{ accepted: number; inserted: number }>(`${v1}/listens`, { listens }),
       list: (name: string, q: { before?: number; after?: number; limit?: number } = {}) =>
         http.get<T.ListensPage>(`${user(name)}/listens`, q),
+      /** DELETE /v1/listens/{listenedAt}/{id}: answers 204 even if it was already gone. */
+      delete: (listen: { listenedAt: number; id: string }) =>
+        http.delete<void>(`${v1}/listens/${listen.listenedAt}/${segment(listen.id)}`),
       nowPlaying: (name: string) => http.get<T.NowPlaying>(`${user(name)}/now-playing`),
     },
     stats: {

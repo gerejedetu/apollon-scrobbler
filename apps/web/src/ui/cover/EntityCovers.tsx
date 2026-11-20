@@ -1,5 +1,5 @@
 /** Sleeves and artist pictures for the screens: the right seed, MBID and name lookup in one place. */
-import { Cover } from "../../ui/cover/index.ts";
+import { Cover } from "./Cover.tsx";
 import { albumSeed, artistSeed } from "./seeds.ts";
 
 export function AlbumCover({

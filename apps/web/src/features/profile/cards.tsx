@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
-import { AlbumCover } from "../listens/index.ts";
+import { AlbumCover } from "../../ui/cover/index.ts";
 
 export const coverGrid = css({
   display: "grid",

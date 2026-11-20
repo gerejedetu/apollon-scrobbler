@@ -5,7 +5,7 @@ import { barWidth, formatAgo, formatCount, formatDate } from "../../lib/format/i
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { capsLabel, Stat } from "../../ui/primitives/index.ts";
 import { EntityTitle } from "./shared.tsx";
-import { AlbumCover } from "../listens/index.ts";
+import { AlbumCover } from "../../ui/cover/index.ts";
 
 /** An album: the sleeve with totals, first and last listen, and its tracks by plays. */
 export function AlbumPage({

@@ -89,3 +89,33 @@ export const PencilIcon = (p: P) => (
     <path d="M4 20h4L19 9l-4-4L4 16z" />
   </Icon>
 );
+export const TrashIcon = (p: P) => (
+  <Icon size={15} width={2} {...p}>
+    <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+  </Icon>
+);
+export const HeartIcon = ({ size = 15, filled }: P & { filled?: boolean }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 20s-7-4.4-9.3-8.6C1.2 8.6 2.9 5 6.4 5c2 0 3.4 1.1 4.1 2.4h3C14.2 6.1 15.6 5 17.6 5c3.5 0 5.2 3.6 3.7 6.4C19 15.6 12 20 12 20z" />
+  </svg>
+);
+export const FlameIcon = (p: P) => (
+  <Icon size={15} width={2} {...p}>
+    <path d="M12 21c-3.9 0-7-2.8-7-6.6 0-3.3 2.3-5.4 3.6-7.4.4 1.6 1.4 2.8 2.6 3.4C11 6.6 12.6 4 15.6 3c-.5 3 .9 4.8 2.1 6.5 1 1.4 1.3 2.6 1.3 4.1C19 18.1 15.9 21 12 21z" />
+  </Icon>
+);
+export const CloseIcon = (p: P) => (
+  <Icon size={12} width={2.6} {...p}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Icon>
+);

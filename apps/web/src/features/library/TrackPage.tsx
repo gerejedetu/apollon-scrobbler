@@ -9,7 +9,7 @@ import {
 } from "../../lib/format/index.ts";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { BigFigure, EntityTitle, fillMonths, PeriodBars, recordOf } from "./shared.tsx";
-import { AlbumCover } from "../listens/index.ts";
+import { AlbumCover } from "../../ui/cover/index.ts";
 
 /** A track: totals and how it was played month by month. `album` comes from where the visitor clicked. */
 export function TrackPage({
