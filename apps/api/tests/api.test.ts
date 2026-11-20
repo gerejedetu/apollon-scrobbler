@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vite-plus/test";
+import { MemoryRateLimiter } from "../src/http/rate-limit.ts";
 import { post, single, T0, testApi, type TestApi } from "./helpers.ts";
 
 let api: TestApi;
@@ -258,5 +259,35 @@ describe("rate limits", () => {
   test("sign-up is limited separately", async () => {
     const strict = testApi({ RATE_LIMIT_AUTH: { limit: async () => ({ success: false }) } });
     await expect(strict.signUp("bob")).rejects.toThrow(/429/);
+  });
+});
+
+describe("in-isolate backstop", () => {
+  test("MemoryRateLimiter: fixed window per key, bounded memory", async () => {
+    let now = 0;
+    const l = new MemoryRateLimiter(2, 60_000, () => now, 3);
+    expect((await l.limit({ key: "a" })).success).toBe(true);
+    expect((await l.limit({ key: "a" })).success).toBe(true);
+    expect((await l.limit({ key: "a" })).success).toBe(false);
+    expect((await l.limit({ key: "b" })).success).toBe(true);
+    now = 60_000;
+    expect((await l.limit({ key: "a" })).success).toBe(true);
+    for (const k of ["c", "d", "e", "f"]) await l.limit({ key: k });
+    expect((l as unknown as { windows: Map<string, unknown> }).windows.size).toBeLessThanOrEqual(3);
+  });
+
+  test("works without any Cloudflare binding: the 11th sign-up attempt in a minute is refused", async () => {
+    const api = testApi();
+    const statuses: number[] = [];
+    for (let i = 0; i < 11; i++) {
+      const res = await api.request("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "content-type": "application/json", "cf-connecting-ip": "9.9.9.9" },
+        body: "{}",
+      });
+      statuses.push(res.status);
+    }
+    expect(statuses.slice(0, 10).every((s) => s !== 429)).toBe(true);
+    expect(statuses[10]).toBe(429);
   });
 });
