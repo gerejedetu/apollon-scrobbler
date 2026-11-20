@@ -24,6 +24,7 @@ export function createApp(options: ContainerOptions = {}) {
       name: "scrobbler",
       api: "/v1",
       openapi: "/v1/openapi.json",
+      docs: "/v1/docs",
       listenbrainz: "/1",
       auth: "/api/auth",
     }),

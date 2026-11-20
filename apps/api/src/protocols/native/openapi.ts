@@ -1,3 +1,5 @@
+import { enrich } from "./openapi-docs.ts";
+
 /**
  * OpenAPI 3.1 description of the native API, served at `/v1/openapi.json`.
  * Keep in sync with routes.ts: tests check that every path documented here is routed.
@@ -95,7 +97,6 @@ function insight(
     get: {
       summary,
       description,
-      tags: ["Insights"],
       parameters: [userName, ...parameters],
       responses: {
         "200": ok(summary, {
@@ -523,7 +524,7 @@ const insightPaths = {
   ),
 };
 
-export const openApiDocument = {
+const baseDocument = {
   openapi: "3.1.0",
   info: {
     title: "Scrobbler API",
@@ -947,3 +948,6 @@ export const openApiDocument = {
     },
   },
 } as const;
+
+/** The served document: shapes from above, documentation from openapi-docs.ts. */
+export const openApiDocument = enrich(baseDocument);

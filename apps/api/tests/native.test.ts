@@ -323,3 +323,36 @@ describe("more stats", () => {
     expect((await api.json("/v1/users/alice/artists/Nobody")).status).toBe(404);
   });
 });
+
+describe("documentation", () => {
+  test("every operation has an id, a tag and a description; every parameter and response is described", () => {
+    const ids = new Set<string>();
+    const tags = new Set(openApiDocument.tags.map((t) => t.name));
+    const problems: string[] = [];
+    for (const [path, ops] of Object.entries(
+      openApiDocument.paths as Record<string, Record<string, any>>,
+    )) {
+      for (const [method, op] of Object.entries(ops)) {
+        const where = `${method.toUpperCase()} ${path}`;
+        if (!op.operationId || ids.has(op.operationId))
+          problems.push(`${where}: missing or duplicate operationId`);
+        ids.add(op.operationId);
+        if (!op.tags?.length || !tags.has(op.tags[0])) problems.push(`${where}: unknown tag`);
+        if (!op.summary || (op.description ?? "").length < 40)
+          problems.push(`${where}: summary or description too short`);
+        for (const p of op.parameters ?? [])
+          if (!p.description) problems.push(`${where}: parameter ${p.name} undescribed`);
+        for (const [code, r] of Object.entries(op.responses ?? {}))
+          if (!(r as any).description) problems.push(`${where}: response ${code} undescribed`);
+      }
+    }
+    expect(problems).toEqual([]);
+    expect(openApiDocument.info.description).toContain("Getting started");
+  });
+
+  test("/v1/docs serves the interactive reference", async () => {
+    const res = await api.request("/v1/docs");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('data-url="./openapi.json"');
+  });
+});

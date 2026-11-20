@@ -25,7 +25,7 @@ packages/
 - Only `apps/api/src/http/container.ts` picks concrete adapters. Routes talk to `c.var.services` only.
 - A protocol (`apps/api/src/protocols/<name>`) only maps its wire format to core services; rules live in core,
   so every protocol behaves the same. A new protocol (e.g. Last.fm) is a new folder mounted in `app.ts`.
-- The native API is documented by hand in `protocols/native/openapi.ts`; a test checks every documented path is routed.
+- The native API is documented by hand: shapes in `protocols/native/openapi.ts`, prose (overview, tags, operation and parameter descriptions, examples) in `openapi-docs.ts`. Tests check every documented path is routed, every response field is documented, and every operation/parameter has a description. Served at `/v1/openapi.json`, browsable at `/v1/docs`.
 - `testing` and every `*/testing` subpath are for tests: never import them from runtime code.
 - Internal packages are consumed as TypeScript source (`exports` points to `src/index.ts`); no build step.
 - Imports use explicit `.ts` extensions. One module per folder with an `index.ts` or a named file; no catch-all utils.
