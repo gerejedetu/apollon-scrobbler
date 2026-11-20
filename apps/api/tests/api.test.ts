@@ -11,7 +11,7 @@ beforeEach(async () => {
 
 describe("errors and basics", () => {
   test("root and unknown routes", async () => {
-    expect((await api.json("/")).body).toMatchObject({ api: "/1" });
+    expect((await api.json("/")).body).toMatchObject({ api: "/v1", listenbrainz: "/1" });
     expect(await api.json("/1/nope")).toEqual({
       status: 404,
       body: { code: 404, error: "Not found." },

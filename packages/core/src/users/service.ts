@@ -28,6 +28,12 @@ export class UserService {
     return user;
   }
 
+  async requireByAuthId(authUserId: string): Promise<User> {
+    const user = await this.users.findByAuthId(authUserId);
+    if (!user) throw ApiError.notFound("This account has no scrobbler profile.");
+    return user;
+  }
+
   /** Creates the scrobbler profile of a new identity-provider account. */
   async createProfile(authUserId: string, name: unknown): Promise<User> {
     assertValidUserName(name);

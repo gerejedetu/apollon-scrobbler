@@ -1,8 +1,8 @@
 /** `GET|POST /1/latest-import`: where an importer (e.g. from Last.fm) should resume. */
 import { Hono } from "hono";
-import type { AppEnv } from "../env.ts";
-import { jsonBody } from "../http/errors.ts";
-import { requireUser } from "../http/require-user.ts";
+import type { AppEnv } from "../../env.ts";
+import { jsonBody } from "../../http/errors.ts";
+import { requireUser } from "../../http/require-user.ts";
 import { ApiError } from "@scrobbler/core";
 
 export const importRoutes = new Hono<AppEnv>()

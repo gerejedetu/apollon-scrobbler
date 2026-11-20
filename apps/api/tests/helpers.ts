@@ -10,6 +10,8 @@ export interface TestApi {
   json<T = any>(path: string, init?: RequestInit): Promise<{ status: number; body: T }>;
   /** Signs up through Better Auth's real endpoints, then creates an API key with the session: returns the ListenBrainz token. */
   signUp(username: string): Promise<string>;
+  /** Session cookie of each signed-up user, as a browser would send it. */
+  cookies: Record<string, string>;
 }
 
 export function testApi(overrides: Partial<Bindings> = {}): TestApi {
@@ -30,6 +32,7 @@ export function testApi(overrides: Partial<Bindings> = {}): TestApi {
     db,
     kv,
     request,
+    cookies: {},
     async json(path, init) {
       const res = await request(path, init);
       const text = await res.text();
@@ -51,6 +54,7 @@ export function testApi(overrides: Partial<Bindings> = {}): TestApi {
         .getSetCookie()
         .map((c) => c.split(";")[0])
         .join("; ");
+      api.cookies[username] = cookie;
       const key = await request("/api/auth/api-key/create", {
         method: "POST",
         headers: { "content-type": "application/json", cookie },

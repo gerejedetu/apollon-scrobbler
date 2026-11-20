@@ -7,7 +7,8 @@ user tokens from Better Auth. Monorepo managed by Vite+ (`vp`) and pnpm workspac
 
 ```
 apps/
-  api/            Hono Worker: ListenBrainz API v1 under /1, Better Auth under /api/auth
+  api/            Hono Worker. src/protocols/native → /v1 (own JSON API, OpenAPI at /v1/openapi.json),
+                  src/protocols/listenbrainz → /1 (ListenBrainz-compatible), Better Auth → /api/auth
 packages/
   types/          Wire (ListenBrainz) and domain types. No runtime code.
   core/           Business rules behind ports. No I/O, no Cloudflare, no Better Auth.
@@ -22,6 +23,9 @@ packages/
 - `types` depends on nothing. `core` depends only on `types`.
 - Adapters (`db-*`, `cache-*`, `auth`) depend on `core` and `types`, never on each other or on apps.
 - Only `apps/api/src/http/container.ts` picks concrete adapters. Routes talk to `c.var.services` only.
+- A protocol (`apps/api/src/protocols/<name>`) only maps its wire format to core services; rules live in core,
+  so every protocol behaves the same. A new protocol (e.g. Last.fm) is a new folder mounted in `app.ts`.
+- The native API is documented by hand in `protocols/native/openapi.ts`; a test checks every documented path is routed.
 - `testing` and every `*/testing` subpath are for tests: never import them from runtime code.
 - Internal packages are consumed as TypeScript source (`exports` points to `src/index.ts`); no build step.
 - Imports use explicit `.ts` extensions. One module per folder with an `index.ts` or a named file; no catch-all utils.

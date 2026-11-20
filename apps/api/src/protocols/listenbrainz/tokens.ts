@@ -1,7 +1,7 @@
 /** `GET /1/validate-token`: lets clients check a token before scrobbling. */
 import { ApiError, tokenFromHeader } from "@scrobbler/core";
 import { Hono } from "hono";
-import type { AppEnv } from "../env.ts";
+import type { AppEnv } from "../../env.ts";
 
 export const tokenRoutes = new Hono<AppEnv>().get("/validate-token", async (c) => {
   // Header first; the `?token=` query form is legacy ListenBrainz behaviour some clients still use.
