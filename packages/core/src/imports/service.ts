@@ -21,7 +21,8 @@ export class ImportService {
   }
 
   async update(user: User, body: unknown): Promise<void> {
-    if (typeof body !== "object" || body === null) throw ApiError.badRequest("Invalid JSON document submitted.");
+    if (typeof body !== "object" || body === null)
+      throw ApiError.badRequest("Invalid JSON document submitted.");
     const { ts, service = "lastfm" } = body as Record<string, unknown>;
     if (typeof ts !== "number" || !Number.isInteger(ts) || ts < 0) {
       throw ApiError.badRequest("ts must be a non-negative integer Unix timestamp.");

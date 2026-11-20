@@ -11,7 +11,9 @@ export const MIGRATIONS_DIR = fileURLToPath(new URL("../migrations", import.meta
 
 export function createMigratedD1(): SqliteD1 {
   const db = new SqliteD1();
-  for (const file of readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort()) {
+  for (const file of readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()) {
     db.raw.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
   }
   return db;
@@ -21,6 +23,8 @@ export function createMigratedD1(): SqliteD1 {
 export function insertAuthUser(db: SqliteD1, id: string, username = id): void {
   const now = new Date().toISOString();
   db.raw
-    .prepare('INSERT INTO "user" (id, name, email, emailVerified, createdAt, updatedAt, username) VALUES (?, ?, ?, 0, ?, ?, ?)')
+    .prepare(
+      'INSERT INTO "user" (id, name, email, emailVerified, createdAt, updatedAt, username) VALUES (?, ?, ?, 0, ?, ?, ?)',
+    )
     .run(id, username, `${id}@example.test`, now, now, username.toLowerCase());
 }

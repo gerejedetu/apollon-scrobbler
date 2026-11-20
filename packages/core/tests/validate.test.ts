@@ -20,17 +20,34 @@ describe("validateSubmission", () => {
   test("accepts a single listen and trims names", () => {
     const res = validateSubmission({
       listen_type: "single",
-      payload: [{ listened_at: TS, track_metadata: { artist_name: " Daft Punk ", track_name: "One More Time", release_name: "Discovery" } }],
+      payload: [
+        {
+          listened_at: TS,
+          track_metadata: {
+            artist_name: " Daft Punk ",
+            track_name: "One More Time",
+            release_name: "Discovery",
+          },
+        },
+      ],
     });
     expect(res.listenType).toBe("single");
     expect(res.listens[0]).toEqual({
       listenedAt: TS,
-      trackMetadata: { artist_name: "Daft Punk", track_name: "One More Time", release_name: "Discovery", additional_info: {} },
+      trackMetadata: {
+        artist_name: "Daft Punk",
+        track_name: "One More Time",
+        release_name: "Discovery",
+        additional_info: {},
+      },
     });
   });
 
   test("playing_now needs no listened_at and ignores one", () => {
-    const res = validateSubmission({ listen_type: "playing_now", payload: [{ listened_at: TS, track_metadata: track }] });
+    const res = validateSubmission({
+      listen_type: "playing_now",
+      payload: [{ listened_at: TS, track_metadata: track }],
+    });
     expect(res.listens[0]?.listenedAt).toBeNull();
   });
 
@@ -57,21 +74,39 @@ describe("validateSubmission", () => {
   });
 
   test("caps the number of listens per request", () => {
-    const many = Array.from({ length: LISTEN_LIMITS.maxListensPerRequest + 1 }, (_, i) => ({ listened_at: TS + i, track_metadata: track }));
+    const many = Array.from({ length: LISTEN_LIMITS.maxListensPerRequest + 1 }, (_, i) => ({
+      listened_at: TS + i,
+      track_metadata: track,
+    }));
     expectError({ listen_type: "import", payload: many });
   });
 
   test("requires artist_name and track_name", () => {
-    expectError({ listen_type: "single", payload: [{ listened_at: TS, track_metadata: { track_name: "x" } }] });
-    expectError({ listen_type: "single", payload: [{ listened_at: TS, track_metadata: { artist_name: "x", track_name: "  " } }] });
+    expectError({
+      listen_type: "single",
+      payload: [{ listened_at: TS, track_metadata: { track_name: "x" } }],
+    });
+    expectError({
+      listen_type: "single",
+      payload: [{ listened_at: TS, track_metadata: { artist_name: "x", track_name: "  " } }],
+    });
     expectError({ listen_type: "single", payload: [{ listened_at: TS }] });
   });
 
   test("validates listened_at", () => {
     expectError({ listen_type: "single", payload: [{ track_metadata: track }] });
-    expectError({ listen_type: "single", payload: [{ listened_at: "1700000000", track_metadata: track }] });
-    expectError({ listen_type: "single", payload: [{ listened_at: 1.5e9 + 0.5, track_metadata: track }] });
-    const low = expectError({ listen_type: "single", payload: [{ listened_at: LISTEN_LIMITS.minimumTs - 1, track_metadata: track }] });
+    expectError({
+      listen_type: "single",
+      payload: [{ listened_at: "1700000000", track_metadata: track }],
+    });
+    expectError({
+      listen_type: "single",
+      payload: [{ listened_at: 1.5e9 + 0.5, track_metadata: track }],
+    });
+    const low = expectError({
+      listen_type: "single",
+      payload: [{ listened_at: LISTEN_LIMITS.minimumTs - 1, track_metadata: track }],
+    });
     expect(low.message).toContain("too low");
   });
 
@@ -94,21 +129,38 @@ describe("validateSubmission", () => {
         },
       ],
     });
-    expect(res.listens[0]?.trackMetadata.additional_info).toEqual({ release_mbid: MBID, artist_mbids: [MBID], custom: { kept: true } });
+    expect(res.listens[0]?.trackMetadata.additional_info).toEqual({
+      release_mbid: MBID,
+      artist_mbids: [MBID],
+      custom: { kept: true },
+    });
   });
 
   test("validates tags and durations", () => {
-    const withInfo = (additional_info: unknown) => ({ listen_type: "single", payload: [{ listened_at: TS, track_metadata: { ...track, additional_info } }] });
+    const withInfo = (additional_info: unknown) => ({
+      listen_type: "single",
+      payload: [{ listened_at: TS, track_metadata: { ...track, additional_info } }],
+    });
     expectError(withInfo("x"));
     expectError(withInfo({ tags: "rock" }));
     expectError(withInfo({ tags: Array.from({ length: 51 }, () => "t") }));
     expectError(withInfo({ tags: ["x".repeat(65)] }));
     expectError(withInfo({ duration_ms: -1 }));
     expectError(withInfo({ duration: 1.5 }));
-    expect(validateSubmission(withInfo({ tags: ["rock"], duration_ms: 1000 })).listens).toHaveLength(1);
+    expect(
+      validateSubmission(withInfo({ tags: ["rock"], duration_ms: 1000 })).listens,
+    ).toHaveLength(1);
   });
 
   test("rejects oversized listens", () => {
-    expectError({ listen_type: "single", payload: [{ listened_at: TS, track_metadata: { ...track, additional_info: { blob: "x".repeat(11_000) } } }] });
+    expectError({
+      listen_type: "single",
+      payload: [
+        {
+          listened_at: TS,
+          track_metadata: { ...track, additional_info: { blob: "x".repeat(11_000) } },
+        },
+      ],
+    });
   });
 });

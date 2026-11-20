@@ -14,7 +14,10 @@ const MSID_NAMESPACE = "6f0b6c58-5a4b-4a8e-9a63-3f1d0c2c9b11";
  */
 export function recordingMsid(meta: TrackMetadata): Promise<string> {
   const norm = (s: string | undefined) => (s ?? "").trim().toLowerCase();
-  return uuidV5(`${norm(meta.artist_name)}\u0000${norm(meta.track_name)}\u0000${norm(meta.release_name)}`, MSID_NAMESPACE);
+  return uuidV5(
+    `${norm(meta.artist_name)}\u0000${norm(meta.track_name)}\u0000${norm(meta.release_name)}`,
+    MSID_NAMESPACE,
+  );
 }
 
 export async function toNewListen(listenedAt: number, meta: TrackMetadata): Promise<NewListen> {

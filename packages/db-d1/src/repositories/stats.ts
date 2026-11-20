@@ -47,7 +47,9 @@ export function d1Stats(db: D1Like): StatsRepository {
             `SELECT artist_name, ${e.select}, count(*) AS listen_count FROM listens ${where} GROUP BY ${e.group} ORDER BY listen_count DESC, ${e.group} LIMIT ?4 OFFSET ?5`,
           )
           .bind(userId, window.fromTs, window.toTs, limit, offset),
-        db.prepare(`SELECT count(*) AS n FROM (SELECT 1 FROM listens ${where} GROUP BY ${e.group})`).bind(userId, window.fromTs, window.toTs),
+        db
+          .prepare(`SELECT count(*) AS n FROM (SELECT 1 FROM listens ${where} GROUP BY ${e.group})`)
+          .bind(userId, window.fromTs, window.toTs),
       ]);
       const out: TopRow[] = ((rows?.results ?? []) as StatsRow[]).map((r) => ({
         artistName: r.artist_name,

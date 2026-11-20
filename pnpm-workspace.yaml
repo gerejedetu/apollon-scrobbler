@@ -4,8 +4,8 @@ packages:
   - tools/*
 
 catalog:
-  '@better-auth/api-key': 1.7.27
-  '@types/node': ^24
+  "@better-auth/api-key": 1.7.27
+  "@types/node": ^26
   better-auth: 1.7.27
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@1.4.0
@@ -14,10 +14,10 @@ catalog:
 catalogMode: prefer
 
 overrides:
-  vite@*: 'catalog:'
+  vite@*: "catalog:"
 
 peerDependencyRules:
   allowAny:
     - vite
   allowedVersions:
-    vite: '*'
+    vite: "*"

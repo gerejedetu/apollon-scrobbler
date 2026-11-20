@@ -64,7 +64,10 @@ export function createAuth(config: AuthConfig) {
       user: {
         create: {
           before: async (user) => {
-            if (!userNameOf(user)) throw new APIError("BAD_REQUEST", { message: "A username is required to create an account." });
+            if (!userNameOf(user))
+              throw new APIError("BAD_REQUEST", {
+                message: "A username is required to create an account.",
+              });
             return { data: user };
           },
           after: async (user) => {

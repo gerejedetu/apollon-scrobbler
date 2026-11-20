@@ -10,7 +10,9 @@ export function isValidUserName(name: unknown): name is string {
 
 export function assertValidUserName(name: unknown): asserts name is string {
   if (!isValidUserName(name)) {
-    throw ApiError.badRequest("user_name must be 1 to 64 characters: letters, digits, '_', '.' or '-'.");
+    throw ApiError.badRequest(
+      "user_name must be 1 to 64 characters: letters, digits, '_', '.' or '-'.",
+    );
   }
 }
 

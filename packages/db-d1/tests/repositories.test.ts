@@ -39,7 +39,11 @@ describe("users", () => {
   test("names and accounts are unique; names are looked up case-insensitively", async () => {
     expect(await repos.users.create("a2", "alice", T0)).toBeNull();
     expect(await repos.users.create("a1", "other", T0)).toBeNull();
-    expect(await repos.users.findByName("ALICE")).toMatchObject({ id: userId, name: "Alice", listenCount: 0 });
+    expect(await repos.users.findByName("ALICE")).toMatchObject({
+      id: userId,
+      name: "Alice",
+      listenCount: 0,
+    });
     expect(await repos.users.findByAuthId("a1")).toMatchObject({ id: userId });
     expect(await repos.users.findByName("bob")).toBeNull();
   });
@@ -62,27 +66,65 @@ describe("listens", () => {
   });
 
   test("round-trips JSON columns and nulls", async () => {
-    await repos.listens.insertMany(userId, [listen(1, { artistMbids: [MBID], recordingMbid: MBID, additionalInfo: { tags: ["a"], n: 1 } })], T0);
+    await repos.listens.insertMany(
+      userId,
+      [
+        listen(1, {
+          artistMbids: [MBID],
+          recordingMbid: MBID,
+          additionalInfo: { tags: ["a"], n: 1 },
+        }),
+      ],
+      T0,
+    );
     const page = await repos.listens.page({ userId, limit: 10 });
-    expect(page.listens[0]).toMatchObject({ artistMbids: [MBID], recordingMbid: MBID, additionalInfo: { tags: ["a"], n: 1 }, releaseName: "Album 1", insertedAt: T0 });
+    expect(page.listens[0]).toMatchObject({
+      artistMbids: [MBID],
+      recordingMbid: MBID,
+      additionalInfo: { tags: ["a"], n: 1 },
+      releaseName: "Album 1",
+      insertedAt: T0,
+    });
     await repos.listens.insertMany(userId, [listen(2)], T0);
-    expect((await repos.listens.page({ userId, maxTs: T0 + 2, limit: 1 })).listens[0]?.releaseName).toBe("Album 1");
+    expect(
+      (await repos.listens.page({ userId, maxTs: T0 + 2, limit: 1 })).listens[0]?.releaseName,
+    ).toBe("Album 1");
   });
 
   test("page: newest first, max_ts / min_ts exclusive, bounds, one round trip", async () => {
-    await repos.listens.insertMany(userId, Array.from({ length: 10 }, (_, i) => listen(i)), T0);
+    await repos.listens.insertMany(
+      userId,
+      Array.from({ length: 10 }, (_, i) => listen(i)),
+      T0,
+    );
     db.roundTrips = 0;
     const latest = await repos.listens.page({ userId, limit: 3 });
     expect(db.roundTrips).toBe(1);
     expect(latest.listens.map((l) => l.listenedAt - T0)).toEqual([9, 8, 7]);
     expect([latest.oldestListenTs, latest.latestListenTs]).toEqual([T0, T0 + 9]);
 
-    expect((await repos.listens.page({ userId, maxTs: T0 + 5, limit: 2 })).listens.map((l) => l.listenedAt - T0)).toEqual([4, 3]);
-    expect((await repos.listens.page({ userId, minTs: T0 + 5, limit: 2 })).listens.map((l) => l.listenedAt - T0)).toEqual([7, 6]);
-    expect((await repos.listens.page({ userId, minTs: T0 + 2, maxTs: T0 + 6, limit: 10 })).listens.map((l) => l.listenedAt - T0)).toEqual([5, 4, 3]);
+    expect(
+      (await repos.listens.page({ userId, maxTs: T0 + 5, limit: 2 })).listens.map(
+        (l) => l.listenedAt - T0,
+      ),
+    ).toEqual([4, 3]);
+    expect(
+      (await repos.listens.page({ userId, minTs: T0 + 5, limit: 2 })).listens.map(
+        (l) => l.listenedAt - T0,
+      ),
+    ).toEqual([7, 6]);
+    expect(
+      (await repos.listens.page({ userId, minTs: T0 + 2, maxTs: T0 + 6, limit: 10 })).listens.map(
+        (l) => l.listenedAt - T0,
+      ),
+    ).toEqual([5, 4, 3]);
 
     const other = (await repos.users.create("a2", "bob", T0))!.id;
-    expect(await repos.listens.page({ userId: other, limit: 5 })).toEqual({ listens: [], oldestListenTs: null, latestListenTs: null });
+    expect(await repos.listens.page({ userId: other, limit: 5 })).toEqual({
+      listens: [],
+      oldestListenTs: null,
+      latestListenTs: null,
+    });
   });
 
   test("delete removes the listen and decrements the count", async () => {
@@ -100,7 +142,9 @@ describe("listens", () => {
   });
 
   test("insertMany splits into several statements when the JSON is big", async () => {
-    const big = Array.from({ length: 200 }, (_, i) => listen(i, { additionalInfo: { blob: "y".repeat(9000) } }));
+    const big = Array.from({ length: 200 }, (_, i) =>
+      listen(i, { additionalInfo: { blob: "y".repeat(9000) } }),
+    );
     expect(await repos.listens.insertMany(userId, big, T0)).toBe(200);
     expect(db.statements).toBeGreaterThan(2);
     expect((await repos.users.findByName("alice"))?.listenCount).toBe(200);
@@ -109,8 +153,16 @@ describe("listens", () => {
 
 describe("playing now and imports", () => {
   test("playing now upserts and expires", async () => {
-    await repos.playingNow.set({ userId, trackMetadata: { artist_name: "A", track_name: "1" }, expiresAt: T0 + 10 });
-    await repos.playingNow.set({ userId, trackMetadata: { artist_name: "A", track_name: "2" }, expiresAt: T0 + 10 });
+    await repos.playingNow.set({
+      userId,
+      trackMetadata: { artist_name: "A", track_name: "1" },
+      expiresAt: T0 + 10,
+    });
+    await repos.playingNow.set({
+      userId,
+      trackMetadata: { artist_name: "A", track_name: "2" },
+      expiresAt: T0 + 10,
+    });
     expect((await repos.playingNow.get(userId, T0))?.trackMetadata.track_name).toBe("2");
     expect(await repos.playingNow.get(userId, T0 + 10)).toBeNull();
   });
@@ -126,7 +178,11 @@ describe("playing now and imports", () => {
 describe("stats", () => {
   beforeEach(async () => {
     // Artist 0: listens 0,3,6,9 ; Artist 1: 1,4,7 ; Artist 2: 2,5,8
-    await repos.listens.insertMany(userId, Array.from({ length: 10 }, (_, i) => listen(i, { artistMbids: i % 3 === 0 ? [MBID] : [] })), T0);
+    await repos.listens.insertMany(
+      userId,
+      Array.from({ length: 10 }, (_, i) => listen(i, { artistMbids: i % 3 === 0 ? [MBID] : [] })),
+      T0,
+    );
   });
 
   const window = { fromTs: T0, toTs: T0 + 100 };
@@ -144,7 +200,13 @@ describe("stats", () => {
   });
 
   test("window bounds are inclusive", async () => {
-    const top = await repos.stats.top({ userId, entity: "artists", window: { fromTs: T0 + 3, toTs: T0 + 4 }, limit: 10, offset: 0 });
+    const top = await repos.stats.top({
+      userId,
+      entity: "artists",
+      window: { fromTs: T0 + 3, toTs: T0 + 4 },
+      limit: 10,
+      offset: 0,
+    });
     expect(top.rows.map((r) => [r.artistName, r.listenCount])).toEqual([
       ["Artist 0", 1],
       ["Artist 1", 1],
@@ -152,10 +214,22 @@ describe("stats", () => {
   });
 
   test("top recordings and releases", async () => {
-    const rec = await repos.stats.top({ userId, entity: "recordings", window, limit: 100, offset: 0 });
+    const rec = await repos.stats.top({
+      userId,
+      entity: "recordings",
+      window,
+      limit: 100,
+      offset: 0,
+    });
     expect(rec.total).toBe(10);
     expect(rec.rows[0]).toMatchObject({ listenCount: 1, trackName: expect.any(String) });
-    const rel = await repos.stats.top({ userId, entity: "releases", window, limit: 100, offset: 0 });
+    const rel = await repos.stats.top({
+      userId,
+      entity: "releases",
+      window,
+      limit: 100,
+      offset: 0,
+    });
     // Only odd listens have a release: Album 1 (1,7 by Artist 1), Album 0 (3,9 by Artist 0), Album 2 (5 by Artist 2)
     expect(rel.total).toBe(3);
     expect(rel.rows.map((r) => [r.releaseName, r.listenCount])).toEqual([

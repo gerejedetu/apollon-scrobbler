@@ -21,7 +21,8 @@ SELECT ?1, json_extract(j.value, '$[0]'), ?2, json_extract(j.value, '$[1]'), jso
 FROM json_each(?3) AS j`;
 
 /** Runs right after an INSERT/DELETE in the same batch: changes() is the row count of that statement. */
-const BUMP_COUNT_SQL = "UPDATE users SET listen_count = max(listen_count + ?2 * changes(), 0) WHERE id = ?1";
+const BUMP_COUNT_SQL =
+  "UPDATE users SET listen_count = max(listen_count + ?2 * changes(), 0) WHERE id = ?1";
 
 function toTuple(l: NewListen): unknown[] {
   return [
@@ -90,7 +91,10 @@ export function d1Listens(db: D1Like): ListenRepository {
       const bounds =
         "SELECT (SELECT min(listened_at) FROM listens WHERE user_id = ?1) AS oldest, (SELECT max(listened_at) FROM listens WHERE user_id = ?1) AS latest";
 
-      const [rows, edges] = await db.batch([db.prepare(list).bind(...params), db.prepare(bounds).bind(userId)]);
+      const [rows, edges] = await db.batch([
+        db.prepare(list).bind(...params),
+        db.prepare(bounds).bind(userId),
+      ]);
       const edge = (edges?.results[0] ?? {}) as { oldest?: number | null; latest?: number | null };
       return {
         listens: ((rows?.results ?? []) as ListenRow[]).map(toListen),
@@ -101,7 +105,11 @@ export function d1Listens(db: D1Like): ListenRepository {
 
     async delete(userId, listenedAt, recordingMsid) {
       const [del] = await db.batch([
-        db.prepare("DELETE FROM listens WHERE user_id = ?1 AND listened_at = ?2 AND recording_msid = ?3").bind(userId, listenedAt, recordingMsid),
+        db
+          .prepare(
+            "DELETE FROM listens WHERE user_id = ?1 AND listened_at = ?2 AND recording_msid = ?3",
+          )
+          .bind(userId, listenedAt, recordingMsid),
         db.prepare(BUMP_COUNT_SQL).bind(userId, -1),
       ]);
       return (del?.meta.changes ?? 0) > 0;

@@ -55,10 +55,14 @@ function cleanAdditionalInfo(raw: unknown): AdditionalInfo {
       throw ApiError.badRequest("tags must be a list of strings.");
     }
     if (tags.length > LISTEN_LIMITS.maxTagsPerListen) {
-      throw ApiError.badRequest(`Too many tags: a listen can have at most ${LISTEN_LIMITS.maxTagsPerListen}.`);
+      throw ApiError.badRequest(
+        `Too many tags: a listen can have at most ${LISTEN_LIMITS.maxTagsPerListen}.`,
+      );
     }
     if (tags.some((t) => t.length > LISTEN_LIMITS.maxTagLength)) {
-      throw ApiError.badRequest(`Tag too long: tags can be at most ${LISTEN_LIMITS.maxTagLength} characters.`);
+      throw ApiError.badRequest(
+        `Tag too long: tags can be at most ${LISTEN_LIMITS.maxTagLength} characters.`,
+      );
     }
   }
 
@@ -76,7 +80,9 @@ function validateTrackMetadata(raw: unknown): TrackMetadata {
   if (!isObject(raw)) throw ApiError.badRequest("JSON document must contain track_metadata.");
   const { artist_name, track_name, release_name } = raw;
   if (!nonEmptyString(artist_name)) {
-    throw ApiError.badRequest("JSON document does not contain required track_metadata.artist_name.");
+    throw ApiError.badRequest(
+      "JSON document does not contain required track_metadata.artist_name.",
+    );
   }
   if (!nonEmptyString(track_name)) {
     throw ApiError.badRequest("JSON document does not contain required track_metadata.track_name.");
@@ -89,7 +95,8 @@ function validateTrackMetadata(raw: unknown): TrackMetadata {
     track_name: track_name.trim(),
     additional_info: cleanAdditionalInfo(raw.additional_info),
   };
-  if (typeof release_name === "string" && release_name.trim()) meta.release_name = release_name.trim();
+  if (typeof release_name === "string" && release_name.trim())
+    meta.release_name = release_name.trim();
   return meta;
 }
 
@@ -113,23 +120,31 @@ export function validateSubmission(body: unknown): ValidSubmission {
   const { listen_type, payload } = body;
 
   if (typeof listen_type !== "string" || !LISTEN_TYPES.includes(listen_type as ListenType)) {
-    throw ApiError.badRequest("JSON document must contain a valid listen_type: single, playing_now or import.");
+    throw ApiError.badRequest(
+      "JSON document must contain a valid listen_type: single, playing_now or import.",
+    );
   }
   const listenType = listen_type as ListenType;
   if (!Array.isArray(payload) || payload.length === 0) {
     throw ApiError.badRequest("JSON document must contain a non-empty payload list.");
   }
   if (listenType !== "import" && payload.length !== 1) {
-    throw ApiError.badRequest(`JSON document should contain exactly one listen for listen_type ${listenType}.`);
+    throw ApiError.badRequest(
+      `JSON document should contain exactly one listen for listen_type ${listenType}.`,
+    );
   }
   if (payload.length > LISTEN_LIMITS.maxListensPerRequest) {
-    throw ApiError.badRequest(`Too many listens. You may not submit more than ${LISTEN_LIMITS.maxListensPerRequest} listens at once.`);
+    throw ApiError.badRequest(
+      `Too many listens. You may not submit more than ${LISTEN_LIMITS.maxListensPerRequest} listens at once.`,
+    );
   }
 
   const listens = payload.map((item: unknown): ValidListen => {
     if (!isObject(item)) throw ApiError.badRequest("Each listen in payload must be a JSON object.");
     if (encoder.encode(JSON.stringify(item)).length > LISTEN_LIMITS.maxListenBytes) {
-      throw ApiError.badRequest(`Listen exceeds the maximum size of ${LISTEN_LIMITS.maxListenBytes} bytes.`);
+      throw ApiError.badRequest(
+        `Listen exceeds the maximum size of ${LISTEN_LIMITS.maxListenBytes} bytes.`,
+      );
     }
     const trackMetadata = validateTrackMetadata(item.track_metadata);
     // ListenBrainz rejects listened_at on playing_now; we accept and ignore it, which is friendlier to clients.

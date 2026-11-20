@@ -38,7 +38,9 @@ export class SqliteD1Statement {
   }
 
   async first<T = Record<string, unknown>>(column?: string): Promise<T | null> {
-    const row = this.db.prepare(this.sql).get(...this.params) as Record<string, unknown> | undefined;
+    const row = this.db.prepare(this.sql).get(...this.params) as
+      | Record<string, unknown>
+      | undefined;
     if (!row) return null;
     return (column ? row[column] : row) as T;
   }
@@ -56,11 +58,24 @@ export class SqliteD1Statement {
     const stmt = this.db.prepare(this.sql);
     if (stmt.columns().length > 0) {
       const results = stmt.all(...this.params) as T[];
-      return { results, success: true, meta: { changes: 0, last_row_id: 0, rows_read: results.length, rows_written: 0 } };
+      return {
+        results,
+        success: true,
+        meta: { changes: 0, last_row_id: 0, rows_read: results.length, rows_written: 0 },
+      };
     }
     const r = stmt.run(...this.params);
     const changes = Number(r.changes);
-    return { results: [], success: true, meta: { changes, last_row_id: Number(r.lastInsertRowid), rows_read: 0, rows_written: changes } };
+    return {
+      results: [],
+      success: true,
+      meta: {
+        changes,
+        last_row_id: Number(r.lastInsertRowid),
+        rows_read: 0,
+        rows_written: changes,
+      },
+    };
   }
 }
 
@@ -96,7 +111,9 @@ export class SqliteD1 {
     return wrap(statement);
   }
 
-  async batch<T = Record<string, unknown>>(statements: SqliteD1Statement[]): Promise<SqliteD1Result<T>[]> {
+  async batch<T = Record<string, unknown>>(
+    statements: SqliteD1Statement[],
+  ): Promise<SqliteD1Result<T>[]> {
     this.roundTrips++;
     this.statements += statements.length;
     this.raw.exec("BEGIN");

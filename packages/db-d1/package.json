@@ -9,7 +9,17 @@
     ".": "./src/index.ts",
     "./testing": "./src/testing.ts"
   },
-  "scripts": { "test": "vp test" },
-  "dependencies": { "@scrobbler/core": "workspace:*", "@scrobbler/types": "workspace:*" },
-  "devDependencies": { "@scrobbler/testing": "workspace:*", "@types/node": "catalog:", "vite-plus": "catalog:", "typescript": "catalog:" }
+  "scripts": {
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@scrobbler/core": "workspace:*",
+    "@scrobbler/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@scrobbler/testing": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
 }

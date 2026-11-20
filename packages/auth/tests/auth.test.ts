@@ -23,22 +23,45 @@ beforeEach(() => {
 });
 
 async function signUp(username: string) {
-  return auth.api.signUpEmail({ body: { email: `${username.toLowerCase()}@example.test`, password: "correct horse battery", name: username, username } });
+  return auth.api.signUpEmail({
+    body: {
+      email: `${username.toLowerCase()}@example.test`,
+      password: "correct horse battery",
+      name: username,
+      username,
+    },
+  });
 }
 
 test("sign-up creates the scrobbler profile, keeping the username's case", async () => {
   await signUp("Alice");
-  expect(await services.users.requireByName("alice")).toMatchObject({ name: "Alice", listenCount: 0 });
+  expect(await services.users.requireByName("alice")).toMatchObject({
+    name: "Alice",
+    listenCount: 0,
+  });
 });
 
 test("sign-up without a username is refused", async () => {
-  await expect(auth.api.signUpEmail({ body: { email: "x@example.test", password: "correct horse battery", name: "x" } })).rejects.toThrow();
+  await expect(
+    auth.api.signUpEmail({
+      body: { email: "x@example.test", password: "correct horse battery", name: "x" },
+    }),
+  ).rejects.toThrow();
 });
 
 test("usernames follow the ListenBrainz user_name rules and are unique", async () => {
   await expect(signUp("bad name")).rejects.toThrow();
   await signUp("alice");
-  await expect(auth.api.signUpEmail({ body: { email: "other@example.test", password: "correct horse battery", name: "a", username: "ALICE" } })).rejects.toThrow();
+  await expect(
+    auth.api.signUpEmail({
+      body: {
+        email: "other@example.test",
+        password: "correct horse battery",
+        name: "a",
+        username: "ALICE",
+      },
+    }),
+  ).rejects.toThrow();
 });
 
 test("an API key is a ListenBrainz token; disabling it revokes it", async () => {

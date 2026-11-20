@@ -28,13 +28,26 @@ describe("stats ranges", () => {
 
   test("previous month/quarter wrap across years", () => {
     const jan = ts("2026-01-10T00:00:00Z");
-    expect(rangeWindow("month", jan)).toEqual({ fromTs: ts("2025-12-01T00:00:00Z"), toTs: ts("2025-12-31T23:59:59Z") });
-    expect(rangeWindow("quarter", jan)).toEqual({ fromTs: ts("2025-10-01T00:00:00Z"), toTs: ts("2025-12-31T23:59:59Z") });
-    expect(rangeWindow("half_yearly", jan)).toEqual({ fromTs: ts("2025-07-01T00:00:00Z"), toTs: ts("2025-12-31T23:59:59Z") });
+    expect(rangeWindow("month", jan)).toEqual({
+      fromTs: ts("2025-12-01T00:00:00Z"),
+      toTs: ts("2025-12-31T23:59:59Z"),
+    });
+    expect(rangeWindow("quarter", jan)).toEqual({
+      fromTs: ts("2025-10-01T00:00:00Z"),
+      toTs: ts("2025-12-31T23:59:59Z"),
+    });
+    expect(rangeWindow("half_yearly", jan)).toEqual({
+      fromTs: ts("2025-07-01T00:00:00Z"),
+      toTs: ts("2025-12-31T23:59:59Z"),
+    });
   });
 
   test("this_week on a Monday starts that day; on a Sunday starts six days before", () => {
-    expect(rangeWindow("this_week", ts("2026-11-16T08:00:00Z")).fromTs).toBe(ts("2026-11-16T00:00:00Z"));
-    expect(rangeWindow("this_week", ts("2026-11-22T23:00:00Z")).fromTs).toBe(ts("2026-11-16T00:00:00Z"));
+    expect(rangeWindow("this_week", ts("2026-11-16T08:00:00Z")).fromTs).toBe(
+      ts("2026-11-16T00:00:00Z"),
+    );
+    expect(rangeWindow("this_week", ts("2026-11-22T23:00:00Z")).fromTs).toBe(
+      ts("2026-11-16T00:00:00Z"),
+    );
   });
 });

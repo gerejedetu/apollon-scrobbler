@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, test } from "vite-plus/test";
-import { ApiError, MemoryCache, createServices, tokenFromHeader, type Services } from "../src/index.ts";
+import {
+  ApiError,
+  MemoryCache,
+  createServices,
+  tokenFromHeader,
+  type Services,
+} from "../src/index.ts";
 import { fakeRepositories, fakeVerifier } from "./fakes.ts";
 
 const T0 = 1_700_000_000;
@@ -14,7 +20,11 @@ beforeEach(() => {
   now = T0;
   repos = fakeRepositories();
   tokens = new Map();
-  s = createServices(repos, fakeVerifier(tokens), { clock: () => now, cache: new MemoryCache(), authCache: new MemoryCache() });
+  s = createServices(repos, fakeVerifier(tokens), {
+    clock: () => now,
+    cache: new MemoryCache(),
+    authCache: new MemoryCache(),
+  });
 });
 
 /** Creates a profile for a new account and a token for it, as the identity provider would. */
@@ -40,7 +50,10 @@ describe("auth", () => {
 
   test("a verified token resolves to its profile; unknown tokens are rejected", async () => {
     const { user, token } = await signUp("alice");
-    expect(await s.auth.requireUser(`Token ${token}`)).toMatchObject({ id: user.id, name: "alice" });
+    expect(await s.auth.requireUser(`Token ${token}`)).toMatchObject({
+      id: user.id,
+      name: "alice",
+    });
     await rejects(s.auth.requireUser(undefined), 401);
     await rejects(s.auth.requireUser("Token nope"), 401);
   });
@@ -65,8 +78,14 @@ describe("listens", () => {
   test("submit stores listens, dedupes, and lists newest first", async () => {
     const { user } = await signUp("alice");
     const payload = [0, 1, 2].map((i) => ({ listened_at: T0 - 100 + i, track_metadata: track(i) }));
-    expect(await s.listens.submit(user, { listen_type: "import", payload })).toEqual({ accepted: 3, inserted: 3 });
-    expect(await s.listens.submit(user, { listen_type: "import", payload })).toEqual({ accepted: 3, inserted: 0 });
+    expect(await s.listens.submit(user, { listen_type: "import", payload })).toEqual({
+      accepted: 3,
+      inserted: 3,
+    });
+    expect(await s.listens.submit(user, { listen_type: "import", payload })).toEqual({
+      accepted: 3,
+      inserted: 0,
+    });
 
     const page = await s.listens.list(user, { count: "2" });
     expect(page.count).toBe(2);
@@ -96,7 +115,10 @@ describe("listens", () => {
 
   test("delete removes one listen", async () => {
     const { user } = await signUp("alice");
-    await s.listens.submit(user, { listen_type: "single", payload: [{ listened_at: T0, track_metadata: track(1) }] });
+    await s.listens.submit(user, {
+      listen_type: "single",
+      payload: [{ listened_at: T0, track_metadata: track(1) }],
+    });
     const [listen] = (await s.listens.list(user, {})).listens;
     await rejects(s.listens.delete(user, { listened_at: T0 }), 400);
     await s.listens.delete(user, { listened_at: T0, recording_msid: listen?.recording_msid });
@@ -124,7 +146,10 @@ describe("users, imports, stats", () => {
 
   test("stats are cached by listen count", async () => {
     const { user } = await signUp("alice");
-    await s.listens.submit(user, { listen_type: "import", payload: [0, 1, 2].map((i) => ({ listened_at: T0 - i, track_metadata: track(i) })) });
+    await s.listens.submit(user, {
+      listen_type: "import",
+      payload: [0, 1, 2].map((i) => ({ listened_at: T0 - i, track_metadata: track(i) })),
+    });
     const fresh = await s.users.requireByName("alice");
     const first = await s.stats.top(fresh, "artists", {});
     expect(first.rows.map((r) => [r.artistName, r.listenCount])).toEqual([

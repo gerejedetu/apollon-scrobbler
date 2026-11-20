@@ -5,7 +5,13 @@
 import { AuthService } from "./auth/service.ts";
 import { ImportService } from "./imports/service.ts";
 import { ListenService } from "./listens/service.ts";
-import { type Cache, type Clock, type Repositories, systemClock, type TokenVerifier } from "./ports/index.ts";
+import {
+  type Cache,
+  type Clock,
+  type Repositories,
+  systemClock,
+  type TokenVerifier,
+} from "./ports/index.ts";
 import { StatsService } from "./stats/service.ts";
 import { UserService } from "./users/service.ts";
 
@@ -25,7 +31,11 @@ export interface Services {
   imports: ImportService;
 }
 
-export function createServices(repos: Repositories, tokens: TokenVerifier, options: ServiceOptions = {}): Services {
+export function createServices(
+  repos: Repositories,
+  tokens: TokenVerifier,
+  options: ServiceOptions = {},
+): Services {
   const clock = options.clock ?? systemClock;
   return {
     auth: new AuthService(repos.users, tokens, options.authCache),

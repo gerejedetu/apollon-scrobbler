@@ -25,14 +25,19 @@ export interface SubmitResult {
 
 function parseIntParam(name: string, raw: string | undefined): number | undefined {
   if (raw === undefined || raw === "") return undefined;
-  if (!/^\d+$/.test(raw)) throw ApiError.badRequest(`Invalid ${name}: must be a non-negative integer.`);
+  if (!/^\d+$/.test(raw))
+    throw ApiError.badRequest(`Invalid ${name}: must be a non-negative integer.`);
   return Number(raw);
 }
 
 function playingNowTtl(meta: TrackMetadata): number {
   const info = meta.additional_info ?? {};
   const seconds =
-    typeof info.duration_ms === "number" ? Math.ceil(info.duration_ms / 1000) : typeof info.duration === "number" ? info.duration : undefined;
+    typeof info.duration_ms === "number"
+      ? Math.ceil(info.duration_ms / 1000)
+      : typeof info.duration === "number"
+        ? info.duration
+        : undefined;
   if (seconds === undefined) return LISTEN_LIMITS.playingNowDefaultTtl;
   return Math.min(seconds, LISTEN_LIMITS.playingNowMaxTtl);
 }
@@ -51,12 +56,18 @@ export class ListenService {
     if (submission.listenType === "playing_now") {
       const [listen] = submission.listens;
       if (listen) {
-        await this.playingNow.set({ userId: user.id, trackMetadata: listen.trackMetadata, expiresAt: now + playingNowTtl(listen.trackMetadata) });
+        await this.playingNow.set({
+          userId: user.id,
+          trackMetadata: listen.trackMetadata,
+          expiresAt: now + playingNowTtl(listen.trackMetadata),
+        });
       }
       return { accepted: 1, inserted: 0 };
     }
 
-    const rows = await Promise.all(submission.listens.map((l) => toNewListen(l.listenedAt ?? now, l.trackMetadata)));
+    const rows = await Promise.all(
+      submission.listens.map((l) => toNewListen(l.listenedAt ?? now, l.trackMetadata)),
+    );
     const inserted = await this.listens.insertMany(user.id, rows, now);
     return { accepted: rows.length, inserted };
   }
@@ -71,7 +82,12 @@ export class ListenService {
     const limit = Math.min(Math.max(count, 0), LISTEN_LIMITS.maxItemsPerGet);
     const page = await this.listens.page({ userId: user.id, minTs, maxTs, limit });
     const listens = page.listens.map((l) => toApiListen(l, user.name));
-    return { count: listens.length, listens, latest_listen_ts: page.latestListenTs, oldest_listen_ts: page.oldestListenTs };
+    return {
+      count: listens.length,
+      listens,
+      latest_listen_ts: page.latestListenTs,
+      oldest_listen_ts: page.oldestListenTs,
+    };
   }
 
   async current(user: User): Promise<TrackMetadata | null> {
@@ -80,7 +96,8 @@ export class ListenService {
   }
 
   async delete(user: User, body: unknown): Promise<void> {
-    if (typeof body !== "object" || body === null) throw ApiError.badRequest("Invalid JSON document submitted.");
+    if (typeof body !== "object" || body === null)
+      throw ApiError.badRequest("Invalid JSON document submitted.");
     const { listened_at, recording_msid } = body as Record<string, unknown>;
     if (typeof listened_at !== "number" || !Number.isInteger(listened_at)) {
       throw ApiError.badRequest("JSON document must contain the key listened_at as an integer.");

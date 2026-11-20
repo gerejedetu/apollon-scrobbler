@@ -15,11 +15,20 @@ export function d1PlayingNow(db: D1Like): PlayingNowRepository {
     },
     async get(userId, now) {
       const row = await db
-        .prepare("SELECT track_metadata, expires_at FROM playing_now WHERE user_id = ?1 AND expires_at > ?2")
+        .prepare(
+          "SELECT track_metadata, expires_at FROM playing_now WHERE user_id = ?1 AND expires_at > ?2",
+        )
         .bind(userId, now)
         .first<{ track_metadata: string; expires_at: number }>();
       if (!row) return null;
-      return { userId, trackMetadata: parseJson<TrackMetadata>(row.track_metadata, { artist_name: "", track_name: "" }), expiresAt: row.expires_at };
+      return {
+        userId,
+        trackMetadata: parseJson<TrackMetadata>(row.track_metadata, {
+          artist_name: "",
+          track_name: "",
+        }),
+        expiresAt: row.expires_at,
+      };
     },
   };
 }

@@ -16,7 +16,8 @@ export interface StatsParams {
 
 function parseNonNegative(name: string, raw: string | undefined, fallback: number): number {
   if (raw === undefined || raw === "") return fallback;
-  if (!/^\d+$/.test(raw)) throw ApiError.badRequest(`Invalid ${name}: must be a non-negative integer.`);
+  if (!/^\d+$/.test(raw))
+    throw ApiError.badRequest(`Invalid ${name}: must be a non-negative integer.`);
   return Number(raw);
 }
 

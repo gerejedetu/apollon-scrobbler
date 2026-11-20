@@ -5,8 +5,17 @@
   "description": "Business rules: ListenBrainz validation, listens, auth tokens, stats. Depends only on ports, never on a concrete database.",
   "license": "AGPL-3.0-only",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "test": "vp test" },
-  "dependencies": { "@scrobbler/types": "workspace:*" },
-  "devDependencies": { "vite-plus": "catalog:", "typescript": "catalog:" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@scrobbler/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
 }

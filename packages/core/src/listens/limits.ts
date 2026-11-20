@@ -16,5 +16,10 @@ export const LISTEN_LIMITS = {
 } as const;
 
 /** Keys of `additional_info` that must hold a MusicBrainz id. Invalid ids are dropped, not rejected. */
-export const MBID_KEYS = ["release_group_mbid", "release_mbid", "recording_mbid", "track_mbid"] as const;
+export const MBID_KEYS = [
+  "release_group_mbid",
+  "release_mbid",
+  "recording_mbid",
+  "track_mbid",
+] as const;
 export const MBID_LIST_KEYS = ["artist_mbids", "work_mbids"] as const;
