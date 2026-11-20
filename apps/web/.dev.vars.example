@@ -1,0 +1,3 @@
+# Copy to .dev.vars (git-ignored). Where the API answers while developing, e.g. the API's own `vp run dev`.
+# Sign-in from http://localhost:3000 also needs TRUSTED_ORIGINS=http://localhost:3000 in apps/api/.dev.vars.
+API_ORIGIN=http://localhost:8787

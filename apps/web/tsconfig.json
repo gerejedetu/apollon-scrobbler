@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Bundled by Vite: bundler resolution (Panda's generated code uses extensionless imports).
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "types": ["node", "vite-plus/client"],
+    // Panda's generated code (styled-system/, git-ignored) lives next to src.
+    "paths": { "styled-system/*": ["./styled-system/*"] }
+  },
+  "include": ["src", "tests", "panda.config.ts", "vite.config.ts"]
+}

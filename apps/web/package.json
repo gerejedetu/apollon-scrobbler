@@ -1,0 +1,42 @@
+{
+  "name": "@scrobbler/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Web front (TanStack Start) on Cloudflare Workers, in front of the scrobbler API.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "prepare": "panda codegen",
+    "dev": "vp dev",
+    "build": "vp build",
+    "test": "vp test",
+    "deploy": "vp build && wrangler deploy"
+  },
+  "dependencies": {
+    "@better-auth/api-key": "catalog:",
+    "@scrobbler/core": "workspace:*",
+    "@tanstack/react-router": "1.170.46",
+    "@tanstack/react-start": "1.169.7",
+    "@zag-js/clipboard": "1.48.0",
+    "@zag-js/react": "1.48.0",
+    "@zag-js/switch": "1.48.0",
+    "@zag-js/tabs": "1.48.0",
+    "better-auth": "catalog:",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.70.1",
+    "@pandacss/dev": "2.6.0",
+    "@pandacss/preset-base": "2.6.0",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "catalog:",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "happy-dom": "21.0.4",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:",
+    "wrangler": "4.165.0"
+  }
+}

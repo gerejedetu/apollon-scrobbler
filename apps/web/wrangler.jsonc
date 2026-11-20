@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "scrobbler-web",
+  "main": "src/server.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "workers_dev": true,
+  "preview_urls": false,
+  // /api/auth, /v1 and /1 are relayed to the API Worker through this binding (same origin = first-party cookies).
+  "services": [{ "binding": "API", "service": "scrobbler-api" }],
+  // Local dev without the API running under wrangler: set API_ORIGIN in .dev.vars (see .dev.vars.example).
+}
