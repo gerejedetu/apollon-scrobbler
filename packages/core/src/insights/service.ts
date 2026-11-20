@@ -5,6 +5,7 @@
 import type { EntityKey, StatsRange, TimeWindow, User } from "@scrobbler/types";
 import { ApiError } from "../errors/index.ts";
 import type { Cache, Clock, InsightsRepository, StatsRepository } from "../ports/index.ts";
+import { DEFAULT_CACHE_MIN_LISTENS } from "../cache/policy.ts";
 import { parseRange, rangeWindow } from "../stats/range.ts";
 import * as p from "./params.ts";
 import { DAY, dayToDate, percentChange, type Raw, weekToDate } from "./params.ts";
@@ -54,6 +55,7 @@ export class InsightsService {
     private readonly stats: StatsRepository,
     private readonly clock: Clock,
     private readonly cache?: Cache,
+    private readonly cacheMinListens = DEFAULT_CACHE_MIN_LISTENS,
   ) {}
 
   private async cached<T>(
@@ -64,12 +66,15 @@ export class InsightsService {
     /** Set to false for results new listens rarely change (milestones), so they are not recomputed on every listen. */
     byListenCount = true,
   ): Promise<T> {
+    // Small histories are cheaper to recompute than to cache (see cache/policy.ts).
+    if (!this.cache || user.listenCount < this.cacheMinListens) return compute();
     const version = byListenCount ? user.listenCount : "any";
     const key = `insights:v1:${user.id}:${version}:${name}:${JSON.stringify(params)}`;
-    const hit = await this.cache?.get<T>(key);
+    const hit = await this.cache.get<T>(key);
     if (hit !== null && hit !== undefined) return hit;
     const value = await compute();
-    await this.cache?.set(key, value, CACHE_TTL);
+    // Not-found results are not cached: random names must not turn into cache writes.
+    if (value !== null) await this.cache.set(key, value, CACHE_TTL);
     return value;
   }
 

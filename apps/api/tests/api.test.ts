@@ -219,7 +219,9 @@ describe("stats", () => {
       },
     ]);
     expect((await api.json("/1/stats/user/alice/artists?range=decade")).status).toBe(400);
-    expect(api.kv.writes).toBeGreaterThan(0);
+    // A 3-listen history is cheaper to recompute than to cache: no KV traffic at all.
+    expect(api.kv.writes).toBe(0);
+    expect(api.kv.reads).toBe(0);
   });
 });
 
@@ -227,5 +229,34 @@ describe("accounts", () => {
   test("sign-up can be turned off", async () => {
     const closed = testApi({ DISABLE_SIGNUP: "true" });
     await expect(closed.signUp("bob")).rejects.toThrow(/sign-up failed/);
+  });
+});
+
+describe("rate limits", () => {
+  test("a client over its limit gets 429 with Retry-After; others are unaffected", async () => {
+    const counts = new Map<string, number>();
+    const limiter = (max: number) => ({
+      limit: async ({ key }: { key: string }) => {
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+        return { success: counts.get(key)! <= max };
+      },
+    });
+    const limited = testApi({ RATE_LIMIT_API: limiter(2), RATE_LIMIT_AUTH: limiter(100) });
+    const ip = (n: string) => ({ headers: { "cf-connecting-ip": n } });
+    expect((await limited.request("/v1/users/x/listens", ip("1.1.1.1"))).status).toBe(404);
+    expect((await limited.request("/1/user/x/listens", ip("1.1.1.1"))).status).toBe(404);
+    const blocked = await limited.request("/v1/users/x/listens", ip("1.1.1.1"));
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get("retry-after")).toBe("60");
+    expect(await blocked.json()).toMatchObject({ code: 429 });
+    expect((await limited.request("/v1/users/x/listens", ip("2.2.2.2"))).status).toBe(404);
+    // Keys never contain the raw token.
+    await limited.request("/v1/me", { headers: { authorization: "Bearer secret-token" } });
+    expect([...counts.keys()].some((k) => k.includes("secret-token"))).toBe(false);
+  });
+
+  test("sign-up is limited separately", async () => {
+    const strict = testApi({ RATE_LIMIT_AUTH: { limit: async () => ({ success: false }) } });
+    await expect(strict.signUp("bob")).rejects.toThrow(/429/);
   });
 });

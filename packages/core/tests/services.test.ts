@@ -24,6 +24,7 @@ beforeEach(() => {
     clock: () => now,
     cache: new MemoryCache(),
     authCache: new MemoryCache(),
+    cacheMinListens: 0,
   });
 });
 
@@ -246,5 +247,40 @@ describe("more stats", () => {
       ],
     });
     await rejects(s.stats.artist(user, "Nobody", {}), 404);
+  });
+});
+
+describe("cache policy", () => {
+  test("small histories skip the stats cache; not-found results are never cached", async () => {
+    const { user } = await signUp("alice");
+    const cache = new MemoryCache();
+    let writes = 0;
+    const counting = {
+      get: cache.get.bind(cache),
+      set: async (...a: Parameters<MemoryCache["set"]>) => (writes++, cache.set(...a)),
+    };
+    await s.listens.submit(user, {
+      listen_type: "single",
+      payload: [{ listened_at: T0, track_metadata: track(1) }],
+    });
+    const fresh = await s.users.requireByName("alice");
+
+    const small = createServices(repos, fakeVerifier(tokens), {
+      clock: () => now,
+      cache: counting,
+      cacheMinListens: 5000,
+    });
+    await small.stats.top(fresh, "artists", {});
+    expect(writes).toBe(0);
+
+    const big = createServices(repos, fakeVerifier(tokens), {
+      clock: () => now,
+      cache: counting,
+      cacheMinListens: 0,
+    });
+    await big.stats.top(fresh, "artists", {});
+    expect(writes).toBe(1);
+    await rejects(big.stats.artist(fresh, "Nobody", {}), 404);
+    expect(writes).toBe(1);
   });
 });

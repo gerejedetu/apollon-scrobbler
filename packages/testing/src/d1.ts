@@ -30,14 +30,16 @@ export class SqliteD1Statement {
   constructor(
     private readonly db: DatabaseSync,
     readonly sql: string,
-    private readonly params: SQLInputValue[] = [],
+    readonly params: SQLInputValue[] = [],
+    private readonly log?: { sql: string; params: SQLInputValue[] }[],
   ) {}
 
   bind(...values: Value[]): SqliteD1Statement {
-    return new SqliteD1Statement(this.db, this.sql, values.map(toSql));
+    return new SqliteD1Statement(this.db, this.sql, values.map(toSql), this.log);
   }
 
   async first<T = Record<string, unknown>>(column?: string): Promise<T | null> {
+    this.log?.push({ sql: this.sql, params: this.params });
     const row = this.db.prepare(this.sql).get(...this.params) as
       | Record<string, unknown>
       | undefined;
@@ -55,6 +57,7 @@ export class SqliteD1Statement {
 
   /** Synchronous execution, used by batch() inside a transaction. */
   execute<T>(): SqliteD1Result<T> {
+    this.log?.push({ sql: this.sql, params: this.params });
     const stmt = this.db.prepare(this.sql);
     if (stmt.columns().length > 0) {
       const results = stmt.all(...this.params) as T[];
@@ -85,6 +88,8 @@ export class SqliteD1 {
   statements = 0;
   /** Number of `batch()` / single-statement calls (each one is a network round trip on real D1). */
   roundTrips = 0;
+  /** Every statement executed, with its parameters, for query-plan audits. */
+  readonly log: { sql: string; params: SQLInputValue[] }[] = [];
 
   constructor(path = ":memory:") {
     this.raw = new DatabaseSync(path);
@@ -92,7 +97,7 @@ export class SqliteD1 {
   }
 
   prepare(sql: string): SqliteD1Statement {
-    const statement = new SqliteD1Statement(this.raw, sql);
+    const statement = new SqliteD1Statement(this.raw, sql, [], this.log);
     // Count round trips by wrapping the async entry points.
     const count = <F extends (...args: never[]) => unknown>(fn: F): F =>
       ((...args: never[]) => {

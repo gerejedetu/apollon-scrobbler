@@ -10,6 +10,7 @@ import type {
 } from "@scrobbler/types";
 import { ApiError } from "../errors/index.ts";
 import type { Cache, Clock, StatsRepository } from "../ports/index.ts";
+import { DEFAULT_CACHE_MIN_LISTENS } from "../cache/policy.ts";
 import { parseRange, rangeWindow } from "./range.ts";
 
 const DEFAULT_COUNT = 25;
@@ -55,7 +56,13 @@ export class StatsService {
     private readonly stats: StatsRepository,
     private readonly clock: Clock,
     private readonly cache?: Cache,
+    private readonly cacheMinListens = DEFAULT_CACHE_MIN_LISTENS,
   ) {}
+
+  /** The cache to use for this user, or undefined when recomputing is cheaper (see cache/policy.ts). */
+  private cacheFor(user: User): Cache | undefined {
+    return user.listenCount >= this.cacheMinListens ? this.cache : undefined;
+  }
 
   async top(user: User, entity: StatsEntity, params: StatsParams): Promise<StatsResult> {
     const range = parseRange(params.range);
@@ -66,12 +73,12 @@ export class StatsService {
 
     // Open-ended windows (this_*, all_time) end "now": key on their start only, the listen count covers new data.
     const key = `stats:v1:${user.id}:${user.listenCount}:${entity}:${range}:${window.fromTs}:${limit}:${offset}`;
-    const cached = await this.cache?.get<StatsResult>(key);
+    const cached = await this.cacheFor(user)?.get<StatsResult>(key);
     if (cached) return cached;
 
     const top = await this.stats.top({ userId: user.id, entity, window, limit, offset });
     const result: StatsResult = { ...top, entity, range, window, lastUpdated: now };
-    await this.cache?.set(key, result, STATS_CACHE_TTL);
+    await this.cacheFor(user)?.set(key, result, STATS_CACHE_TTL);
     return result;
   }
 
@@ -89,10 +96,11 @@ export class StatsService {
     const now = this.clock();
     const window = rangeWindow(range, now);
     const key = `stats:v1:${user.id}:${user.listenCount}:${kind}:${range}:${window.fromTs}`;
-    const cached = await this.cache?.get<Windowed<T>>(key);
+    const cached = await this.cacheFor(user)?.get<Windowed<T>>(key);
     if (cached) return cached;
     const result: Windowed<T> = { range, window, lastUpdated: now, data: await compute(window) };
-    await this.cache?.set(key, result, STATS_CACHE_TTL);
+    // Not-found results are not cached: random names must not turn into cache writes.
+    if (result.data !== null) await this.cacheFor(user)?.set(key, result, STATS_CACHE_TTL);
     return result;
   }
 

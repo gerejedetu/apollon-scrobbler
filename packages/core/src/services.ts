@@ -22,6 +22,8 @@ export interface ServiceOptions {
   cache?: Cache;
   /** Short-lived cache for token lookups. */
   authCache?: Cache;
+  /** Users with fewer listens skip the stats cache (cheaper to recompute). Default 5000. */
+  cacheMinListens?: number;
 }
 
 export interface Services {
@@ -43,8 +45,14 @@ export function createServices(
     auth: new AuthService(repos.users, tokens, options.authCache),
     users: new UserService(repos.users, clock),
     listens: new ListenService(repos.listens, repos.playingNow, clock),
-    stats: new StatsService(repos.stats, clock, options.cache),
+    stats: new StatsService(repos.stats, clock, options.cache, options.cacheMinListens),
     imports: new ImportService(repos.imports),
-    insights: new InsightsService(repos.insights, repos.stats, clock, options.cache),
+    insights: new InsightsService(
+      repos.insights,
+      repos.stats,
+      clock,
+      options.cache,
+      options.cacheMinListens,
+    ),
   };
 }

@@ -3,6 +3,11 @@ import type { KVLike } from "@scrobbler/cache-kv";
 import type { Services } from "@scrobbler/core";
 import type { D1Like } from "@scrobbler/db-d1";
 
+/** Cloudflare's Rate Limiting binding (see wrangler.jsonc `ratelimits`). */
+export interface RateLimiter {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
 /** Worker bindings (see wrangler.jsonc). Typed structurally so tests can pass doubles. */
 export interface Bindings {
   DB: D1Like;
@@ -12,6 +17,10 @@ export interface Bindings {
   BASE_URL?: string;
   TRUSTED_ORIGINS?: string;
   DISABLE_SIGNUP?: string;
+  /** Limits every /1 and /v1 call, per token or per IP. */
+  RATE_LIMIT_API?: RateLimiter;
+  /** Stricter limit on account creation and sign-in, per IP. */
+  RATE_LIMIT_AUTH?: RateLimiter;
 }
 
 export interface Variables {
