@@ -1,13 +1,24 @@
 /**
- * GET /covers?artist=…&album=…  (or &track=…, or kind=artist): finds artwork by name when a listen has no
- * MusicBrainz release, using Deezer's public search (no key). Answers a redirect to the image, or 404.
- * Answers are cached at the edge for 30 days (7 for misses), so each name is looked up once.
+ * GET /covers: artwork served from our own domain.
+ *   ?mbid=<release MBID>                       sleeve from the Cover Art Archive
+ *   ?artist=…&album=… (or &track=…)            sleeve found by name on Deezer's public search (no key)
+ *   ?artist=…&kind=artist                      artist picture found on Deezer
+ *
+ * Each image is resolved **once**, then its bytes are stored in R2 (bucket bound as ARTWORK) and served
+ * from there forever with immutable cache headers: pages never depend on an outside service once a cover
+ * is known. Misses are stored too (as a small marker, retried after MISS_TTL). Only a lookup that failed
+ * (outside service down or over quota) is not stored, so the next view retries it.
  */
 export const COVERS_PATH = "/covers";
 
 const DEEZER = "https://api.deezer.com";
-const HIT_TTL = 30 * 86_400;
+const CAA = "https://coverartarchive.org";
+/** Stored images never change under their key. */
+const IMMUTABLE = "public, max-age=31536000, immutable";
+/** A stored miss is retried after this long (new releases get artwork later). */
 const MISS_TTL = 7 * 86_400;
+/** Refuse anything bigger: a 500 px sleeve is ~30-80 KB. */
+const MAX_IMAGE_BYTES = 2_000_000;
 /**
  * Deezer's public API allows about 50 requests per 5 seconds. A page full of new covers fires dozens of
  * lookups at once, so they go through a small queue, and a search hit by the quota is retried after a pause.
@@ -21,6 +32,17 @@ export interface CoverQuery {
   album?: string;
   track?: string;
   size: "medium" | "big";
+}
+
+const MBID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** A release sleeve by MusicBrainz id, or a name lookup. */
+export type ArtworkQuery = { kind: "release"; mbid: string } | CoverQuery;
+
+export function readArtworkQuery(url: URL): ArtworkQuery | null {
+  const mbid = url.searchParams.get("mbid");
+  if (mbid) return MBID.test(mbid) ? { kind: "release", mbid: mbid.toLowerCase() } : null;
+  return readCoverQuery(url);
 }
 
 export function readCoverQuery(url: URL): CoverQuery | null {
@@ -166,17 +188,19 @@ async function queued<T>(task: () => Promise<T>): Promise<T> {
   }
 }
 
-/** The same cover asked twice at once (two rows of one page) is looked up once. */
-const pending = new Map<string, Promise<string | null | undefined>>();
-
-/** Cache key from the meaningful parameters only, so retries or extra parameters share one entry. */
-function cacheKey(url: URL): string {
-  const key = new URL(COVERS_PATH, url.origin);
-  for (const name of ["kind", "artist", "album", "track", "size", "v"]) {
-    const value = url.searchParams.get(name);
-    if (value !== null) key.searchParams.set(name, value);
-  }
-  return key.toString();
+/** The R2 bucket, typed structurally (tests pass a Map-backed double). */
+export interface ArtworkBucket {
+  get(key: string): Promise<{
+    body: ReadableStream | null;
+    arrayBuffer(): Promise<ArrayBuffer>;
+    httpMetadata?: { contentType?: string };
+    customMetadata?: Record<string, string>;
+  } | null>;
+  put(
+    key: string,
+    value: ArrayBuffer | string,
+    options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> },
+  ): Promise<unknown>;
 }
 
 interface EdgeCache {
@@ -184,41 +208,131 @@ interface EdgeCache {
   put(request: Request, response: Response): Promise<void>;
 }
 
+const norm = (s: string | undefined) => (s ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+
+/** Where an image lives in R2: one object per release or per normalized name, whatever size is asked. */
+export async function storageKey(q: ArtworkQuery): Promise<string> {
+  if (q.kind === "release") return `v1/release/${q.mbid}`;
+  const name =
+    q.kind === "artist"
+      ? norm(q.artist)
+      : `${norm(q.artist)}\u0000${norm(q.album)}\u0000${norm(q.track)}`;
+  const digest = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(name)),
+  );
+  const hex = [...digest].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `v1/${q.kind}/${hex}`;
+}
+
+type Fetched = { bytes: ArrayBuffer; contentType: string } | null | undefined;
+
+/** Downloads an image: `null` when the source has none (404), `undefined` when it failed. */
+async function download(url: string, fetcher: typeof fetch): Promise<Fetched> {
+  try {
+    const res = await fetcher(url, { redirect: "follow" });
+    if (res.status === 404) return null;
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!res.ok || !contentType.startsWith("image/")) return undefined;
+    const bytes = await res.arrayBuffer();
+    return bytes.byteLength > 0 && bytes.byteLength <= MAX_IMAGE_BYTES
+      ? { bytes, contentType }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Finds and downloads the image of a query (always the 500 px variant; smaller views scale it down). */
+export async function resolveArtwork(
+  q: ArtworkQuery,
+  fetcher: typeof fetch = fetch,
+  sleep?: (ms: number) => Promise<void>,
+): Promise<Fetched> {
+  if (q.kind === "release") return download(`${CAA}/release/${q.mbid}/front-500`, fetcher);
+  const url = await findCover({ ...q, size: "big" }, fetcher, sleep);
+  if (url === null || url === undefined) return url;
+  return queued(() => download(url, fetcher));
+}
+
+/** The same cover asked several times at once (two rows of one page) is resolved once per isolate. */
+const pending = new Map<string, Promise<Fetched>>();
+
+function imageResponse(body: BodyInit | null, contentType: string): Response {
+  return new Response(body, {
+    status: 200,
+    headers: { "content-type": contentType, "cache-control": IMMUTABLE },
+  });
+}
+
+const missResponse = () =>
+  new Response(null, { status: 404, headers: { "cache-control": "public, max-age=86400" } });
+
 export async function handleCovers(
   request: Request,
   deps: {
+    bucket?: ArtworkBucket;
     cache?: EdgeCache;
     fetcher?: typeof fetch;
     waitUntil?: (p: Promise<unknown>) => void;
     sleep?: (ms: number) => Promise<void>;
+    now?: () => number;
   } = {},
 ): Promise<Response> {
   const url = new URL(request.url);
-  const q = readCoverQuery(url);
+  const q = readArtworkQuery(url);
   if (!q) return new Response("Bad cover query", { status: 400 });
-  const id = cacheKey(url);
-  const key = new Request(id, { method: "GET" });
-  const cached = await deps.cache?.match(key);
+  const key = await storageKey(q);
+  const now = (deps.now ?? Date.now)();
+  // Background writes: after the response when the runtime allows it, else awaited (nothing is lost).
+  const later = async (p: Promise<unknown> | undefined) => {
+    if (!p) return;
+    const safe = p.catch(() => {});
+    if (deps.waitUntil) deps.waitUntil(safe);
+    else await safe;
+  };
+  // 1. Edge cache of this data centre (free), keyed by the storage key: every size and URL variant shares it.
+  const cacheRequest = new Request(new URL(`${COVERS_PATH}/${key}`, url.origin).toString());
+  const cached = await deps.cache?.match(cacheRequest);
   if (cached) return cached;
-  let lookup = pending.get(id);
-  if (!lookup) {
-    lookup = findCover(q, deps.fetcher, deps.sleep).finally(() => pending.delete(id));
-    pending.set(id, lookup);
+
+  // 2. R2: the image, or a miss marker that has not expired yet.
+  const stored = await deps.bucket?.get(key);
+  if (stored) {
+    const missUntil = Number(stored.customMetadata?.missUntil ?? 0);
+    if (!missUntil) {
+      const response = imageResponse(stored.body, stored.httpMetadata?.contentType ?? "image/jpeg");
+      await later(deps.cache?.put(cacheRequest, response.clone()));
+      return response;
+    }
+    if (missUntil > now) return missResponse();
   }
-  const image = await lookup;
-  if (image === undefined)
-    return new Response(null, { status: 503, headers: { "cache-control": "no-store" } });
-  const response = image
-    ? new Response(null, {
-        status: 302,
-        headers: { location: image, "cache-control": `public, max-age=${HIT_TTL}` },
-      })
-    : new Response(null, {
-        status: 404,
-        headers: { "cache-control": `public, max-age=${MISS_TTL}` },
-      });
-  const put = deps.cache?.put(key, response.clone());
-  if (put && deps.waitUntil) deps.waitUntil(put);
-  else if (put) await put;
+
+  // 3. Resolve once (deduplicated), then store for good.
+  let resolving = pending.get(key);
+  if (!resolving) {
+    resolving = resolveArtwork(q, deps.fetcher, deps.sleep).finally(() => pending.delete(key));
+    pending.set(key, resolving);
+  }
+  const image = await resolving;
+  if (image === undefined) {
+    return new Response(null, {
+      status: 503,
+      headers: { "cache-control": "no-store", "retry-after": "5" },
+    });
+  }
+  if (image === null) {
+    await later(
+      deps.bucket?.put(key, "", { customMetadata: { missUntil: String(now + MISS_TTL * 1000) } }),
+    );
+    return missResponse();
+  }
+  // Each waiter of a deduplicated lookup gets its own copy of the bytes.
+  await later(
+    deps.bucket?.put(key, image.bytes.slice(0), {
+      httpMetadata: { contentType: image.contentType },
+    }),
+  );
+  const response = imageResponse(image.bytes.slice(0), image.contentType);
+  await later(deps.cache?.put(cacheRequest, response.clone()));
   return response;
 }

@@ -9,5 +9,7 @@
   "preview_urls": false,
   // /api/auth, /v1 and /1 are relayed to the API Worker through this binding (same origin = first-party cookies).
   "services": [{ "binding": "API", "service": "scrobbler-api" }],
+  // Artwork resolved once and stored for good, served from our own domain (src/edge/covers.ts).
+  "r2_buckets": [{ "binding": "ARTWORK", "bucket_name": "apollon-artwork" }],
   // Local dev without the API running under wrangler: set API_ORIGIN in .dev.vars (see .dev.vars.example).
 }

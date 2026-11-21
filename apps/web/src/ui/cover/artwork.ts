@@ -1,6 +1,7 @@
 /**
- * Where a sleeve can come from, best first: the Cover Art Archive by release MBID, then the Worker's
- * /covers lookup by name (src/edge/covers.ts). When every source fails the generated pattern stays.
+ * Where a sleeve can come from, best first: the release's MBID (Cover Art Archive), then a lookup by name.
+ * Both go through the Worker's /covers (src/edge/covers.ts), which stores each image once in R2 and serves
+ * it from our own domain. When every source fails the generated pattern stays.
  */
 const MBID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -10,8 +11,9 @@ export function artworkUrl(
   releaseMbid: string | null | undefined,
   size: ArtworkSize = 250,
 ): string | null {
+  // Through our own /covers, which stores the Cover Art Archive image once: no slow redirect chain per view.
   return releaseMbid && MBID.test(releaseMbid)
-    ? `https://coverartarchive.org/release/${releaseMbid.toLowerCase()}/front-${size}`
+    ? `/covers?mbid=${releaseMbid.toLowerCase()}&size=${size === 250 ? "medium" : "big"}`
     : null;
 }
 
@@ -20,7 +22,7 @@ export type Lookup =
   | { kind: "artist"; artist: string }
   | { kind: "album"; artist: string; album?: string | null; track?: string | null };
 
-export const LOOKUP_VERSION = "2";
+export const LOOKUP_VERSION = "3";
 
 export function lookupUrl(lookup: Lookup | undefined, size: ArtworkSize = 250): string | null {
   if (!lookup?.artist) return null;

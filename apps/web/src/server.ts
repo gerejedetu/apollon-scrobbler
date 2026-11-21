@@ -14,6 +14,7 @@ export default createServerEntry({
     const { pathname } = new URL(request.url);
     if (pathname === COVERS_PATH) {
       return handleCovers(request, {
+        bucket: (await workerEnv()).ARTWORK,
         cache: (globalThis.caches as { default?: Cache } | undefined)?.default,
       });
     }

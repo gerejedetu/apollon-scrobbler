@@ -4,7 +4,10 @@ import {
   findCover,
   handleCovers,
   primaryArtist,
+  readArtworkQuery,
   readCoverQuery,
+  storageKey,
+  type ArtworkBucket,
   searches,
 } from "./covers.ts";
 import { lookupUrl } from "../ui/cover/artwork.ts";
@@ -78,31 +81,6 @@ describe("cover lookup", () => {
     expect(await findCover(q, fetcher as unknown as typeof fetch)).toBeNull();
   });
 
-  test("answers a cached redirect, or a cached 404", async () => {
-    const store = new Map<string, Response>();
-    const cache = {
-      match: async (r: Request) => store.get(r.url)?.clone(),
-      put: async (r: Request, res: Response) => void store.set(r.url, res),
-    };
-    const hit = deezer(() => ({ data: [{ cover_medium: IMG }] }));
-    const req = new Request("https://apollon.example/covers?artist=A&album=B&size=medium");
-    const first = await handleCovers(req, { cache, fetcher: hit as unknown as typeof fetch });
-    expect(first.status).toBe(302);
-    expect(first.headers.get("location")).toBe(IMG);
-    await handleCovers(req, { cache, fetcher: hit as unknown as typeof fetch });
-    expect(hit).toHaveBeenCalledTimes(1);
-
-    const miss = deezer(() => ({ data: [] }));
-    const res = await handleCovers(new Request("https://apollon.example/covers?artist=A&album=Z"), {
-      cache,
-      fetcher: miss as unknown as typeof fetch,
-    });
-    expect(res.status).toBe(404);
-    expect(
-      (await handleCovers(new Request("https://apollon.example/covers"), { cache })).status,
-    ).toBe(400);
-  });
-
   test("a search hit by Deezer's quota is retried after a pause", async () => {
     let calls = 0;
     const fetcher = deezer(() =>
@@ -119,43 +97,145 @@ describe("cover lookup", () => {
     expect(image).toBe(IMG);
     expect(sleeps).toEqual([800]);
   });
+});
 
-  test("gives up (no cache) when the quota keeps failing", async () => {
-    const fetcher = deezer(() => ({ error: { code: 4 } }));
-    const store = new Map<string, Response>();
-    const cache = {
-      match: async (r: Request) => store.get(r.url)?.clone(),
-      put: async (r: Request, res: Response) => void store.set(r.url, res),
-    };
-    const res = await handleCovers(
-      new Request("https://apollon.example/covers?artist=A&album=Q&size=medium"),
-      {
-        cache,
-        fetcher: fetcher as unknown as typeof fetch,
-        sleep: async () => {},
-      },
+/** A Map-backed R2 double that records writes. */
+function memoryBucket() {
+  const objects = new Map<
+    string,
+    { bytes: ArrayBuffer; contentType?: string; meta?: Record<string, string> }
+  >();
+  const bucket: ArtworkBucket & { objects: typeof objects } = {
+    objects,
+    async get(key) {
+      const o = objects.get(key);
+      if (!o) return null;
+      return {
+        body: new Response(o.bytes).body,
+        arrayBuffer: async () => o.bytes,
+        httpMetadata: { contentType: o.contentType },
+        customMetadata: o.meta,
+      };
+    },
+    async put(key, value, options) {
+      const bytes =
+        typeof value === "string" ? (new TextEncoder().encode(value).buffer as ArrayBuffer) : value;
+      objects.set(key, {
+        bytes,
+        contentType: options?.httpMetadata?.contentType,
+        meta: options?.customMetadata,
+      });
+    },
+  };
+  return bucket;
+}
+
+const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]).buffer;
+
+/** Deezer search answers (JSON) plus the image downloads, from one fake fetch. */
+function sources(searchBody: () => unknown) {
+  return vi.fn(async (input: string) =>
+    input.startsWith("https://api.deezer.com")
+      ? Response.json(searchBody())
+      : new Response(JPEG, { headers: { "content-type": "image/jpeg" } }),
+  );
+}
+
+describe("stored artwork", () => {
+  test("resolved once, stored in R2, then served from R2 for every size", async () => {
+    const bucket = memoryBucket();
+    const fetcher = sources(() => ({ data: [{ cover_big: IMG }] }));
+    const deps = { bucket, fetcher: fetcher as unknown as typeof fetch };
+    const first = await handleCovers(
+      new Request("https://apollon.example/covers?artist=A&album=B&size=medium&v=3"),
+      deps,
     );
-    expect(res.status).toBe(503);
-    expect(store.size).toBe(0);
+    expect(first.status).toBe(200);
+    expect(first.headers.get("content-type")).toBe("image/jpeg");
+    expect(first.headers.get("cache-control")).toContain("immutable");
+    expect(new Uint8Array(await first.arrayBuffer())).toEqual(new Uint8Array(JPEG));
+    expect(bucket.objects.size).toBe(1);
+    const calls = fetcher.mock.calls.length;
+
+    const again = await handleCovers(
+      new Request("https://apollon.example/covers?artist=a%20&album=b&size=big&v=3&retry=1"),
+      deps,
+    );
+    expect(again.status).toBe(200);
+    expect(fetcher.mock.calls.length).toBe(calls); // no outside call at all
   });
 
-  test("identical lookups at once share one search, and the retry parameter shares the cache entry", async () => {
-    const store = new Map<string, Response>();
-    const cache = {
-      match: async (r: Request) => store.get(r.url)?.clone(),
-      put: async (r: Request, res: Response) => void store.set(r.url, res),
-    };
-    const hit = deezer(() => ({ data: [{ cover_medium: IMG }] }));
-    const url = "https://apollon.example/covers?artist=Same&album=Same&size=medium&v=2";
-    const deps = { cache, fetcher: hit as unknown as typeof fetch };
+  test("a release MBID comes from the Cover Art Archive, stored the same way", async () => {
+    const bucket = memoryBucket();
+    const mbid = "8f3471b5-7e6a-48da-86a9-c1c07a0f47ae";
+    const fetcher = sources(() => ({ data: [] }));
+    const res = await handleCovers(
+      new Request(`https://apollon.example/covers?mbid=${mbid.toUpperCase()}&size=big`),
+      { bucket, fetcher: fetcher as unknown as typeof fetch },
+    );
+    expect(res.status).toBe(200);
+    expect(fetcher.mock.calls[0]?.[0]).toBe(
+      `https://coverartarchive.org/release/${mbid}/front-500`,
+    );
+    expect([...bucket.objects.keys()]).toEqual([`v1/release/${mbid}`]);
+    expect(readArtworkQuery(new URL("https://x/covers?mbid=nope"))).toBeNull();
+  });
+
+  test("a miss is stored as a marker and not looked up again until it expires", async () => {
+    const bucket = memoryBucket();
+    let now = 1_000_000;
+    const fetcher = sources(() => ({ data: [] }));
+    const deps = { bucket, fetcher: fetcher as unknown as typeof fetch, now: () => now };
+    const req = () => new Request("https://apollon.example/covers?artist=Nobody&album=Nothing");
+    expect((await handleCovers(req(), deps)).status).toBe(404);
+    const calls = fetcher.mock.calls.length;
+    expect((await handleCovers(req(), deps)).status).toBe(404);
+    expect(fetcher.mock.calls.length).toBe(calls);
+    now += 8 * 86_400_000;
+    await handleCovers(req(), deps);
+    expect(fetcher.mock.calls.length).toBeGreaterThan(calls);
+  });
+
+  test("a failed lookup is not stored (503), so the next view retries", async () => {
+    const bucket = memoryBucket();
+    const fetcher = sources(() => ({ error: { code: 4 } }));
+    const res = await handleCovers(new Request("https://apollon.example/covers?artist=A&album=Q"), {
+      bucket,
+      fetcher: fetcher as unknown as typeof fetch,
+      sleep: async () => {},
+    });
+    expect(res.status).toBe(503);
+    expect(bucket.objects.size).toBe(0);
+  });
+
+  test("identical lookups at once share one resolution", async () => {
+    const bucket = memoryBucket();
+    const fetcher = sources(() => ({ data: [{ cover_big: IMG }] }));
+    const deps = { bucket, fetcher: fetcher as unknown as typeof fetch };
+    const url = "https://apollon.example/covers?artist=Same&album=Same";
     const [a, b] = await Promise.all([
       handleCovers(new Request(url), deps),
       handleCovers(new Request(url), deps),
     ]);
-    expect([a.status, b.status]).toEqual([302, 302]);
-    expect(hit).toHaveBeenCalledTimes(1);
-    const retried = await handleCovers(new Request(`${url}&retry=1`), deps);
-    expect(retried.status).toBe(302);
-    expect(hit).toHaveBeenCalledTimes(1);
+    expect([a.status, b.status]).toEqual([200, 200]);
+    expect((await a.arrayBuffer()).byteLength).toBe(JPEG.byteLength);
+    expect((await b.arrayBuffer()).byteLength).toBe(JPEG.byteLength);
+    const searches = fetcher.mock.calls.filter(([u]) =>
+      String(u).startsWith("https://api.deezer.com"),
+    );
+    expect(searches).toHaveLength(1);
+  });
+
+  test("storage keys ignore case and spacing, and differ between albums", async () => {
+    const a = await storageKey({ kind: "album", artist: "Air", album: "Moon Safari", size: "big" });
+    expect(
+      await storageKey({ kind: "album", artist: " AIR", album: "moon  safari", size: "medium" }),
+    ).toBe(a);
+    expect(
+      await storageKey({ kind: "album", artist: "Air", album: "Talkie Walkie", size: "big" }),
+    ).not.toBe(a);
+    expect(await storageKey({ kind: "artist", artist: "Air", size: "big" })).toMatch(
+      /^v1\/artist\//,
+    );
   });
 });

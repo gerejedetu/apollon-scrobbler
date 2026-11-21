@@ -6,6 +6,8 @@ export interface WebEnv {
   API?: { fetch(request: Request): Promise<Response> };
   /** Local dev without the binding: where the API runs (in .dev.vars, never committed). */
   API_ORIGIN?: string;
+  /** R2 bucket where resolved artwork is stored for good (see edge/covers.ts). */
+  ARTWORK?: import("./covers.ts").ArtworkBucket;
 }
 
 /** API_ORIGIN, when set (local dev), wins over the binding: `vp dev` has no API Worker to bind to. */
