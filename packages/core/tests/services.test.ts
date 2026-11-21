@@ -351,10 +351,8 @@ describe("one name per album", () => {
         track_metadata: { artist_name: "Yerin Baek", track_name: `T${t}`, release_name: album },
       })),
     });
-    expect(repos._listens.map((l) => l.releaseName).toSorted()).toEqual([
-      "Lonely",
-      "Love, Yerin",
-      "Love, Yerin",
-    ]);
+    expect(
+      repos._listens.map((l) => l.releaseName ?? "").toSorted((a, b) => a.localeCompare(b)),
+    ).toEqual(["Lonely", "Love, Yerin", "Love, Yerin"]);
   });
 });
