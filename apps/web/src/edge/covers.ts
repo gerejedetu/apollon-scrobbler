@@ -21,7 +21,7 @@ const MISS_TTL = 7 * 86_400;
  * Bumped when the name search gets smarter: misses stored by an older resolver are looked up again
  * (images already found are kept).
  */
-const RESOLVER = "2";
+const RESOLVER = "3";
 /** Refuse anything bigger: a 500 px sleeve is ~30-80 KB. */
 const MAX_IMAGE_BYTES = 2_000_000;
 /**
@@ -162,11 +162,11 @@ function close(a: string, b: string): boolean {
  * Whether a search result really is the asked artist / album / track. Loose searches ("artist title")
  * return *something* for almost any text, so a result is only used when its names match.
  */
-export function matches(item: DeezerItem, q: CoverQuery): boolean {
+export function matches(item: DeezerItem, q: CoverQuery, aliases: string[] = []): boolean {
   const artist = item.artist as { name?: unknown } | undefined;
   const artistName = typeof artist?.name === "string" ? artist.name : item.name;
   if (typeof artistName !== "string") return false;
-  if (!artistVariants(q.artist).some((v) => close(v, artistName))) return false;
+  if (![...artistVariants(q.artist), ...aliases].some((v) => close(v, artistName))) return false;
   if (q.kind === "artist") return true;
   const album = item.album as { title?: unknown } | undefined;
   const isTrack = typeof album?.title === "string";
@@ -178,8 +178,12 @@ export function matches(item: DeezerItem, q: CoverQuery): boolean {
   return q.track ? close(cleanTitle(q.track) || q.track, title) : false;
 }
 
-export function pickImage(item: DeezerItem | undefined, q: CoverQuery): string | null {
-  if (!item || !matches(item, q)) return null;
+export function pickImage(
+  item: DeezerItem | undefined,
+  q: CoverQuery,
+  aliases: string[] = [],
+): string | null {
+  if (!item || !matches(item, q, aliases)) return null;
   const key = q.kind === "artist" ? `picture_${q.size}` : `cover_${q.size}`;
   const value = item[key] ?? item.album?.[`cover_${q.size}`];
   // Deezer's placeholder for missing artist pictures has an empty hash ("/images/artist//").
@@ -201,6 +205,8 @@ export async function findCover(
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
 ): Promise<string | null | undefined> {
   let failed = false;
+  /** Results whose only problem is the artist's name: maybe the same artist written another way. */
+  const otherNames: DeezerItem[] = [];
   for (const path of searches(q)) {
     const data = await search(path, fetcher, sleep);
     if (data === undefined) {
@@ -209,8 +215,68 @@ export async function findCover(
     }
     const image = pickImage(data[0], q);
     if (image) return image;
+    const item = data[0];
+    if (item && pickImage(item, q, [itemArtist(item) ?? ""])) otherNames.push(item);
+  }
+  // "헤이즈" vs "HEIZE", "BTS" vs "방탄소년단": ask MusicBrainz for the artist's other names and
+  // accept a result only if its artist is one of them.
+  if (otherNames.length > 0) {
+    const aliases = await artistAliases(q.artist, fetcher);
+    if (aliases === undefined) return undefined; // unverifiable now: retry later rather than guess
+    for (const item of otherNames) {
+      const image = pickImage(item, q, aliases);
+      if (image) return image;
+    }
   }
   return failed ? undefined : null;
+}
+
+function itemArtist(item: DeezerItem): string | undefined {
+  const artist = item.artist as { name?: unknown } | undefined;
+  const name = typeof artist?.name === "string" ? artist.name : item.name;
+  return typeof name === "string" ? name : undefined;
+}
+
+const MUSICBRAINZ = "https://musicbrainz.org/ws/2";
+/** MusicBrainz asks clients to identify themselves and to stay around one request per second. */
+const MB_USER_AGENT = "Apollon-Scrobbler/1.0 ( https://github.com/powpowchuuuu/stunning-winner )";
+let mbNext = 0;
+
+/**
+ * Other names of an artist (spellings, scripts, real name) from MusicBrainz: the artists whose name or alias
+ * matches, with a good score. `undefined` when MusicBrainz could not answer.
+ */
+export async function artistAliases(
+  name: string,
+  fetcher: typeof fetch = fetch,
+): Promise<string[] | undefined> {
+  const wait = mbNext - Date.now();
+  mbNext = Math.max(Date.now(), mbNext) + 1100;
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  try {
+    const query = encodeURIComponent(
+      `artist:"${name.replace(/"/g, "")}" OR alias:"${name.replace(/"/g, "")}"`,
+    );
+    const res = await fetcher(`${MUSICBRAINZ}/artist/?fmt=json&limit=3&query=${query}`, {
+      headers: { "user-agent": MB_USER_AGENT, accept: "application/json" },
+    });
+    if (!res.ok) return undefined;
+    const body = (await res.json()) as {
+      artists?: {
+        score?: number;
+        name?: string;
+        "sort-name"?: string;
+        aliases?: { name?: string }[];
+      }[];
+    };
+    if (!Array.isArray(body.artists)) return undefined;
+    return body.artists
+      .filter((a) => (a.score ?? 0) >= 80)
+      .flatMap((a) => [a.name, a["sort-name"], ...(a.aliases ?? []).map((x) => x.name)])
+      .filter((n): n is string => typeof n === "string" && n.length > 0);
+  } catch {
+    return undefined;
+  }
 }
 
 /** One Deezer search through the queue, retried after a pause when the quota is hit. `undefined` = failed. */

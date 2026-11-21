@@ -4,6 +4,7 @@ import {
   findCover,
   handleCovers,
   primaryArtist,
+  artistAliases,
   artistVariants,
   matches,
   readArtworkQuery,
@@ -344,4 +345,41 @@ test("a name without artwork takes the listen's video thumbnail, and keeps it fo
   );
   // Now the name alone has the image.
   expect((await handleCovers(new Request(name), deps)).status).toBe(200);
+});
+
+describe("artists written in another script", () => {
+  const heize = { data: [{ name: "HEIZE", picture_big: IMG }] };
+  const mb = (artists: unknown) =>
+    vi.fn(async (input: string, _init?: RequestInit) =>
+      input.includes("musicbrainz") ? Response.json({ artists }) : Response.json(heize),
+    );
+
+  test("a Hangul name accepts the romanized result when MusicBrainz lists it as an alias", async () => {
+    const fetcher = mb([
+      { score: 100, name: "헤이즈", "sort-name": "Haze", aliases: [{ name: "HAZE" }] },
+      {
+        score: 81,
+        name: "Heize",
+        "sort-name": "Heize",
+        aliases: [{ name: "헤이즈" }, { name: "장다혜" }],
+      },
+    ]);
+    const q = { kind: "artist" as const, artist: "헤이즈", size: "big" as const };
+    expect(await findCover(q, fetcher as unknown as typeof fetch)).toBe(IMG);
+    const ua = (
+      fetcher.mock.calls.find(([u]) => String(u).includes("musicbrainz"))?.[1] as RequestInit
+    )?.headers as Record<string, string>;
+    expect(ua["user-agent"]).toContain("Apollon");
+  });
+
+  test("an unrelated result stays rejected, and an unreachable MusicBrainz means retry later", async () => {
+    const q = { kind: "artist" as const, artist: "헤이즈", size: "big" as const };
+    const unrelated = mb([{ score: 95, name: "Someone Else", aliases: [] }]);
+    expect(await findCover(q, unrelated as unknown as typeof fetch)).toBeNull();
+    const down = vi.fn(async (input: string) =>
+      input.includes("musicbrainz") ? new Response("busy", { status: 503 }) : Response.json(heize),
+    );
+    expect(await findCover(q, down as unknown as typeof fetch)).toBeUndefined();
+    expect(await artistAliases("x", down as unknown as typeof fetch)).toBeUndefined();
+  });
 });
