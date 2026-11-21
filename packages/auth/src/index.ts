@@ -1,16 +1,19 @@
 /**
  * Identity for the scrobbler, built on Better Auth:
  * - accounts and sessions (email + password, with a unique username = the ListenBrainz `user_name`);
- * - user tokens via the API key plugin. A key is what ListenBrainz clients send as `Authorization: Token <key>`.
+ * - user tokens via the API key plugin. A key is what ListenBrainz clients send as `Authorization: Token <key>`;
+ * - an OAuth 2.1 authorization server for the MCP server (`mcp` plugin + JWT signing keys), so assistants such as
+ *   claude.ai connect with a sign-in and a consent screen instead of a pasted token.
  *
  * Better Auth owns its tables (`user`, `session`, `account`, `verification`, `apikey`); the scrobbler profile
  * (`users` row with listen counts) is created by a hook right after an account is created.
  */
 import { apiKey } from "@better-auth/api-key";
+import { mcp, requireMcpAuth } from "@better-auth/mcp";
 import { isValidUserName, type TokenVerifier } from "@scrobbler/core";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
-import { username } from "better-auth/plugins";
+import { jwt, username } from "better-auth/plugins";
 
 export interface AuthConfig {
   /** Any database Better Auth accepts; on Workers, the D1 binding itself. */
@@ -29,6 +32,15 @@ export interface AuthConfig {
   waitUntil?: (promise: Promise<unknown>) => void;
 }
 
+/** Pages of the web front the OAuth flow sends the browser to (they pass the signed query back). */
+export const OAUTH_PAGES = { login: "/connexion", consent: "/autoriser" } as const;
+
+/** The MCP server's URL for an instance: tokens are audience-bound to it. Same origin as the web front. */
+export const mcpResource = (baseURL: string) => new URL("/mcp", baseURL).href;
+
+/** How long an MCP access token lives (seconds); the client refreshes it with its refresh token. */
+const ACCESS_TOKEN_TTL = 60 * 60;
+
 function userNameOf(user: Record<string, unknown>): string | null {
   const display = user.displayUsername;
   const name = user.username;
@@ -42,6 +54,8 @@ export function createAuth(config: AuthConfig) {
     secret: config.secret,
     baseURL: config.baseURL,
     basePath: "/api/auth",
+    // The JWT plugin only provides signing keys here: no session JWT endpoint or header.
+    disabledPaths: ["/token"],
     trustedOrigins: config.trustedOrigins ?? [],
     emailAndPassword: { enabled: true, disableSignUp: config.disableSignUp ?? false },
     telemetry: { enabled: false },
@@ -60,6 +74,18 @@ export function createAuth(config: AuthConfig) {
         deferUpdates: true,
         defaultKeyLength: 40,
         enableMetadata: false,
+      }),
+      jwt({ disableSettingJwtHeader: true }),
+      mcp({
+        loginPage: OAUTH_PAGES.login,
+        consentPage: OAUTH_PAGES.consent,
+        resource: mcpResource(config.baseURL),
+        accessTokenExpiresIn: ACCESS_TOKEN_TTL,
+        // MCP clients (claude.ai, Claude Desktop, Cursor…) register themselves: public clients with PKCE, each
+        // still needing the account owner's sign-in and consent before it gets a token.
+        allowDynamicClientRegistration: true,
+        allowUnauthenticatedClientRegistration: true,
+        clientRegistrationDefaultApplicationType: "infer",
       }),
     ],
     databaseHooks: {
@@ -97,4 +123,38 @@ export function apiKeyVerifier(auth: Auth): TokenVerifier {
       return result.valid && result.key ? result.key.referenceId : null;
     },
   };
+}
+
+/**
+ * OAuth access tokens issued to MCP clients (JWTs audience-bound to the MCP resource), checked in-process by
+ * the plugin's own guard: signature against the instance's keys, issuer, audience, expiry. Gives the `sub`.
+ */
+export function oauthTokenVerifier(auth: Auth, resource: string): TokenVerifier {
+  return {
+    async verify(rawToken) {
+      let subject: string | null = null;
+      const guard = requireMcpAuth(
+        auth,
+        (_request, claims) => {
+          subject = typeof claims.sub === "string" ? claims.sub : null;
+          return new Response(null, { status: 204 });
+        },
+        { resource },
+      );
+      const response = await guard(
+        new Request(resource, { method: "POST", headers: { authorization: `Bearer ${rawToken}` } }),
+      );
+      return response.status === 204 ? subject : null;
+    },
+  };
+}
+
+/** A JWT has three dot-separated parts; API keys have none. */
+const isJwt = (token: string) => token.split(".").length === 3;
+
+/** Both kinds of user tokens: API keys (scrobblers, scripts) and OAuth access tokens (MCP clients). */
+export function tokenVerifier(auth: Auth, resource: string): TokenVerifier {
+  const keys = apiKeyVerifier(auth);
+  const oauth = oauthTokenVerifier(auth, resource);
+  return { verify: (raw) => (isJwt(raw) ? oauth.verify(raw) : keys.verify(raw)) };
 }
