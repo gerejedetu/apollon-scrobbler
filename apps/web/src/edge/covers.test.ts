@@ -374,7 +374,8 @@ describe("artists written in another script", () => {
 
   test("an unrelated result stays rejected, and an unreachable MusicBrainz means retry later", async () => {
     const q = { kind: "artist" as const, artist: "헤이즈", size: "big" as const };
-    const unrelated = mb([{ score: 95, name: "Someone Else", aliases: [] }]);
+    // A well-scored artist that does not carry the name lends nothing.
+    const unrelated = mb([{ score: 95, name: "Someone Else", aliases: [{ name: "HEIZE" }] }]);
     expect(await findCover(q, unrelated as unknown as typeof fetch)).toBeNull();
     const down = vi.fn(async (input: string) =>
       input.includes("musicbrainz") ? new Response("busy", { status: 503 }) : Response.json(heize),
