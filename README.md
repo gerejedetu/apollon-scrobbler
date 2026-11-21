@@ -1,4 +1,4 @@
-# Scrobbler: a self-hosted, open source music scrobbler for Cloudflare Workers
+# Apollon: a self-hosted, open source music scrobbler for Cloudflare Workers
 
 **A ListenBrainz-compatible scrobbler you deploy on your own Cloudflare account.** Track every song you play,
 browse your listening history, and get detailed listening stats and a yearly "Wrapped"-style review, without
@@ -29,7 +29,7 @@ ListenBrainz server, built on Cloudflare Workers, D1 and KV with Hono and Better
 
 ## Screenshots
 
-The web front is called **Needle**. Its interface is currently in French.
+The web front is called **Apollon**. Its interface is currently in French.
 
 | Listening stats                                                                                                                     | Top artists                                                                        |
 | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
