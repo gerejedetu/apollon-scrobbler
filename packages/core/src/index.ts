@@ -30,3 +30,4 @@ export { MemoryCache } from "./cache/memory.ts";
 export { createServices, type ServiceOptions, type Services } from "./services.ts";
 export { FavouriteService, MAX_LOVED_PAGE, type TrackRef } from "./favourites/service.ts";
 export { InsightsService, type Params as InsightParams } from "./insights/service.ts";
+export { InstanceService, type InstanceSettings } from "./instance/service.ts";

@@ -23,6 +23,8 @@ export interface AuthConfig {
   disableSignUp?: boolean;
   /** Creates the scrobbler profile of a new account. Throwing aborts nothing already written, so it must not fail. */
   onAccountCreated: (account: { id: string; userName: string }) => Promise<void>;
+  /** Asked before every account creation; false refuses it (sign-up closed on this instance). */
+  canSignUp?: () => Promise<boolean>;
   /** Runs non-critical writes after the response (Workers: `ctx.waitUntil`). */
   waitUntil?: (promise: Promise<unknown>) => void;
 }
@@ -64,6 +66,8 @@ export function createAuth(config: AuthConfig) {
       user: {
         create: {
           before: async (user) => {
+            if (config.canSignUp && !(await config.canSignUp()))
+              throw new APIError("FORBIDDEN", { message: "Sign-up is closed on this instance." });
             if (!userNameOf(user))
               throw new APIError("BAD_REQUEST", {
                 message: "A username is required to create an account.",

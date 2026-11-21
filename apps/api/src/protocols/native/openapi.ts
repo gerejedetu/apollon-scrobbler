@@ -551,6 +551,20 @@ const baseDocument = {
           listenCount: { type: "integer" },
           createdAt: { type: "integer" },
           private: { type: "boolean" },
+          owner: {
+            type: "boolean",
+            description: "True for the instance owner (the first account).",
+          },
+        },
+      },
+      Instance: {
+        type: "object",
+        properties: {
+          signupOpen: {
+            type: "boolean",
+            description: "Whether new accounts can be created right now.",
+          },
+          hasUsers: { type: "boolean", description: "False until the first account exists." },
         },
       },
       Error: {
@@ -740,6 +754,26 @@ const baseDocument = {
             },
           }),
           "404": errors["404"],
+        },
+      },
+    },
+    "/instance": {
+      get: {
+        summary: "Instance settings",
+        responses: { "200": ok("Settings", ref("Instance")) },
+      },
+      patch: {
+        summary: "Change instance settings (owner only)",
+        security: secured,
+        requestBody: {
+          required: true,
+          content: json({ type: "object", properties: { signupOpen: { type: "boolean" } } }),
+        },
+        responses: {
+          "200": ok("Updated settings", ref("Instance")),
+          "400": errors["400"],
+          "401": errors["401"],
+          "403": ok("Not the owner", ref("Error")),
         },
       },
     },

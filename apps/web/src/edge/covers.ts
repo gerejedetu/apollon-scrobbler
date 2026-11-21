@@ -8,6 +8,12 @@ export const COVERS_PATH = "/covers";
 const DEEZER = "https://api.deezer.com";
 const HIT_TTL = 30 * 86_400;
 const MISS_TTL = 7 * 86_400;
+/**
+ * Deezer's public API allows about 50 requests per 5 seconds. A page full of new covers fires dozens of
+ * lookups at once, so they go through a small queue, and a search hit by the quota is retried after a pause.
+ */
+const MAX_CONCURRENT = 4;
+const RETRY_DELAYS_MS = [600, 1500];
 
 export interface CoverQuery {
   kind: "album" | "artist";
@@ -105,24 +111,72 @@ export function pickImage(item: DeezerItem | undefined, q: CoverQuery): string |
 export async function findCover(
   q: CoverQuery,
   fetcher: typeof fetch = fetch,
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
 ): Promise<string | null | undefined> {
   let failed = false;
   for (const path of searches(q)) {
-    try {
-      const res = await fetcher(DEEZER + path, { headers: { accept: "application/json" } });
-      const body = res.ok ? ((await res.json()) as { data?: DeezerItem[]; error?: unknown }) : null;
-      // Deezer reports quota errors with a 200 and an `error` object.
-      if (!body || body.error || !Array.isArray(body.data)) {
-        failed = true;
-        continue;
-      }
-      const image = pickImage(body.data[0], q);
-      if (image) return image;
-    } catch {
+    const data = await search(path, fetcher, sleep);
+    if (data === undefined) {
       failed = true;
+      continue;
     }
+    const image = pickImage(data[0], q);
+    if (image) return image;
   }
   return failed ? undefined : null;
+}
+
+/** One Deezer search through the queue, retried after a pause when the quota is hit. `undefined` = failed. */
+async function search(
+  path: string,
+  fetcher: typeof fetch,
+  sleep: (ms: number) => Promise<void>,
+): Promise<DeezerItem[] | undefined> {
+  for (let attempt = 0; ; attempt++) {
+    const data = await queued(async () => {
+      try {
+        const res = await fetcher(DEEZER + path, { headers: { accept: "application/json" } });
+        const body = res.ok
+          ? ((await res.json()) as { data?: DeezerItem[]; error?: unknown })
+          : null;
+        // Deezer reports quota errors with a 200 and an `error` object.
+        return !body || body.error || !Array.isArray(body.data) ? undefined : body.data;
+      } catch {
+        return undefined;
+      }
+    });
+    const delay = RETRY_DELAYS_MS[attempt];
+    if (data !== undefined || delay === undefined) return data;
+    await sleep(delay);
+  }
+}
+
+/** Per-isolate queue: at most MAX_CONCURRENT Deezer calls in flight. */
+let inFlight = 0;
+const waiting: (() => void)[] = [];
+
+async function queued<T>(task: () => Promise<T>): Promise<T> {
+  if (inFlight >= MAX_CONCURRENT) await new Promise<void>((resolve) => waiting.push(resolve));
+  inFlight++;
+  try {
+    return await task();
+  } finally {
+    inFlight--;
+    waiting.shift()?.();
+  }
+}
+
+/** The same cover asked twice at once (two rows of one page) is looked up once. */
+const pending = new Map<string, Promise<string | null | undefined>>();
+
+/** Cache key from the meaningful parameters only, so retries or extra parameters share one entry. */
+function cacheKey(url: URL): string {
+  const key = new URL(COVERS_PATH, url.origin);
+  for (const name of ["kind", "artist", "album", "track", "size", "v"]) {
+    const value = url.searchParams.get(name);
+    if (value !== null) key.searchParams.set(name, value);
+  }
+  return key.toString();
 }
 
 interface EdgeCache {
@@ -136,15 +190,22 @@ export async function handleCovers(
     cache?: EdgeCache;
     fetcher?: typeof fetch;
     waitUntil?: (p: Promise<unknown>) => void;
+    sleep?: (ms: number) => Promise<void>;
   } = {},
 ): Promise<Response> {
   const url = new URL(request.url);
   const q = readCoverQuery(url);
   if (!q) return new Response("Bad cover query", { status: 400 });
-  const key = new Request(url.toString(), { method: "GET" });
+  const id = cacheKey(url);
+  const key = new Request(id, { method: "GET" });
   const cached = await deps.cache?.match(key);
   if (cached) return cached;
-  const image = await findCover(q, deps.fetcher);
+  let lookup = pending.get(id);
+  if (!lookup) {
+    lookup = findCover(q, deps.fetcher, deps.sleep).finally(() => pending.delete(id));
+    pending.set(id, lookup);
+  }
+  const image = await lookup;
   if (image === undefined)
     return new Response(null, { status: 503, headers: { "cache-control": "no-store" } });
   const response = image

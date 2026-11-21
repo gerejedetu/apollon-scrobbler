@@ -6,6 +6,7 @@ import { AuthService } from "./auth/service.ts";
 import { FavouriteService } from "./favourites/service.ts";
 import { ImportService } from "./imports/service.ts";
 import { InsightsService } from "./insights/service.ts";
+import { InstanceService } from "./instance/service.ts";
 import { ListenService } from "./listens/service.ts";
 import {
   type Cache,
@@ -25,6 +26,8 @@ export interface ServiceOptions {
   authCache?: Cache;
   /** Users with fewer listens skip the stats cache (cheaper to recompute). Default 5000. */
   cacheMinListens?: number;
+  /** Operator switch (env DISABLE_SIGNUP): sign-up closed whatever the instance setting says. */
+  signupForceClosed?: boolean;
 }
 
 export interface Services {
@@ -35,6 +38,7 @@ export interface Services {
   imports: ImportService;
   insights: InsightsService;
   favourites: FavouriteService;
+  instance: InstanceService;
 }
 
 export function createServices(
@@ -57,5 +61,6 @@ export function createServices(
       options.cacheMinListens,
     ),
     favourites: new FavouriteService(repos.favourites, clock),
+    instance: new InstanceService(repos.instance, options.signupForceClosed),
   };
 }

@@ -70,7 +70,7 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "getMe",
     tag: "Account",
     description:
-      "Returns the profile of the token owner (or of the signed-in browser session): name, listen count, creation date and privacy setting.",
+      "Returns the profile of the token owner (or of the signed-in browser session): name, listen count, creation date, privacy setting, and whether this user owns the instance (`owner`, the first account: the one allowed to change instance settings).",
   },
   "PATCH /me": {
     operationId: "updateMe",
@@ -113,6 +113,19 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "getObsession",
     tag: "Favourites",
     description: "A user's current obsession, or `obsession: null`.",
+  },
+  "GET /instance": {
+    operationId: "getInstance",
+    tag: "Account",
+    description:
+      "Public settings of this instance. `signupOpen` says whether the sign-up form should be offered: sign-up is open until the first account exists, then closed unless the owner reopens it (and always closed when the operator sets `DISABLE_SIGNUP`).",
+  },
+  "PATCH /instance": {
+    operationId: "updateInstance",
+    tag: "Account",
+    description:
+      "Changes instance settings. Only the owner (the first account created) may do it; anyone else gets 403. `signupOpen: true` lets new people create accounts, `false` closes sign-up again. Closing is enforced by the server, not just hidden in the front.",
+    requestExample: { signupOpen: true },
   },
   "POST /listens": {
     operationId: "submitListens",

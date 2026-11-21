@@ -164,6 +164,15 @@ export interface FavouriteRepository {
   obsession(userId: UserId): Promise<FavouriteTrack | null>;
 }
 
+/** Instance-wide settings and the facts they depend on. Every method is one indexed read or write. */
+export interface InstanceRepository {
+  /** Whether any account exists, and the value of one setting (null when unset), in one round trip. */
+  hasUsersAndSetting(key: string): Promise<[boolean, string | null]>;
+  setSetting(key: string, value: string): Promise<void>;
+  /** The first account's profile id (the instance owner), or null on an empty instance. */
+  ownerUserId(): Promise<UserId | null>;
+}
+
 export interface Repositories {
   users: UserRepository;
   favourites: FavouriteRepository;
@@ -172,6 +181,7 @@ export interface Repositories {
   imports: ImportRepository;
   stats: StatsRepository;
   insights: InsightsRepository;
+  instance: InstanceRepository;
 }
 
 export interface Cache {

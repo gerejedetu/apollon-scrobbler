@@ -44,6 +44,15 @@ export function testApi(overrides: Partial<Bindings> = {}, now?: number): TestAp
       return { status: res.status, body: text ? JSON.parse(text) : null };
     },
     async signUp(username) {
+      // Sign-up closes after the first account: the owner (first user) reopens it for the next ones.
+      const owner = Object.values(api.cookies)[0];
+      if (owner) {
+        await request("/v1/instance", {
+          method: "PATCH",
+          headers: { "content-type": "application/json", cookie: owner },
+          body: JSON.stringify({ signupOpen: true }),
+        });
+      }
       const res = await request("/api/auth/sign-up/email", {
         method: "POST",
         headers: { "content-type": "application/json" },
