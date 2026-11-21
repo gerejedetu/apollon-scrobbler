@@ -257,7 +257,7 @@ export async function artistAliases(
     const query = encodeURIComponent(
       `artist:"${name.replace(/"/g, "")}" OR alias:"${name.replace(/"/g, "")}"`,
     );
-    const res = await fetcher(`${MUSICBRAINZ}/artist/?fmt=json&limit=3&query=${query}`, {
+    const res = await fetcher(`${MUSICBRAINZ}/artist/?fmt=json&limit=5&query=${query}`, {
       headers: { "user-agent": MB_USER_AGENT, accept: "application/json" },
     });
     if (!res.ok) return undefined;
@@ -270,10 +270,15 @@ export async function artistAliases(
       }[];
     };
     if (!Array.isArray(body.artists)) return undefined;
-    return body.artists
-      .filter((a) => (a.score ?? 0) >= 80)
-      .flatMap((a) => [a.name, a["sort-name"], ...(a.aliases ?? []).map((x) => x.name)])
-      .filter((n): n is string => typeof n === "string" && n.length > 0);
+    // Only artists that really carry this name (as their name or one of their aliases) lend their other
+    // names; search scores alone vary too much (Heize scores 74 for her own Hangul alias).
+    const wanted = fold(name);
+    return body.artists.flatMap((a) => {
+      const names = [a.name, a["sort-name"], ...(a.aliases ?? []).map((x) => x.name)].filter(
+        (n): n is string => typeof n === "string" && n.length > 0,
+      );
+      return names.some((n) => fold(n) === wanted) ? names : [];
+    });
   } catch {
     return undefined;
   }
