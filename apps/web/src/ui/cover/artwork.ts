@@ -22,7 +22,7 @@ export type Lookup =
   | { kind: "artist"; artist: string }
   | { kind: "album"; artist: string; album?: string | null; track?: string | null };
 
-export const LOOKUP_VERSION = "5";
+export const LOOKUP_VERSION = "6";
 
 export function lookupUrl(
   lookup: Lookup | undefined,
