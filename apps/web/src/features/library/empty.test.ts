@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vite-plus/test";
-import { ApiError } from "../../api/error.ts";
+import { ApiError } from "@scrobbler/client";
 import { emptyTrack, orEmpty } from "./empty.ts";
 
 describe("orEmpty", () => {

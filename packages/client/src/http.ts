@@ -1,5 +1,7 @@
 import { ApiError } from "./error.ts";
-import type { Transport } from "./transport.ts";
+
+/** How a request reaches the API: same signature as `fetch`, with a path relative to the API origin. */
+export type Transport = (path: string, init?: RequestInit) => Promise<Response>;
 
 export type Query = Record<string, string | number | boolean | null | undefined>;
 

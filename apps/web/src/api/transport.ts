@@ -2,13 +2,12 @@
  * How a request reaches the API. In the browser it is a same-origin fetch (the session cookie goes along);
  * during server rendering it goes straight to the API Worker with the incoming request's cookie.
  */
+import type { Transport } from "@scrobbler/client";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { apiTarget } from "../edge/env.ts";
 import { forwardToApi } from "../edge/proxy.ts";
 import { workerEnv } from "../edge/runtime.ts";
-
-export type Transport = (path: string, init?: RequestInit) => Promise<Response>;
 
 export const transport: Transport = createIsomorphicFn()
   .server(async (path: string, init?: RequestInit) => {

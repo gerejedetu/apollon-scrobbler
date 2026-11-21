@@ -18,12 +18,13 @@ packages/
   db-libsql/      Turso / libSQL driver for those same repositories (production database)
   cache-kv/       Workers KV implementation of core's Cache
   auth/           Better Auth setup (username + API key plugins) + core's TokenVerifier
+  client/         Typed client of the native API (/v1) over any fetch-like transport (web front, MCP server)
   testing/        Node-only doubles: D1 on node:sqlite, KV in memory
 ```
 
 ## Dependency rules (keep them)
 
-- `types` depends on nothing. `core` depends only on `types`.
+- `types` depends on nothing. `core` depends only on `types`. `client` depends on nothing (it mirrors the wire format).
 - Adapters (`db-*`, `cache-*`, `auth`) depend on `core` and `types`, never on each other or on apps.
 - Only `apps/api/src/http/container.ts` picks concrete adapters. Routes talk to `c.var.services` only.
 - A protocol (`apps/api/src/protocols/<name>`) only maps its wire format to core services; rules live in core,
@@ -36,7 +37,7 @@ packages/
 ## Web front (apps/web)
 
 - `src/edge` relays API paths (service binding `API`; `API_ORIGIN` in `.dev.vars` for local dev). `src/server.ts` is the Worker entry.
-- `src/api` is the only way to reach the API: `transport.ts` (browser fetch, or the binding with the request's cookie during SSR), `http.ts`, `endpoints.ts` (one function per /v1 operation), `types.ts` (shapes from the OpenAPI).
+- `src/api` is the only way to reach the API: `transport.ts` (browser fetch, or the binding with the request's cookie during SSR) plugged into `@scrobbler/client` (`packages/client`: `http.ts`, `endpoints.ts` with one function per /v1 operation, `types.ts` with the shapes from the OpenAPI). New /v1 operations go in the client package, not in the app.
 - `src/auth`: Better Auth client, viewer (GET /v1/me) and route guards. `src/lib`: French formatting, ranges, time zone.
 - `src/ui`: Apollon design system (brand name, mark and page titles in `ui/brand`, theme tokens in `ui/theme`, primitives, covers, charts, Zag-driven switch/tabs/clipboard). No data fetching there.
 - `src/features/<screen>`: one folder per screen, composing `ui` with data. `src/routes` only wires loaders to features.
