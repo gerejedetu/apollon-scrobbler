@@ -1,11 +1,11 @@
 /// <reference types="vite-plus/client" />
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
-import { type ReactNode, useEffect } from "react";
+import type { ReactNode } from "react";
 import { loadViewer } from "../auth/index.ts";
 import { RootError, RootNotFound } from "../features/errors/index.ts";
 import { initialTheme, THEME_SCRIPT } from "../lib/theme.ts";
 import { getLocale } from "../paraglide/runtime.js";
-import { rememberOffset } from "../lib/timezone.ts";
+import { OFFSET_SCRIPT } from "../lib/timezone.ts";
 import appCss from "../styles.css?url";
 import { ToastProvider } from "../ui/feedback/index.ts";
 import { APP_NAME } from "../ui/brand/index.ts";
@@ -44,7 +44,6 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  useEffect(rememberOffset, []);
   return (
     <RootDocument>
       <ToastProvider>
@@ -64,6 +63,8 @@ function RootDocument({ children }: { children: ReactNode }) {
       <head>
         {/* oxlint-disable-next-line react/no-danger -- static script, no user data */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* oxlint-disable-next-line react/no-danger -- static script, no user data */}
+        <script dangerouslySetInnerHTML={{ __html: OFFSET_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
