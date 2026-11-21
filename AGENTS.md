@@ -49,21 +49,21 @@ Implement `Repositories` from `@scrobbler/core` (see `packages/db-d1/src/reposit
 behaviour) in a new `packages/db-<name>`, test it with the same cases as `packages/db-d1/tests`, then switch
 the container. Better Auth needs its own adapter for that database too.
 
-## Database (Turso in production, D1 supported)
+## Database (Turso)
 
 - Production runs on **Turso** (libSQL). `packages/db-libsql` adapts a libSQL client to the D1-shaped driver the
   repositories in `packages/db-d1` are written against, so Turso and D1 run the _same_ SQL, migrations and tests,
   and Better Auth uses the same driver. The API picks Turso when `TURSO_DATABASE_URL` is set (Worker secrets
-  `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`), else the `DB` D1 binding.
-- Turso schema: `vp run @scrobbler/api#db:migrate:turso` (applies `packages/db-d1/migrations`, tracked in
-  `_migrations`); `db:status:turso` lists migrations and row counts. Credentials come from `apps/api/.env.turso`
+  `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`), else a `DB` D1 binding if one is configured (none is: production deleted its D1 database).
+- Turso schema: `vp run @scrobbler/api#db:migrate` (applies `packages/db-d1/migrations`, tracked in
+  `_migrations`); `db:status` lists migrations and row counts. Credentials come from `apps/api/.env.turso`
   (git-ignored, see `.env.turso.example`).
 - `vp run @scrobbler/api#test` runs the API suite twice: on the D1 double and on libSQL (`TEST_DB=libsql`).
 - Turso bills rows read (every row a query _scans_, aggregates included, and an UPDATE reads what it changes)
   and rows written: keep every query index-bounded (the query-plan test enforces it), never `count(*)` a growing
   table at request time (use maintained counters such as `users.listen_count`), batch writes.
 
-- Migrations live in `packages/db-d1/migrations`, applied by wrangler (`vp run @scrobbler/api#db:migrate:local`).
+- Migrations live in `packages/db-d1/migrations`, applied to Turso by `apps/api/scripts/turso.ts` (`vp run @scrobbler/api#db:migrate`). Never edit one that is applied: add the next number.
 - `0001_auth.sql` is generated: `vp run @scrobbler/auth#migration` prints it. Regenerate when Better Auth or its plugins change, and add a new numbered migration for the difference rather than editing an applied one.
 - Query budget matters (D1 limits statements per invocation, 100 bound parameters per statement, rows read/written are billed):
   - batch inserts go through one `json_each` statement per ~900 KB of listens;
@@ -73,7 +73,7 @@ the container. Better Auth needs its own adapter for that database too.
 - Artist-level stats count a joint credit ("A & B", "A feat. B") for each artist: core's `splitArtistCredit` decides
   the split, `artist_credits` (0005) stores it for joint credits only, written in the insert batch; queries go through
   `packages/db-d1/src/artists.ts`. Tracks and albums keep the credit as written. After changing the split rules,
-  rerun `vp run db:backfill-credits:remote` in apps/api and bump the stats cache key version.
+  rerun `vp run db:backfill-credits` in apps/api and bump the stats cache key version.
 - Tests assert round trips through `SqliteD1.roundTrips`; keep hot paths at one round trip.
 
 ## Auth
@@ -98,4 +98,4 @@ cd apps/api && vp run dev   # local Worker on :8787 (copy .dev.vars.example to .
 - Errors leave the API as `{ "code": <status>, "error": "<message>" }` (`ApiError` in core).
 - Timestamps are Unix seconds (UTC) everywhere.
 - Every module gets tests; behaviour that mirrors ListenBrainz cites its rule in a comment.
-- Never commit secrets or account-specific IDs: `.dev.vars`, `.env*` are ignored; production secrets go through `wrangler secret put`. `wrangler.jsonc` keeps placeholder D1/KV IDs; the real ones live in `apps/api/.env.cloudflare` and `vp run deploy` / `vp run db:migrate:remote` inject them.
+- Never commit secrets or account-specific IDs: `.dev.vars`, `.env*` are ignored; production secrets go through `wrangler secret put`. `wrangler.jsonc` keeps a placeholder KV ID; the real one lives in `apps/api/.env.cloudflare` and `vp run deploy` injects it. Turso credentials live in `apps/api/.env.turso` and in Worker secrets.

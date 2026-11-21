@@ -3,15 +3,15 @@
 **A ListenBrainz-compatible scrobbler you deploy on your own Cloudflare account.** Track every song you play,
 browse your listening history, and get detailed listening stats and a yearly "Wrapped"-style review, without
 handing your data to a third party. A free, open source alternative to Last.fm and a self-hostable
-ListenBrainz server, built on Cloudflare Workers, D1 and KV with Hono and Better Auth.
+ListenBrainz server, built on Cloudflare Workers, Turso and KV with Hono and Better Auth.
 
 ![Profile page with top albums, on repeat, milestones and recent activity](docs/screenshots/profile.png)
 
 ## Why
 
-- **Your data, your account.** Listens live in your own Cloudflare D1 database. Export, query or delete them whenever you like.
+- **Your data, your account.** Listens live in your own Turso (libSQL) database. Export, query or delete them whenever you like.
 - **Works with the apps you already use.** The server speaks the ListenBrainz API, so any scrobbler that can point at a custom ListenBrainz server can send listens to it.
-- **Cheap to run.** Two Workers, one D1 database and one KV namespace. A personal instance fits comfortably in Cloudflare's free tier.
+- **Cheap to run.** Two Workers, one Turso database and one KV namespace. A personal instance fits comfortably in the free tiers of Cloudflare and Turso.
 - **Open source.** AGPL-3.0, no tracking, no ads.
 
 ## Features
@@ -61,7 +61,7 @@ want the root URL (`https://scrobbler.example.com`), others want the API path (`
 
 ## Quick start: deploy on Cloudflare
 
-You need a Cloudflare account, Node.js 22.18+ and [Vite+](https://viteplus.dev/) (`vp`), which installs the
+You need a Cloudflare account, a [Turso](https://turso.tech/) account with the `turso` CLI, Node.js 22.18+ and [Vite+](https://viteplus.dev/) (`vp`), which installs the
 pinned pnpm for you.
 
 ```bash
@@ -74,19 +74,23 @@ vp install
 
 ```bash
 cd apps/api
-npx wrangler d1 create scrobbler
+turso db create scrobbler
 npx wrangler kv namespace create CACHE
 ```
 
-**2. Store their IDs locally.** Copy `apps/api/.env.cloudflare.example` to `apps/api/.env.cloudflare` and fill in
-`D1_DATABASE_ID` and `KV_CACHE_ID`. This file is git-ignored: `wrangler.jsonc` keeps placeholder IDs, and the
-deploy scripts inject the real ones at deploy time, so your account's IDs never end up in the repository.
+**2. Store their credentials locally.** Copy `apps/api/.env.turso.example` to `apps/api/.env.turso` and fill in
+`TURSO_DATABASE_URL` (`turso db show scrobbler --url`) and `TURSO_AUTH_TOKEN` (`turso db tokens create scrobbler`).
+Copy `apps/api/.env.cloudflare.example` to `apps/api/.env.cloudflare` and fill in `KV_CACHE_ID`. Both files are
+git-ignored: `wrangler.jsonc` keeps a placeholder ID that the deploy script replaces at deploy time, so your
+account's IDs and tokens never end up in the repository.
 
-**3. Set the auth secret, run the migrations and deploy the API.**
+**3. Set the secrets, run the migrations and deploy the API.**
 
 ```bash
 openssl rand -base64 32 | npx wrangler secret put BETTER_AUTH_SECRET
-vp run db:migrate:remote
+turso db show scrobbler --url | npx wrangler secret put TURSO_DATABASE_URL
+turso db tokens create scrobbler | npx wrangler secret put TURSO_AUTH_TOKEN
+vp run db:migrate
 vp run deploy
 ```
 
@@ -109,7 +113,8 @@ Optional API variable: `BASE_URL`, the public URL used by Better Auth (defaults 
 ```bash
 cp apps/api/.dev.vars.example apps/api/.dev.vars   # set BETTER_AUTH_SECRET
 cp apps/web/.dev.vars.example apps/web/.dev.vars
-vp run @scrobbler/api#db:migrate:local
+turso dev --db-file .turso/dev.db                  # local libSQL server on http://127.0.0.1:8080 (keep it running)
+TURSO_DATABASE_URL=http://127.0.0.1:8080 vp run @scrobbler/api#db:migrate
 cd apps/api && vp run dev                          # API on http://localhost:8787
 cd apps/web && vp run dev                          # web front on http://localhost:3000
 ```
@@ -166,7 +171,8 @@ apps/
 packages/
   types/      Wire and domain types
   core/       Business rules behind ports: no I/O, no Cloudflare
-  db-d1/      Cloudflare D1 repositories and SQL migrations
+  db-d1/      SQLite repositories (D1-shaped driver) and SQL migrations
+  db-libsql/  Turso / libSQL driver for those repositories (production database)
   cache-kv/   Workers KV cache
   auth/       Better Auth setup (username + API key plugins)
   testing/    Node-only test doubles (D1 on node:sqlite, KV in memory)
@@ -174,13 +180,13 @@ packages/
 
 - **Ports and adapters.** The core knows nothing about Cloudflare. Storage, cache and auth are adapters, so another database (Postgres, SQLite, Turso…) is a new `packages/db-<name>` that passes the same tests.
 - **Protocols are thin.** ListenBrainz and the native API only map their wire format onto the same core services, so a Last.fm-compatible endpoint would be one more folder.
-- **Built for D1's limits.** Batch inserts use a single `json_each` statement, every listen read is bounded by an index, and stats are cached in KV keyed by the listen count, so new listens invalidate them naturally.
+- **Built for Turso's billing.** Turso charges per row scanned and written: batch inserts use a single `json_each` statement, every listen read is bounded by an index (a test checks every query plan), counters are maintained instead of counted, and stats of large histories are cached in KV keyed by the listen count, so new listens invalidate them naturally. The same SQL also runs on Cloudflare D1.
 
 More detail for contributors is in [AGENTS.md](AGENTS.md).
 
 ## Tech stack
 
-[Cloudflare Workers](https://workers.cloudflare.com/) · [D1](https://developers.cloudflare.com/d1/) ·
+[Cloudflare Workers](https://workers.cloudflare.com/) · [Turso](https://turso.tech/) ·
 [Workers KV](https://developers.cloudflare.com/kv/) · [Hono](https://hono.dev/) ·
 [Better Auth](https://www.better-auth.com/) · [TanStack Start](https://tanstack.com/start) ·
 [Panda CSS](https://panda-css.com/) · [Zag.js](https://zagjs.com/) · [Vite+](https://viteplus.dev/) · TypeScript

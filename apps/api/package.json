@@ -9,13 +9,9 @@
     "dev": "wrangler dev",
     "test": "vp test && TEST_DB=libsql vp test",
     "deploy": "node scripts/with-cloudflare-ids.mjs deploy",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "node scripts/with-cloudflare-ids.mjs d1 migrations apply DB --remote",
-    "db:backfill-credits:local": "vpx scripts/backfill-artist-credits.ts --local",
-    "db:backfill-credits:remote": "vpx scripts/backfill-artist-credits.ts --remote",
-    "db:migrate:turso": "vpx scripts/turso.ts migrate",
-    "db:status:turso": "vpx scripts/turso.ts status",
-    "db:backfill-credits:turso": "vpx scripts/turso.ts backfill-credits"
+    "db:migrate": "vpx scripts/turso.ts migrate",
+    "db:status": "vpx scripts/turso.ts status",
+    "db:backfill-credits": "vpx scripts/turso.ts backfill-credits"
   },
   "dependencies": {
     "@libsql/client": "catalog:",

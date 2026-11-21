@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Runs a wrangler command against the real Cloudflare resources without committing their IDs.
+ * Runs a wrangler command against the real Cloudflare resources (the KV namespace) without committing their IDs.
  *
- * wrangler.jsonc keeps placeholder IDs (enough for `wrangler dev` and tests). This script reads the real
+ * wrangler.jsonc keeps a placeholder ID (enough for `wrangler dev` and tests). This script reads the real
  * ones from apps/api/.env.cloudflare (git-ignored, see .env.cloudflare.example) or the environment,
  * writes a temporary config next to wrangler.jsonc, runs wrangler with it, then deletes it.
  *
  *   node scripts/with-cloudflare-ids.mjs deploy
- *   node scripts/with-cloudflare-ids.mjs d1 migrations apply DB --remote
+ *   node scripts/with-cloudflare-ids.mjs secret put TURSO_AUTH_TOKEN
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -24,7 +24,6 @@ if (existsSync(envFile)) {
 }
 
 const ids = {
-  D1_DATABASE_ID: "00000000-0000-0000-0000-000000000000",
   KV_CACHE_ID: "00000000000000000000000000000000",
 };
 let config = readFileSync(`${root}wrangler.jsonc`, "utf8");
