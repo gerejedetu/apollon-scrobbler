@@ -10,7 +10,7 @@
     "dev": "vp dev",
     "build": "vp build",
     "test": "vp test",
-    "deploy": "vp build && wrangler deploy"
+    "deploy": "vp build && node scripts/deploy.mjs"
   },
   "dependencies": {
     "@better-auth/api-key": "catalog:",
