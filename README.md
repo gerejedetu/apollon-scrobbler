@@ -7,7 +7,7 @@ ListenBrainz server, built on Cloudflare Workers, Turso and KV with Hono and Bet
 
 **[See a live instance →](https://apollon.dereje.cc/u/dereje)** A real, public Apollon profile with real listening data.
 
-![Profile page with top albums, on repeat, milestones and recent activity](docs/screenshots/profile.png)
+![Apollon profile page in the dark theme: top albums, on repeat, milestones, listening streak and recent listens](docs/screenshots/profile.png)
 
 ## Why
 
@@ -33,13 +33,17 @@ ListenBrainz server, built on Cloudflare Workers, Turso and KV with Hono and Bet
 
 The web front is called **Apollon**. It is available in English and French, with light and dark themes. Browse a real profile on the [live instance](https://apollon.dereje.cc/u/dereje).
 
-| Listening stats                                                                                                                     | Top artists                                                                        |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| ![Listening stats for the month: listens, artists, albums and tracks compared with the previous period](docs/screenshots/stats.png) | ![Top artists for the month with period filters](docs/screenshots/top-artists.png) |
+| Listening stats                                                                                                          | Year in review                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| ![Monthly listening stats: listens per day, when you listen, top artists, tracks and albums](docs/screenshots/stats.png) | ![Year in review: totals, top artists, top tracks and highlights of the year](docs/screenshots/year-in-review.png) |
 
-| Year in review                                                                                                 | Artist page                                                                                       |
-| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| ![Year in review: total listens, artists, tracks, albums and active days](docs/screenshots/year-in-review.png) | ![Artist page with play counts, first listen and a monthly timeline](docs/screenshots/artist.png) |
+| Artist page                                                                                | Top artists                                                                        |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| ![Artist page with play counts, most played tracks and facts](docs/screenshots/artist.png) | ![Top artists for the month with period filters](docs/screenshots/top-artists.png) |
+
+| Listening history                                                                   | Light theme                                                            |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| ![Listening history grouped by day with album covers](docs/screenshots/history.png) | ![Profile page in the light theme](docs/screenshots/profile-light.png) |
 
 ## Compatible scrobbling apps
 
