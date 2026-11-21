@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import { PlusIcon } from "../../ui/icons.tsx";
+import { button } from "../../ui/primitives/index.ts";
 import { headerBar, headerSide, logo } from "../../ui/layout/index.ts";
 import { AccountMenu } from "./AccountMenu.tsx";
 
@@ -70,7 +71,8 @@ export function AppHeader({ userName }: { userName: string | null }) {
           ) : (
             <Link
               to="/connexion"
-              className={css({ fontSize: "13px", fontWeight: "500", textDecoration: "none" })}
+              className={button({ tone: "outline", size: "xs" })}
+              style={{ height: 32, fontSize: 13 }}
             >
               Se connecter
             </Link>

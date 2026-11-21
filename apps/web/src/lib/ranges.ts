@@ -13,6 +13,14 @@ export const RANGES: { value: Range; label: string }[] = [
   { value: "all_time", label: "Depuis toujours" },
 ];
 
+/** The ranges in the period menu, grouped like the design: current periods, past periods, all time. */
+export const RANGE_OPTIONS: { value: Range; label: string; separated?: boolean }[] = RANGES.map(
+  (r) => ({
+    ...r,
+    separated: r.value === "week" || r.value === "all_time",
+  }),
+);
+
 export const rangeLabel = (range: Range) => RANGES.find((r) => r.value === range)?.label ?? range;
 
 export function isRange(value: unknown): value is Range {

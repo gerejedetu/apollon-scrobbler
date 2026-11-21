@@ -1,9 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { Range, Top, TopItem } from "../../api/index.ts";
 import { barWidth, formatCount } from "../../lib/format/index.ts";
-import { RANGES } from "../../lib/ranges.ts";
-import { Button, Empty, pill } from "../../ui/primitives/index.ts";
+import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { SelectMenu } from "../../ui/zag/index.ts";
+import { Button, Empty } from "../../ui/primitives/index.ts";
 import type { Kind } from "./kinds.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 
@@ -54,24 +55,20 @@ export function TopList({
   const max = top.items[0]?.listenCount ?? 0;
   return (
     <section className={css({ display: "flex", flexDirection: "column", gap: "16px" })}>
-      <div
-        role="tablist"
-        aria-label="Période"
-        className={css({ display: "flex", flexWrap: "wrap", gap: "6px" })}
-      >
-        {RANGES.map((r) => (
-          <Link
-            key={r.value}
-            to="/u/$userName/tops/$kind"
-            params={{ userName, kind }}
-            search={{ periode: r.value }}
-            role="tab"
-            aria-selected={r.value === range}
-            className={pill({ tone: r.value === range ? "on" : "off" })}
-          >
-            {r.label}
-          </Link>
-        ))}
+      <div className={css({ display: "flex", justifyContent: "flex-end" })}>
+        <SelectMenu<Range>
+          label="Période"
+          value={range}
+          options={RANGE_OPTIONS}
+          onValueChange={(periode) =>
+            void navigate({
+              to: "/u/$userName/tops/$kind",
+              params: { userName, kind },
+              search: { periode },
+              resetScroll: false,
+            })
+          }
+        />
       </div>
       {top.items.length === 0 ? (
         <Empty>Aucune écoute sur cette période.</Empty>

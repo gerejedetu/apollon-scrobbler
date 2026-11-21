@@ -17,9 +17,10 @@ import {
   formatDate,
   formatMilestone,
 } from "../../lib/format/index.ts";
-import { RANGES, rangeLabel } from "../../lib/ranges.ts";
+import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { SelectMenu } from "../../ui/zag/index.ts";
 import { AxisLabels, Bars } from "../../ui/charts/index.ts";
-import { ChevronDown, ChevronRight } from "../../ui/icons.tsx";
+import { ChevronRight } from "../../ui/icons.tsx";
 import { BlockHeading, CountBadge, Empty, Stat } from "../../ui/primitives/index.ts";
 import { ListenItem, ListenRow } from "../listens/index.ts";
 import { AlbumCard, coverGrid } from "./cards.tsx";
@@ -33,41 +34,29 @@ export function TopAlbums({ userName, top, range }: { userName: string; top: Top
   const navigate = useNavigate();
   return (
     <section className={stack14}>
-      <BlockHeading
-        title="Top albums"
-        aside={
-          <label
-            className={css({
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              position: "relative",
-            })}
-          >
-            Période :<b className={css({ color: "ink", fontWeight: "500" })}>{rangeLabel(range)}</b>
-            <ChevronDown />
-            <select
-              aria-label="Période du top"
-              value={range}
-              onChange={(e) =>
-                void navigate({
-                  to: "/u/$userName",
-                  params: { userName },
-                  search: { periode: e.target.value as Range },
-                  resetScroll: false,
-                })
-              }
-              className={css({ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" })}
-            >
-              {RANGES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        }
-      />
+      <div
+        className={css({
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "12px",
+        })}
+      >
+        <h2 className={css({ m: 0, textStyle: "block" })}>Top albums</h2>
+        <SelectMenu<Range>
+          label="Période"
+          value={range}
+          options={RANGE_OPTIONS}
+          onValueChange={(periode) =>
+            void navigate({
+              to: "/u/$userName",
+              params: { userName },
+              search: { periode },
+              resetScroll: false,
+            })
+          }
+        />
+      </div>
       {top.items.length === 0 ? (
         <Empty>Aucune écoute sur cette période.</Empty>
       ) : (
