@@ -1,6 +1,8 @@
 import { css } from "styled-system/css";
 import { formatCount } from "../../lib/format/index.ts";
 import { color } from "../../ui/theme/index.ts";
+import { dateFormat } from "../../lib/locale.ts";
+import { m } from "../../paraglide/messages.js";
 
 export interface PeriodBar {
   key: string;
@@ -77,7 +79,9 @@ export function LastPeriods({ bars, height = 160 }: { bars: PeriodBar[]; height?
   );
 }
 
-const shortMonth = new Intl.DateTimeFormat("fr-FR", { month: "short", timeZone: "UTC" });
+const shortMonth = {
+  format: (d: Date) => dateFormat({ month: "short", timeZone: "UTC" }).format(d),
+};
 
 /** The last 12 months up to `now` (local), filled from "YYYY-MM" periods. */
 export function lastMonths(
@@ -92,7 +96,12 @@ export function lastMonths(
     const key = d.toISOString().slice(0, 7);
     const count = counts.get(key) ?? 0;
     const label = shortMonth.format(d);
-    out.push({ key, label, count, tip: `${label} ${d.getUTCFullYear()} : ${count} écoutes` });
+    out.push({
+      key,
+      label,
+      count,
+      tip: m.date_listens({ date: `${label} ${d.getUTCFullYear()}`, count }),
+    });
   }
   return out;
 }
@@ -117,7 +126,7 @@ export function lastWeeks(
     const key = d.toISOString().slice(0, 10);
     const count = counts.get(key) ?? 0;
     const label = `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
-    out.push({ key, label, count, tip: `semaine du ${label} : ${count} écoutes` });
+    out.push({ key, label, count, tip: m.week_listens({ date: label, count }) });
   }
   return out;
 }
@@ -134,7 +143,12 @@ export function lastYears(
   const out: PeriodBar[] = [];
   for (let y = from; y <= now.getUTCFullYear(); y++) {
     const count = counts.get(String(y)) ?? 0;
-    out.push({ key: String(y), label: String(y), count, tip: `${y} : ${count} écoutes` });
+    out.push({
+      key: String(y),
+      label: String(y),
+      count,
+      tip: m.date_listens({ date: String(y), count }),
+    });
   }
   return out;
 }

@@ -8,6 +8,7 @@ import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { capsLabel, Stat } from "../../ui/primitives/index.ts";
 import { EntityTitle } from "./shared.tsx";
 import { AlbumCover } from "../../ui/cover/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 /** An album: the sleeve with totals, first and last listen, and its tracks by plays. */
 export function AlbumPage({
@@ -33,7 +34,7 @@ export function AlbumPage({
       <Breadcrumbs
         items={[
           <Link key="p" to="/u/$userName" params={{ userName }}>
-            Accueil
+            {m.nav_home()}
           </Link>,
           <Link key="a" {...artistLink}>
             {album.artist}
@@ -59,8 +60,8 @@ export function AlbumPage({
         >
           <AlbumCover artist={album.artist} album={album.album} title={album.album} mbid={mbid} />
           <div className={css({ display: "flex", justifyContent: "space-around" })}>
-            <Stat align="center" value={formatCount(album.listenCount)} label="ÉCOUTES" />
-            <Stat align="center" value={formatCount(album.tracks.length)} label="TITRES" />
+            <Stat align="center" value={formatCount(album.listenCount)} label={m.caps_listens()} />
+            <Stat align="center" value={formatCount(album.tracks.length)} label={m.caps_tracks()} />
           </div>
         </div>
         <div
@@ -73,7 +74,7 @@ export function AlbumPage({
           })}
         >
           <EntityTitle
-            kind="ALBUM"
+            kind={m.caps_album()}
             title={album.album}
             sub={
               <Link
@@ -86,7 +87,7 @@ export function AlbumPage({
           />
           <div className={css({ alignSelf: "flex-start" })}>
             <SelectMenu<Range>
-              label="Période"
+              label={m.period()}
               value={range}
               options={rangeOptions()}
               onValueChange={(periode) =>
@@ -101,11 +102,11 @@ export function AlbumPage({
           </div>
           {album.firstListenedAt && album.lastListenedAt ? (
             <span className={css({ fontSize: "13px", color: "muted" })}>
-              1re écoute le{" "}
+              {m.first_listen_label()}{" "}
               <b className={css({ color: "ink", fontWeight: "500" })}>
                 {formatDate(album.firstListenedAt)}
               </b>{" "}
-              · dernière{" "}
+              · {m.last_listen_label()}{" "}
               <b className={css({ color: "ink", fontWeight: "500" })}>
                 {formatAgo(album.lastListenedAt)}
               </b>
@@ -125,13 +126,13 @@ export function AlbumPage({
                 #
               </span>
               <span className={capsLabel} style={{ flex: 1 }}>
-                TITRE
+                {m.caps_track()}
               </span>
               <span className={capsLabel} style={{ width: 140 }}>
-                ÉCOUTES
+                {m.caps_listens()}
               </span>
               <span className={capsLabel} style={{ width: 90, textAlign: "right" }}>
-                DERNIÈRE
+                {m.caps_last()}
               </span>
             </div>
             {album.tracks.map((t, i) => (

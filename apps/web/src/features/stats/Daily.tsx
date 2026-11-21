@@ -4,6 +4,7 @@ import { formatCount, formatDayString, parseDay } from "../../lib/format/index.t
 import { AxisLabels } from "../../ui/charts/index.ts";
 import { isOngoing } from "./copy.ts";
 import { color } from "../../ui/theme/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 /** Days still to come in the current week, month or year (empty slots after today). */
 export function remainingDays(range: Range, lastDay: string): string[] {
@@ -42,20 +43,20 @@ export function Daily({ activity, range }: { activity: Activity; range: Range })
           gap: "12px",
         })}
       >
-        <h2 className={css({ m: 0, textStyle: "block" })}>Écoutes par jour</h2>
+        <h2 className={css({ m: 0, textStyle: "block" })}>{m.listens_per_day()}</h2>
         {peak.listenCount > 0 ? (
           <span className={css({ fontSize: "12px", color: "muted" })}>
-            Record :{" "}
+            {m.record_label()}{" "}
             <b className={css({ color: "ink", fontWeight: "500" })}>
               {formatCount(peak.listenCount)}
             </b>{" "}
-            le {label(peak.date)}
+            {m.on_date({ date: label(peak.date) })}
           </span>
         ) : null}
       </div>
       <div
         role="img"
-        aria-label={`Écoutes par jour, record ${peak.listenCount} le ${label(peak.date)}`}
+        aria-label={m.listens_per_day_aria({ count: peak.listenCount, date: label(peak.date) })}
         className={css({
           height: "120px",
           display: "flex",
@@ -67,7 +68,7 @@ export function Daily({ activity, range }: { activity: Activity; range: Range })
         {days.map((d) => (
           <div
             key={d.date}
-            title={`${label(d.date)} : ${formatCount(d.listenCount)} écoutes`}
+            title={m.date_listens({ date: label(d.date), count: formatCount(d.listenCount) })}
             className={css({ flex: 1, minHeight: "2px" })}
             style={{
               height: `${Math.round((d.listenCount / max) * 100)}%`,

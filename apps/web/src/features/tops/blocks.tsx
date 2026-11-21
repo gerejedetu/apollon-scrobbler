@@ -5,6 +5,7 @@ import { css } from "styled-system/css";
 import { barWidth, formatCount } from "../../lib/format/index.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
+import { m } from "../../paraglide/messages.js";
 
 const grid5 = css({
   display: "grid",
@@ -88,7 +89,9 @@ export function ArtistGrid({
           <span className={lines}>
             <span className={css({ color: "muted" })}>{i + 1}.</span>
             <span className={name}>{a.artist}</span>
-            <span className={css({ color: "muted" })}>{formatCount(a.listenCount)} écoutes</span>
+            <span className={css({ color: "muted" })}>
+              {m.count_listens({ count: formatCount(a.listenCount) })}
+            </span>
           </span>
         </Link>
       ))}

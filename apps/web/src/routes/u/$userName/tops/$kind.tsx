@@ -25,7 +25,7 @@ export const Route = createFileRoute("/u/$userName/tops/$kind")({
   head: ({ params }) => ({
     meta: [
       {
-        title: `${isKind(params.kind) ? KINDS[params.kind].title : "Tops"} de ${params.userName} · Needle`,
+        title: `${isKind(params.kind) ? KINDS[params.kind].title() : "Tops"} de ${params.userName} · Needle`,
       },
     ],
   }),

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vite-plus/test";
-import { isOngoing, previousLabel, rangeSentence, weekdayName } from "./copy.ts";
+import { isOngoing, rangeSentence, weekdayName } from "./copy.ts";
 import { remainingDays } from "./Daily.tsx";
 
 describe("stats copy", () => {
@@ -9,7 +9,7 @@ describe("stats copy", () => {
   });
   test("weekdays and periods", () => {
     expect(weekdayName("saturday")).toBe("samedi");
-    expect(previousLabel("this_month")).toBe("le mois dernier");
+    expect(weekdayName("mon")).toBe("lundi");
     expect(isOngoing("this_week")).toBe(true);
     expect(isOngoing("month")).toBe(false);
   });

@@ -12,6 +12,7 @@ import {
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { BigFigure, EntityTitle, fillMonths, PeriodBars, recordOf } from "./shared.tsx";
 import { AlbumCover } from "../../ui/cover/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 /** A track: totals and how it was played month by month. `album` comes from where the visitor clicked. */
 export function TrackPage({
@@ -72,7 +73,7 @@ export function TrackPage({
         />
         <div className={css({ flex: "1 1 320px" })}>
           <EntityTitle
-            kind="TITRE"
+            kind={m.caps_track()}
             title={track.track}
             sub={
               <span className={css({ fontSize: "15px", color: "muted" })}>
@@ -92,7 +93,7 @@ export function TrackPage({
           />
           <div className={css({ mt: "10px" })}>
             <SelectMenu<Range>
-              label="Période"
+              label={m.period()}
               value={range}
               options={rangeOptions()}
               onValueChange={(periode) =>
@@ -114,28 +115,33 @@ export function TrackPage({
           gap: "24px",
         })}
       >
-        <BigFigure label="ÉCOUTES" value={formatCount(track.listenCount)} />
+        <BigFigure label={m.caps_listens()} value={formatCount(track.listenCount)} />
         {track.firstListenedAt ? (
-          <BigFigure label="1RE ÉCOUTE" value={formatNumericDate(track.firstListenedAt)} />
+          <BigFigure
+            label={m.caps_first_listen()}
+            value={formatNumericDate(track.firstListenedAt)}
+          />
         ) : null}
         {track.lastListenedAt ? (
-          <BigFigure
-            label="DERNIÈRE"
-            value={formatAgo(track.lastListenedAt).replace(/^il y a /, "")}
-          />
+          <BigFigure label={m.caps_last()} value={formatAgo(track.lastListenedAt)} />
         ) : null}
       </section>
       {months.length > 0 ? (
         <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
           <h2 className={css({ m: 0, textStyle: "serif", fontSize: "32px", lineHeight: 1 })}>
-            Mois par mois
+            {m.month_by_month()}
           </h2>
-          <PeriodBars periods={months} height={160} label={`Écoutes de ${track.track} par mois`} />
+          <PeriodBars
+            periods={months}
+            height={160}
+            label={m.track_by_month_aria({ track: track.track })}
+          />
           {record ? (
             <span className={css({ fontSize: "12px", color: "muted" })}>
-              Mois record :{" "}
+              {m.record_month_label()}{" "}
               <b className={css({ color: "ink", fontWeight: "600" })}>
-                {formatPeriodMonth(record.period)}, {formatCount(record.listenCount)} écoutes
+                {formatPeriodMonth(record.period)},{" "}
+                {m.count_listens({ count: formatCount(record.listenCount) })}
               </b>
             </span>
           ) : null}
