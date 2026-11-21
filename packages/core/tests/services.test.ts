@@ -284,3 +284,24 @@ describe("cache policy", () => {
     expect(writes).toBe(1);
   });
 });
+
+describe("one name per artist", () => {
+  test("a bilingual credit joins the artist the library already has, and teaches its other forms", async () => {
+    const { user } = await signUp("alice");
+    const one = (artist: string, t: number) => ({
+      listen_type: "single",
+      payload: [
+        { listened_at: T0 + t, track_metadata: { artist_name: artist, track_name: `T${t}` } },
+      ],
+    });
+    await s.listens.submit(user, one("Heize", 1));
+    await s.listens.submit(user, one("헤이즈 Heize", 2));
+    await s.listens.submit(user, one("헤이즈", 3));
+    await s.listens.submit(user, {
+      listen_type: "playing_now",
+      payload: [{ track_metadata: { artist_name: "헤이즈 Heize", track_name: "Now" } }],
+    });
+    expect(repos._listens.map((l) => l.artistName)).toEqual(["Heize", "Heize", "Heize"]);
+    expect((await s.listens.current(user))?.artist_name).toBe("Heize");
+  });
+});

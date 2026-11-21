@@ -1,6 +1,12 @@
 import type { ApiListen, TrackMetadata, User } from "@scrobbler/types";
 import { ApiError } from "../errors/index.ts";
-import type { Clock, ListenRepository, PlayingNowRepository } from "../ports/index.ts";
+import type {
+  ArtistRepository,
+  Clock,
+  ListenRepository,
+  PlayingNowRepository,
+} from "../ports/index.ts";
+import { bilingualParts, canonicalArtist, hasNativeScript } from "../artists/names.ts";
 import { LISTEN_LIMITS } from "./limits.ts";
 import { toApiListen, toNewListen } from "./mapping.ts";
 import { validateSubmission } from "./validate.ts";
@@ -47,11 +53,48 @@ export class ListenService {
     private readonly listens: ListenRepository,
     private readonly playingNow: PlayingNowRepository,
     private readonly clock: Clock,
+    private readonly artists?: ArtistRepository,
   ) {}
+
+  /**
+   * One name per artist: "헤이즈 Heize" joins the "Heize" the library already has (or becomes "Heize"),
+   * and the forms seen are remembered so that "헤이즈" alone joins it later too.
+   */
+  private async canonicalNames(user: User, names: string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    // Latin-only names are stored as sent: no lookup at all, so most imports stay one round trip.
+    const distinct = [...new Set(names)].filter(hasNativeScript);
+    if (!this.artists || distinct.length === 0) return out;
+    const candidates = new Set<string>(distinct);
+    for (const n of distinct) {
+      const parts = bilingualParts(n);
+      if (parts) candidates.add(parts.latin).add(parts.native);
+    }
+    const [aliases, known] = await Promise.all([
+      this.artists.aliases(distinct),
+      this.artists.known(user.id, [...candidates]),
+    ]);
+    const learn: [string, string][] = [];
+    for (const n of distinct) {
+      const result = canonicalArtist(n, known, aliases);
+      if (result.artist !== n) out.set(n, result.artist);
+      learn.push(...result.learn);
+    }
+    if (learn.length) await this.artists.learnAliases(learn);
+    return out;
+  }
 
   async submit(user: User, body: unknown): Promise<SubmitResult> {
     const submission = validateSubmission(body);
     const now = this.clock();
+    const renamed = await this.canonicalNames(
+      user,
+      submission.listens.map((l) => l.trackMetadata.artist_name),
+    );
+    for (const l of submission.listens) {
+      const artist = renamed.get(l.trackMetadata.artist_name);
+      if (artist) l.trackMetadata = { ...l.trackMetadata, artist_name: artist };
+    }
 
     if (submission.listenType === "playing_now") {
       const [listen] = submission.listens;

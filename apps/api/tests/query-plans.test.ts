@@ -28,6 +28,14 @@ test.skipIf(TEST_DB !== "d1")("no endpoint makes SQLite scan a whole table", asy
     headers: auth,
     body: JSON.stringify({ listens }),
   });
+  // A bilingual credit exercises the artist-name lookups (aliases, names already in the library).
+  await api.request("/v1/listens", {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({
+      listens: [{ listenedAt: NOW - 60, artist: "헤이즈 Heize", track: "Rain" }],
+    }),
+  });
   await api.request("/v1/now-playing", {
     method: "PUT",
     headers: auth,

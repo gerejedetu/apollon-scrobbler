@@ -31,3 +31,9 @@ export { createServices, type ServiceOptions, type Services } from "./services.t
 export { FavouriteService, MAX_LOVED_PAGE, type TrackRef } from "./favourites/service.ts";
 export { InsightsService, type Params as InsightParams } from "./insights/service.ts";
 export { InstanceService, type InstanceSettings } from "./instance/service.ts";
+export {
+  bilingualParts,
+  canonicalArtist,
+  hasNativeScript,
+  type BilingualName,
+} from "./artists/names.ts";

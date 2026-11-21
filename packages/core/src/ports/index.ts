@@ -173,6 +173,14 @@ export interface InstanceRepository {
   ownerUserId(): Promise<UserId | null>;
 }
 
+/** Which artist names a library uses, and the aliases learned for names that arrive in several forms. */
+export interface ArtistRepository {
+  /** The subset of `names` that the user already has listens under. One indexed lookup per name, one round trip. */
+  known(userId: UserId, names: string[]): Promise<Set<string>>;
+  aliases(names: string[]): Promise<Map<string, string>>;
+  learnAliases(pairs: [alias: string, artist: string][]): Promise<void>;
+}
+
 export interface Repositories {
   users: UserRepository;
   favourites: FavouriteRepository;
@@ -182,6 +190,7 @@ export interface Repositories {
   stats: StatsRepository;
   insights: InsightsRepository;
   instance: InstanceRepository;
+  artists: ArtistRepository;
 }
 
 export interface Cache {
