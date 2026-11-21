@@ -10,7 +10,8 @@ import type { Bindings } from "../src/env.ts";
 import { createHandler } from "../src/http/handler.ts";
 import { memoryViewerCache } from "../src/http/viewer.ts";
 
-export const MCP_URL = "https://mcp.test/mcp";
+/** Same origin as the API under test (its BASE_URL), as in production where both answer on the web origin. */
+export const MCP_URL = "http://localhost/mcp";
 
 export interface Harness {
   api: TestApi;

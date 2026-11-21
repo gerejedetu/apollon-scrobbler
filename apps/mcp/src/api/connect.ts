@@ -5,11 +5,16 @@
 import { createEndpoints, createHttp, type Endpoints, type Transport } from "@scrobbler/client";
 import type { Bindings } from "../env.ts";
 
-/** Origin used for requests through the service binding; the API only reads the path. */
-const BINDING_ORIGIN = "https://api.internal";
-
-export function apiTransport(env: Bindings, authorization: string): Transport {
-  const origin = env.API ? BINDING_ORIGIN : env.API_ORIGIN;
+/**
+ * Through the service binding, requests keep the public origin of the MCP endpoint (the web front's): the API
+ * derives its OAuth issuer and the expected token audience (`<origin>/mcp`) from it.
+ */
+export function apiTransport(
+  env: Bindings,
+  authorization: string,
+  publicOrigin: string,
+): Transport {
+  const origin = env.API ? publicOrigin : env.API_ORIGIN;
   return async (path, init = {}) => {
     if (!origin) {
       return Response.json(
@@ -24,6 +29,6 @@ export function apiTransport(env: Bindings, authorization: string): Transport {
   };
 }
 
-export function connectApi(env: Bindings, authorization: string): Endpoints {
-  return createEndpoints(createHttp(apiTransport(env, authorization)));
+export function connectApi(env: Bindings, authorization: string, publicOrigin: string): Endpoints {
+  return createEndpoints(createHttp(apiTransport(env, authorization, publicOrigin)));
 }

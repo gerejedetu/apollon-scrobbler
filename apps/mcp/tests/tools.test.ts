@@ -1,5 +1,6 @@
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { beforeEach, describe, expect, test } from "vite-plus/test";
+import { obtainOAuthToken } from "@scrobbler/api/testing";
 import { call, harness, MCP_URL, type Harness } from "./harness.ts";
 
 let h: Harness;
@@ -257,9 +258,19 @@ describe("HTTP endpoint", () => {
     for (const headers of variants) {
       const res = await h.handle(rpc(headers));
       expect(res.status).toBe(401);
-      expect(res.headers.get("www-authenticate")).toContain("Bearer");
+      expect(res.headers.get("www-authenticate")).toContain(
+        'resource_metadata="http://localhost/.well-known/oauth-protected-resource/mcp"',
+      );
     }
     await expect(h.connect("wrong")).rejects.toThrow();
+  });
+
+  test("works with an OAuth access token from the sign-in and consent flow", async () => {
+    const token = await obtainOAuthToken(h.api, h.api.cookies.Alice!);
+    const oauthClient = await h.connect(token.access_token);
+    expect(oauthClient.getInstructions()).toContain("Alice");
+    await call(oauthClient, "submit_listen", { artist: "Daft Punk", track: "Get Lucky" });
+    expect((await call(oauthClient, "get_recent_listens")).data.count).toBe(1);
   });
 
   test("accepts the ListenBrainz `Token` scheme too", async () => {
@@ -274,9 +285,9 @@ describe("HTTP endpoint", () => {
     const preflight = await h.handle(new Request(MCP_URL, { method: "OPTIONS" }));
     expect(preflight.status).toBe(204);
     expect(preflight.headers.get("access-control-allow-headers")).toContain("authorization");
-    expect(await (await h.handle(new Request("https://mcp.test/"))).json()).toMatchObject({
+    expect(await (await h.handle(new Request("http://localhost/"))).json()).toMatchObject({
       endpoint: "/mcp",
     });
-    expect((await h.handle(new Request("https://mcp.test/other"))).status).toBe(404);
+    expect((await h.handle(new Request("http://localhost/other"))).status).toBe(404);
   });
 });
