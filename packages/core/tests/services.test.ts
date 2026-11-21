@@ -337,4 +337,24 @@ describe("one name per album", () => {
       "Lover (Deluxe)",
     ]);
   });
+
+  test("store release types are dropped: Love, Yerin - EP is stored as Love, Yerin", async () => {
+    const { user } = await signUp("alice");
+    await s.listens.submit(user, {
+      listen_type: "import",
+      payload: [
+        ["Love, Yerin - EP", 1],
+        ["Love, Yerin", 2],
+        ["Lonely - Single", 3],
+      ].map(([album, t]) => ({
+        listened_at: T0 + (t as number),
+        track_metadata: { artist_name: "Yerin Baek", track_name: `T${t}`, release_name: album },
+      })),
+    });
+    expect(repos._listens.map((l) => l.releaseName).toSorted()).toEqual([
+      "Lonely",
+      "Love, Yerin",
+      "Love, Yerin",
+    ]);
+  });
 });

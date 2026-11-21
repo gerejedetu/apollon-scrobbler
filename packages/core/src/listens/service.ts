@@ -7,7 +7,12 @@ import type {
   PlayingNowRepository,
 } from "../ports/index.ts";
 import { bilingualParts, canonicalArtist, hasNativeScript } from "../artists/names.ts";
-import { canonicalAlbum, editionBase, hasEditionMarker, withoutAdvisory } from "../albums/names.ts";
+import {
+  canonicalAlbum,
+  editionBase,
+  hasEditionMarker,
+  withoutStoreSuffixes,
+} from "../albums/names.ts";
 import { LISTEN_LIMITS } from "./limits.ts";
 import { toApiListen, toNewListen } from "./mapping.ts";
 import { validateSubmission } from "./validate.ts";
@@ -86,7 +91,7 @@ export class ListenService {
   }
 
   /**
-   * One name per album: "Midnights [Clean]" is stored as "Midnights", and "X (Deluxe)" joins "X" when the
+   * One name per album: "Midnights [Clean]" is stored as "Midnights", "Love, Yerin - EP" as "Love, Yerin", and "X (Deluxe)" joins "X" when the
    * library already has it. Only names carrying such a marker cost a lookup.
    */
   private async canonicalAlbums(
@@ -99,7 +104,7 @@ export class ListenService {
     if (marked.length === 0) return;
     const pairs = new Map<string, [string, string]>();
     for (const { trackMetadata: m } of marked) {
-      const clean = withoutAdvisory(m.release_name!);
+      const clean = withoutStoreSuffixes(m.release_name!);
       for (const album of [clean, editionBase(clean)])
         pairs.set(`${m.artist_name}\u0000${album}`, [m.artist_name, album]);
     }
