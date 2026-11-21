@@ -8,12 +8,15 @@
  *   vpx scripts/turso.ts backfill-credits     fill artist_credits from the listens already stored
  *   vpx scripts/turso.ts merge-artist <from> <to>          rename an artist everywhere (and remember the alias)
  *   vpx scripts/turso.ts merge-album <artist> <from> <to>  rename one artist's album everywhere
+ *   vpx scripts/turso.ts dedupe-albums [--apply]          list (then, with --apply, merge) albums whose names
+ *                                                          differ only by store suffixes ("X - EP" → "X")
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
-import { creditPairs } from "@scrobbler/core";
+import { creditPairs, withoutStoreSuffixes } from "@scrobbler/core";
 import { MIGRATIONS_DIR } from "@scrobbler/db-d1/testing";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -181,11 +184,95 @@ async function mergeAlbum(artist: string, from: string, to: string) {
         sql: "UPDATE loved_tracks SET release_name = ?3 WHERE artist_name = ?1 AND release_name = ?2",
         args: [artist, from, to],
       },
+      {
+        sql: "UPDATE obsessions SET release_name = ?3 WHERE artist_name = ?1 AND release_name = ?2",
+        args: [artist, from, to],
+      },
       { sql: "UPDATE users SET data_version = data_version + 1", args: [] },
     ],
     "write",
   );
-  console.log(`listens moved: ${rs[0]?.rowsAffected}, loved: ${rs[1]?.rowsAffected}`);
+  console.log(
+    `listens moved: ${rs[0]?.rowsAffected}, loved: ${rs[1]?.rowsAffected}, obsessions: ${rs[2]?.rowsAffected}`,
+  );
+}
+
+/**
+ * Albums stored before a store-suffix rule existed ("Love, Yerin - EP" next to "Love, Yerin"). Each name
+ * joins the one new listens get (`withoutStoreSuffixes`), per user and artist. Dry run unless `apply`;
+ * applying first writes every affected row to ~/stunning-winner-backups. Listens keep their release MBID,
+ * so a sleeve found through the merged name's MBID still shows on the album.
+ */
+async function dedupeAlbums(apply: boolean) {
+  // Full scan: an occasional maintenance read, never in the API.
+  const rs = await db.execute(
+    `SELECT user_id, artist_name, release_name, count(DISTINCT track_name) AS tracks, count(*) AS listens
+     FROM listens WHERE release_name IS NOT NULL GROUP BY user_id, artist_name, release_name`,
+  );
+  type Row = { user: number; artist: string; album: string; tracks: number; listens: number };
+  const groups = new Map<string, Row[]>();
+  for (const r of rs.rows) {
+    const row: Row = {
+      user: r.user_id as number,
+      artist: r.artist_name as string,
+      album: r.release_name as string,
+      tracks: r.tracks as number,
+      listens: r.listens as number,
+    };
+    const key = `${row.user}\u0000${row.artist}\u0000${withoutStoreSuffixes(row.album)}`;
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+  const moves: { user: number; artist: string; from: Row; to: string; kept?: Row }[] = [];
+  for (const rows of groups.values()) {
+    const target = withoutStoreSuffixes(rows[0]!.album);
+    const kept = rows.find((r) => r.album === target);
+    for (const r of rows)
+      if (r.album !== target)
+        moves.push({ user: r.user, artist: r.artist, from: r, to: target, kept });
+  }
+  if (moves.length === 0) return console.log("No album to merge.");
+  for (const m of moves)
+    console.log(
+      `user ${m.user}  ${m.artist}: "${m.from.album}" (${m.from.tracks} tracks, ${m.from.listens} listens) → "${m.to}"` +
+        (m.kept ? ` (${m.kept.tracks} tracks, ${m.kept.listens} listens)` : " (new name)"),
+    );
+  if (!apply) return console.log(`${moves.length} album(s) to merge. Dry run: add --apply.`);
+
+  const backup = await db.batch(
+    moves.flatMap((m) =>
+      ["listens", "loved_tracks", "obsessions"].map((t) => ({
+        sql: `SELECT '${t}' AS _table, * FROM ${t} WHERE user_id = ? AND artist_name = ? AND release_name IN (?, ?)`,
+        args: [m.user, m.artist, m.from.album, m.to],
+      })),
+    ),
+    "read",
+  );
+  const dir = join(homedir(), "stunning-winner-backups");
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `albums-dedupe-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
+  writeFileSync(file, JSON.stringify({ moves, rows: backup.flatMap((b) => b.rows) }, null, 1));
+  console.log(`backup: ${file}`);
+
+  const out = await db.batch(
+    [
+      ...moves.flatMap((m) =>
+        ["listens", "loved_tracks", "obsessions"].map((t) => ({
+          sql: `UPDATE ${t} SET release_name = ? WHERE user_id = ? AND artist_name = ? AND release_name = ?`,
+          args: [m.to, m.user, m.artist, m.from.album],
+        })),
+      ),
+      {
+        sql: `UPDATE users SET data_version = data_version + 1 WHERE id IN (${moves.map(() => "?").join(",")})`,
+        args: moves.map((m) => m.user),
+      },
+    ],
+    "write",
+  );
+  moves.forEach((m, i) =>
+    console.log(
+      `"${m.from.album}" → "${m.to}": listens ${out[i * 3]?.rowsAffected}, loved ${out[i * 3 + 1]?.rowsAffected}, obsessions ${out[i * 3 + 2]?.rowsAffected}`,
+    ),
+  );
 }
 
 const [command, arg] = process.argv.slice(2);
@@ -215,6 +302,9 @@ switch (command) {
     await mergeAlbum(artist, from, to);
     break;
   }
+  case "dedupe-albums":
+    await dedupeAlbums(process.argv.includes("--apply"));
+    break;
   default:
     console.error(
       "usage: vpx scripts/turso.ts migrate | status | import <dump.sql> | backfill-credits",

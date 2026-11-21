@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vite-plus/test";
-import { canonicalAlbum, editionBase, hasEditionMarker, withoutAdvisory } from "../src/index.ts";
+import {
+  canonicalAlbum,
+  editionBase,
+  hasEditionMarker,
+  withoutAdvisory,
+  withoutStoreSuffixes,
+} from "../src/index.ts";
 
 describe("album editions", () => {
   test("content advisories are never a different album", () => {
@@ -8,6 +14,41 @@ describe("album editions", () => {
     expect(withoutAdvisory("Midnights - Clean Version")).toBe("Midnights");
     expect(withoutAdvisory("Clean Bandit")).toBe("Clean Bandit");
     expect(canonicalAlbum("Midnights [Clean]", new Set())).toBe("Midnights");
+  });
+
+  test("release-type store suffixes are never part of the title", () => {
+    for (const t of [
+      "Love, Yerin - EP",
+      "Love, Yerin - ep",
+      "Love, Yerin (EP)",
+      "Love, Yerin [EP]",
+      "Love, Yerin – EP",
+      "Love, Yerin - Single",
+      "Love, Yerin (Single)",
+      "Love, Yerin [single]",
+      "Love, Yerin - EP [Explicit]",
+      "Love, Yerin (Explicit) - Single",
+    ])
+      expect(withoutStoreSuffixes(t), t).toBe("Love, Yerin");
+    expect(canonicalAlbum("Love, Yerin - EP", new Set())).toBe("Love, Yerin");
+    expect(canonicalAlbum("Lover (Deluxe) - EP", new Set(["Lover"]))).toBe("Lover");
+  });
+
+  test("EP and Single stay when they are the title or inside it", () => {
+    for (const t of [
+      "Single",
+      "EP",
+      "(Single)",
+      "Single Ladies",
+      "The EP Collection",
+      "Singles",
+      "Mini-EP",
+      "Not Another Single-EP",
+      "EP1",
+    ]) {
+      expect(withoutStoreSuffixes(t), t).toBe(t);
+      expect(canonicalAlbum(t, new Set()), t).toBe(t);
+    }
   });
 
   test("an edition joins the plain album only when the library has it", () => {
@@ -25,7 +66,14 @@ describe("album editions", () => {
   });
 
   test("ordinary titles carry no marker (no lookup)", () => {
-    for (const t of ["Midnights", "1989 (Taylor's Version)", "The Edition", "Version Française"]) {
+    for (const t of [
+      "Midnights",
+      "1989 (Taylor's Version)",
+      "The Edition",
+      "Version Française",
+      "Single Ladies",
+      "EP",
+    ]) {
       expect(hasEditionMarker(t) && editionBase(t) === t && withoutAdvisory(t) === t, t).toBe(
         false,
       );
