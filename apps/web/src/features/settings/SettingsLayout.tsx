@@ -9,34 +9,34 @@ import { m } from "../../paraglide/messages.js";
 const sideLink = css({
   display: "flex",
   alignItems: "center",
-  gap: "12px",
-  height: "40px",
-  px: "12px",
-  borderRadius: "card",
+  gap: "10px",
+  height: "34px",
+  px: "10px",
+  borderRadius: "field",
   textDecoration: "none",
-  fontSize: "15px",
+  fontSize: "13px",
   color: "muted",
   _hover: { color: "ink" },
   "&[data-status=active]": { color: "ink", bg: "chip" },
 });
 const tabLink = css({
   flexShrink: 0,
-  pb: "12px",
+  pb: "10px",
   mb: "-1px",
   textDecoration: "none",
-  fontSize: "15px",
+  fontSize: "13px",
   color: "muted",
   borderBottom: "2px solid transparent",
   "&[data-status=active]": { color: "ink", fontWeight: "500", borderBottomColor: "ink" },
 });
 
 const PAGES = [
-  { to: "/reglages", label: m.tab_profile, icon: <UserIcon size={18} />, exact: true },
-  { to: "/reglages/tokens", label: m.settings_tokens, icon: <KeyIcon size={18} />, exact: false },
+  { to: "/reglages", label: m.tab_profile, icon: <UserIcon size={15} />, exact: true },
+  { to: "/reglages/tokens", label: m.settings_tokens, icon: <KeyIcon size={15} />, exact: false },
   {
     to: "/reglages/import",
     label: m.settings_import,
-    icon: <DownloadIcon size={18} />,
+    icon: <DownloadIcon size={15} />,
     exact: false,
   },
 ] as const;
@@ -79,7 +79,7 @@ export function SettingsLayout({ userName, children }: { userName: string; child
         >
           <ChevronLeft size={22} />
         </Link>
-        <span className={css({ fontSize: "17px", fontWeight: "500" })}>{m.nav_settings()}</span>
+        <span className={css({ fontSize: "15px", fontWeight: "600" })}>{m.nav_settings()}</span>
       </div>
       <div
         className={css({
@@ -125,15 +125,15 @@ export function SettingsLayout({ userName, children }: { userName: string; child
         <div
           className={css({
             display: "flex",
-            gap: "56px",
+            gap: "40px",
             alignItems: "flex-start",
-            pt: { base: "24px", sm: "56px" },
+            pt: { base: "20px", sm: "24px" },
           })}
         >
           <aside
             className={css({
               display: { base: "none", sm: "flex" },
-              width: "240px",
+              width: "200px",
               flexShrink: 0,
               flexDirection: "column",
               gap: "4px",
@@ -141,11 +141,11 @@ export function SettingsLayout({ userName, children }: { userName: string; child
           >
             <span
               className={css({
-                px: "12px",
-                pb: "10px",
-                fontSize: "12px",
-                fontWeight: "500",
-                letterSpacing: "0.08em",
+                px: "10px",
+                pb: "8px",
+                fontSize: "10px",
+                fontWeight: "600",
+                letterSpacing: "0.06em",
                 color: "muted",
               })}
             >
@@ -153,7 +153,7 @@ export function SettingsLayout({ userName, children }: { userName: string; child
             </span>
             <nav
               aria-label={m.nav_settings()}
-              className={css({ display: "flex", flexDirection: "column", gap: "4px" })}
+              className={css({ display: "flex", flexDirection: "column", gap: "2px" })}
             >
               {PAGES.map((p) => (
                 <Link key={p.to} to={p.to} activeOptions={{ exact: p.exact }} className={sideLink}>
@@ -167,10 +167,10 @@ export function SettingsLayout({ userName, children }: { userName: string; child
             className={css({
               flex: 1,
               minWidth: 0,
-              maxWidth: "680px",
+              maxWidth: "640px",
               display: "flex",
               flexDirection: "column",
-              gap: "36px",
+              gap: "28px",
             })}
           >
             {children}
@@ -186,7 +186,7 @@ export const settingsTitle = css({
   m: 0,
   display: { base: "none", sm: "block" },
   textStyle: "wide",
-  fontSize: "44px",
-  letterSpacing: "-0.02em",
+  fontSize: "34px",
+  letterSpacing: "-0.01em",
   lineHeight: 1.05,
 });

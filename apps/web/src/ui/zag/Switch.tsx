@@ -62,7 +62,7 @@ export function Switch({
       <span {...api.getControlProps()} className={control}>
         <span {...api.getThumbProps()} className={thumb} />
       </span>
-      <span {...api.getLabelProps()} className={css({ fontSize: "15px" })}>
+      <span {...api.getLabelProps()} className={css({ fontSize: "13px" })}>
         {label}
       </span>
     </label>
