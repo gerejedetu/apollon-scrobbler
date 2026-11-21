@@ -32,6 +32,8 @@ export interface Track {
   album?: string | null;
   durationMs?: number | null;
   mbids?: Mbids;
+  /** Whatever else the client sent (player, client name…). */
+  extra?: Record<string, unknown>;
 }
 
 export interface Listen extends Track {

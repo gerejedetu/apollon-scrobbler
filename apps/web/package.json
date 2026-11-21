@@ -19,6 +19,7 @@
     "@tanstack/react-start": "1.169.7",
     "@zag-js/clipboard": "1.48.0",
     "@zag-js/menu": "1.48.0",
+    "@zag-js/popover": "1.48.0",
     "@zag-js/radio-group": "1.48.0",
     "@zag-js/react": "1.48.0",
     "@zag-js/switch": "1.48.0",

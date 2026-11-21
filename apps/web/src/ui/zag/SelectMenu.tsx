@@ -11,7 +11,7 @@ export interface SelectOption<V extends string> {
   separated?: boolean;
 }
 
-const trigger = css({
+export const dropdownTrigger = css({
   height: "32px",
   pl: "12px",
   pr: "10px",
@@ -81,7 +81,11 @@ export function SelectMenu<V extends string>({
   const current = options.find((o) => o.value === value)?.label ?? value;
   return (
     <>
-      <button {...api.getTriggerProps()} aria-label={`${label} : ${current}`} className={trigger}>
+      <button
+        {...api.getTriggerProps()}
+        aria-label={`${label} : ${current}`}
+        className={dropdownTrigger}
+      >
         <CalendarIcon />
         {current}
         <ChevronDown size={14} />

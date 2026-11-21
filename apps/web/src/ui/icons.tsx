@@ -170,3 +170,8 @@ export const CalendarIcon = (p: P) => (
     <path d="M4 10h16M9 3v4M15 3v4" />
   </Icon>
 );
+export const ChevronLeft = (p: P) => (
+  <Icon width={2} {...p}>
+    <path d="M15 6l-6 6 6 6" />
+  </Icon>
+);

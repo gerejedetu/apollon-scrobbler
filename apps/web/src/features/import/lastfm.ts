@@ -7,6 +7,8 @@ import { parseCsv } from "./csv.ts";
 
 export interface ListenToImport extends Track {
   listenedAt: number;
+  /** Marks where the listen came from, shown in the history ("Import Last.fm"). */
+  extra: { origin: "lastfm" };
 }
 
 export interface ParsedExport {
@@ -56,6 +58,7 @@ export function parseLastFmExport(text: string): ParsedExport {
       track,
       album: r[at.album]?.trim() || null,
       listenedAt,
+      extra: { origin: "lastfm" },
       mbids: {
         recording: mbid(r[at.trackMbid]),
         release: mbid(r[at.albumMbid]),

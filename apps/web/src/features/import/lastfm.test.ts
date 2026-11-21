@@ -25,6 +25,7 @@ describe("Last.fm export", () => {
         track: "A Song",
         album: "An Album",
         listenedAt: 1794937144,
+        extra: { origin: "lastfm" },
         mbids: { recording: null, release: null, artists: [MB] },
       },
       {
@@ -32,6 +33,7 @@ describe("Last.fm export", () => {
         track: "Track, with comma",
         album: null,
         listenedAt: 1794902016,
+        extra: { origin: "lastfm" },
         mbids: { recording: MB, release: null, artists: [] },
       },
     ]);

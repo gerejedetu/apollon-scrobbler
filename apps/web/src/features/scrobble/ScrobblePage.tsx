@@ -73,7 +73,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
     setErrors({});
     setPending(true);
     try {
-      const res = await api.listens.submit([result.listen]);
+      const res = await api.listens.submit([{ ...result.listen, extra: { origin: "manual" } }]);
       setOutcome(
         res.inserted > 0 ? { kind: "added", track: result.listen.track } : { kind: "duplicate" },
       );
