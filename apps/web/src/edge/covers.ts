@@ -13,7 +13,7 @@ const MISS_TTL = 7 * 86_400;
  * lookups at once, so they go through a small queue, and a search hit by the quota is retried after a pause.
  */
 const MAX_CONCURRENT = 4;
-const RETRY_DELAYS_MS = [600, 1500];
+const RETRY_DELAYS_MS = [800, 2000, 4500];
 
 export interface CoverQuery {
   kind: "album" | "artist";
