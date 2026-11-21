@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AutoriserRouteImport } from './routes/autoriser'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as ReglagesRouteRouteImport } from './routes/reglages/route'
@@ -30,6 +31,11 @@ import { Route as UUserNameTitresArtistTrackRouteImport } from './routes/u/$user
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutoriserRoute = AutoriserRouteImport.update({
+  id: '/autoriser',
+  path: '/autoriser',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -118,6 +124,7 @@ const UUserNameTitresArtistTrackRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reglages': typeof ReglagesRouteRouteWithChildren
+  '/autoriser': typeof AutoriserRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/scrobbler': typeof ScrobblerRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/autoriser': typeof AutoriserRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/scrobbler': typeof ScrobblerRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/reglages': typeof ReglagesRouteRouteWithChildren
+  '/autoriser': typeof AutoriserRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
   '/scrobbler': typeof ScrobblerRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/reglages'
+    | '/autoriser'
     | '/connexion'
     | '/inscription'
     | '/scrobbler'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/autoriser'
     | '/connexion'
     | '/inscription'
     | '/scrobbler'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/reglages'
+    | '/autoriser'
     | '/connexion'
     | '/inscription'
     | '/scrobbler'
@@ -232,6 +244,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReglagesRouteRoute: typeof ReglagesRouteRouteWithChildren
+  AutoriserRoute: typeof AutoriserRoute
   ConnexionRoute: typeof ConnexionRoute
   InscriptionRoute: typeof InscriptionRoute
   ScrobblerRoute: typeof ScrobblerRoute
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/autoriser': {
+      id: '/autoriser'
+      path: '/autoriser'
+      fullPath: '/autoriser'
+      preLoaderRoute: typeof AutoriserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -407,6 +427,7 @@ const UUserNameRouteRouteWithChildren = UUserNameRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReglagesRouteRoute: ReglagesRouteRouteWithChildren,
+  AutoriserRoute: AutoriserRoute,
   ConnexionRoute: ConnexionRoute,
   InscriptionRoute: InscriptionRoute,
   ScrobblerRoute: ScrobblerRoute,

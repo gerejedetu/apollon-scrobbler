@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { redirectIfSignedIn } from "../auth/index.ts";
+import { isOAuthRequest, redirectIfSignedIn } from "../auth/index.ts";
 import { loadInstance } from "../auth/instance.ts";
 import { AuthLayout, SignInForm } from "../features/auth/index.ts";
 import { m } from "../paraglide/messages.js";
@@ -12,6 +12,8 @@ interface Search {
 
 export const Route = createFileRoute("/connexion")({
   validateSearch: (search: Record<string, unknown>): Search => ({
+    // An MCP client's authorization (signed query): kept as is, the sign-in call sends it back.
+    ...(isOAuthRequest(search) ? search : {}),
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
     created: search.created === true || search.created === "true" ? true : undefined,
   }),
