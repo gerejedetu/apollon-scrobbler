@@ -1,5 +1,11 @@
 import { defineConfig } from "@pandacss/dev";
-import { breakpoints, semanticTokens, textStyles, tokens } from "./src/ui/theme/index.ts";
+import {
+  breakpoints,
+  keyframes,
+  semanticTokens,
+  textStyles,
+  tokens,
+} from "./src/ui/theme/index.ts";
 
 /** Apollon design system (see src/ui/theme). Generated code is git-ignored; `prepare` regenerates it. */
 export default defineConfig({
@@ -11,7 +17,7 @@ export default defineConfig({
   outdir: "styled-system",
   importMap: "styled-system",
   jsxFramework: "react",
-  theme: { extend: { breakpoints, tokens, semanticTokens, textStyles } },
+  theme: { extend: { breakpoints, tokens, semanticTokens, textStyles, keyframes } },
   globalCss: {
     "html, body": { bg: "page", color: "ink", fontFamily: "body", fontSize: "14px" },
     a: { color: "ink" },

@@ -1,6 +1,7 @@
 import { css } from "styled-system/css";
 import type { Listen, Track } from "../../api/index.ts";
 import { formatTime } from "../../lib/format/index.ts";
+import { Equalizer } from "../../ui/feedback/index.ts";
 import { CoverLink, CreditLine, TitleLink } from "./TrackLinks.tsx";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { formatTrackLength, listenSource } from "./source.ts";
@@ -25,7 +26,7 @@ function Row({
 }: {
   userName: string;
   track: Track;
-  time: string;
+  time?: string;
   playing?: boolean;
   actions?: React.ReactNode;
 }) {
@@ -33,14 +34,16 @@ function Row({
   return (
     <div className={row} style={playing ? { background: "var(--colors-violet-soft)" } : undefined}>
       <span
-        className={css({ width: "44px", flexShrink: 0, fontSize: "12px" })}
-        style={
-          playing
-            ? { color: "var(--colors-violet)", fontWeight: 600 }
-            : { color: "var(--colors-muted)" }
-        }
+        className={css({
+          width: "44px",
+          flexShrink: 0,
+          display: "flex",
+          fontSize: "12px",
+          color: "muted",
+        })}
+        style={playing ? { justifyContent: "center" } : undefined}
       >
-        {time}
+        {playing ? <Equalizer label={m.playing()} /> : time}
       </span>
       <CoverLink userName={userName} track={track} size={40} />
       <span
@@ -103,5 +106,5 @@ export function HistoryListen({ userName, listen }: { userName: string; listen: 
 }
 
 export function HistoryNowPlaying({ userName, track }: { userName: string; track: Track }) {
-  return <Row userName={userName} track={track} time={m.playing()} playing />;
+  return <Row userName={userName} track={track} playing />;
 }

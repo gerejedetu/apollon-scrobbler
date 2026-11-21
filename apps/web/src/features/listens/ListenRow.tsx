@@ -4,7 +4,8 @@ import type { Listen, Track } from "../../api/index.ts";
 import { formatListenedAt } from "../../lib/format/index.ts";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { CoverLink, CreditLine, TitleLink } from "./TrackLinks.tsx";
-import { color } from "../../ui/theme/index.ts";
+import { Equalizer } from "../../ui/feedback/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const row = css({
   display: "flex",
@@ -24,7 +25,7 @@ export function ListenRow({
 }: {
   userName: string;
   track: Track;
-  when: string;
+  when?: string;
   playing?: boolean;
   actions?: ReactNode;
 }) {
@@ -50,12 +51,13 @@ export function ListenRow({
         </span>
         <CreditLine userName={userName} track={track} />
       </div>
-      <span
-        className={css({ fontSize: "12px", whiteSpace: "nowrap" })}
-        style={{ color: playing ? color("violet") : color("muted") }}
-      >
-        {when}
-      </span>
+      {playing ? (
+        <Equalizer label={m.playing()} />
+      ) : (
+        <span className={css({ fontSize: "12px", whiteSpace: "nowrap", color: "muted" })}>
+          {when}
+        </span>
+      )}
       {actions}
     </div>
   );

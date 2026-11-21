@@ -22,6 +22,7 @@ import { AxisLabels, Bars } from "../../ui/charts/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
 import { BlockHeading, CountBadge, Empty, Stat } from "../../ui/primitives/index.ts";
 import { ListenItem, ListenRow } from "../listens/index.ts";
+import { Equalizer } from "../../ui/feedback/index.ts";
 import { AlbumCard, coverGrid } from "./cards.tsx";
 import { AlbumCover, youtubeId } from "../../ui/cover/index.ts";
 import { m } from "../../paraglide/messages.js";
@@ -151,9 +152,7 @@ export function RecentListens({
           <ChevronRight />
         </Link>
       </div>
-      {nowPlaying ? (
-        <ListenRow userName={userName} track={nowPlaying} when={m.now_playing_short()} playing />
-      ) : null}
+      {nowPlaying ? <ListenRow userName={userName} track={nowPlaying} playing /> : null}
       {listens.length === 0 && !nowPlaying ? (
         <Empty>{m.empty_listens()}</Empty>
       ) : (
@@ -203,20 +202,7 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
             {[nowPlaying.artist, nowPlaying.album].filter(Boolean).join(" · ")}
           </span>
         </div>
-        <span
-          role="img"
-          aria-label={m.playing()}
-          className={css({
-            display: "inline-flex",
-            alignItems: "flex-end",
-            gap: "2px",
-            height: "12px",
-          })}
-        >
-          {[6, 12, 9].map((h, i) => (
-            <span key={i} className={css({ width: "3px", bg: "violet" })} style={{ height: h }} />
-          ))}
-        </span>
+        <Equalizer label={m.playing()} />
       </div>
     </section>
   );

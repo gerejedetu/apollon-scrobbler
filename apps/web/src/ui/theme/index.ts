@@ -19,5 +19,13 @@ export const semanticTokens = { colors: semanticColors };
 /** Phone-first: below `sm` secondary columns (bars beside lists) are hidden. */
 export const breakpoints = { sm: "640px", md: "768px", lg: "1024px" };
 
+/** The now-playing equalizer: each bar grows and shrinks from the bottom. */
+export const keyframes = {
+  equalize: {
+    "0%, 100%": { transform: "scaleY(0.3)" },
+    "50%": { transform: "scaleY(1)" },
+  },
+};
+
 export type ColorName = keyof typeof semanticColors;
 export { color } from "./vars.ts";
