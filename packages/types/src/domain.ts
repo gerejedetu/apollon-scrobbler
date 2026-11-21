@@ -14,6 +14,8 @@ export interface User {
   listenCount: number;
   /** When true, only the owner can read this user's listens and stats. */
   isPrivate: boolean;
+  /** Increases with every change to the user's listens; stats caches are keyed by it. */
+  dataVersion: number;
 }
 
 /** A listen validated by core and ready to be stored. */

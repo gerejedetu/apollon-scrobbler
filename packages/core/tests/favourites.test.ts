@@ -3,7 +3,14 @@ import { describe, expect, test } from "vite-plus/test";
 import { FavouriteService } from "../src/favourites/service.ts";
 import { fakeRepositories } from "./fakes.ts";
 
-const user: User = { id: 1, name: "jules", createdAt: 0, listenCount: 0, isPrivate: false };
+const user: User = {
+  id: 1,
+  name: "jules",
+  createdAt: 0,
+  listenCount: 0,
+  isPrivate: false,
+  dataVersion: 0,
+};
 const MBID = "8F3471B5-7E6A-48DA-86A9-C1C07A0F47AE";
 
 function service(now = { t: 100 }) {

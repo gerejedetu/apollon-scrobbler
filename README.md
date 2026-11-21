@@ -87,7 +87,7 @@ Why another scrobbler?
 - **Listening statistics** for any period (this week, this month, this year, last quarter, all time…): top artists, albums and tracks, daily activity, listening clock, streaks, discoveries, forgotten favourites, on repeat, trends, period comparison, one-shots, weekly charts, diversity, listening sessions, repeats, milestones and "on this day".
 - **Year in review**, a Spotify Wrapped-style recap of your year: artist of the year, top albums, totals and highlights.
 - **Artist, album and track pages** with first and last listen, play counts and a timeline.
-- **Album art and artist pictures** from the Cover Art Archive (by MusicBrainz release ID) with a Deezer fallback by name, cached at the edge.
+- **Album art and artist pictures** from the Cover Art Archive (by MusicBrainz release ID), else Deezer by name (checked against the artist and title, with MusicBrainz aliases for names in other scripts), else the YouTube thumbnail of the video a listen came from. Each image is resolved once and stored in your own R2 bucket, so pages never wait on an outside service.
 - **Last.fm import** from a CSV export.
 - **MCP server** at `/mcp`, so AI assistants (claude.ai, Claude Desktop and Code, Cursor, VS Code…) can read your history and stats, search your library, love tracks and add or delete listens. Sign in with OAuth or an API token.
 - **Accounts and API tokens** with Better Auth (username + password, per-app API keys that you can revoke), and an OAuth 2.1 authorization server for MCP clients.
@@ -178,9 +178,14 @@ vp install
    to `apps/web/.env.cloudflare` and set `WEB_DOMAINS` (for example `scrobbler.example.com`, on a zone of your
    Cloudflare account): the deploy attaches it as a custom domain. Without it the front stays on workers.dev.
 
+   Covers are stored in an R2 bucket named `apollon-artwork` (see `apps/web/wrangler.jsonc`): create it once.
+   After importing a history, the warm-up script resolves every cover in the background instead of during page views.
+
    ```bash
    cd ../web
+   npx wrangler r2 bucket create apollon-artwork
    vp run deploy
+   vpx scripts/warm-covers.ts https://scrobbler.example.com your-username
    ```
 
 5. **Trust the web origin and create your account.** Set `TRUSTED_ORIGINS` in `apps/api/wrangler.jsonc` to the
@@ -358,7 +363,7 @@ packages/
 
 - **Ports and adapters.** The core knows nothing about Cloudflare. Storage, cache and auth are adapters, so another database (Postgres, SQLite…) is a new `packages/db-<name>` that passes the same tests.
 - **Protocols are thin.** ListenBrainz and the native API only map their wire format onto the same core services, so a Last.fm-compatible endpoint would be one more folder.
-- **Built for Turso's billing.** Turso charges per row scanned and written: batch inserts use a single `json_each` statement, every listen read is bounded by an index (a test checks every query plan), counters are maintained instead of counted, and stats of large histories are cached in KV keyed by the listen count, so new listens invalidate them naturally. The same SQL also runs on Cloudflare D1.
+- **Built for Turso's billing.** Turso charges per row scanned and written: batch inserts use a single `json_each` statement, every listen read is bounded by an index (a test checks every query plan), counters are maintained instead of counted, and stats are cached (in memory, and in KV for larger histories) under a per-user data version, so any change to your listens refreshes them. The same SQL also runs on Cloudflare D1.
 
 More detail for contributors is in [AGENTS.md](AGENTS.md).
 

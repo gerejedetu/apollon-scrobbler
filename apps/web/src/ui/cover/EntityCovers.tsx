@@ -1,6 +1,5 @@
-/** Sleeves and artist pictures for the screens: the right seed, MBID and name lookup in one place. */
+/** Sleeves and artist pictures for the screens: the MBID, name lookup and video in one place. */
 import { Cover } from "./Cover.tsx";
-import { albumSeed, artistSeed } from "./seeds.ts";
 
 export function AlbumCover({
   artist,
@@ -8,7 +7,6 @@ export function AlbumCover({
   track,
   mbid,
   youtube,
-  title,
   size,
 }: {
   artist: string;
@@ -18,14 +16,10 @@ export function AlbumCover({
   mbid?: string | null;
   /** YouTube video the listen was played from: its thumbnail is the last resort. */
   youtube?: string | null;
-  /** Printed on the pattern while there is no artwork. */
-  title?: string;
   size?: number;
 }) {
   return (
     <Cover
-      seed={albumSeed(artist, album)}
-      title={title}
       size={size}
       mbid={mbid}
       youtube={youtube}
@@ -35,5 +29,5 @@ export function AlbumCover({
 }
 
 export function ArtistCover({ artist, size }: { artist: string; size?: number }) {
-  return <Cover seed={artistSeed(artist)} round size={size} lookup={{ kind: "artist", artist }} />;
+  return <Cover round size={size} lookup={{ kind: "artist", artist }} />;
 }

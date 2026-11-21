@@ -58,7 +58,7 @@ export function AlbumPage({
             gap: "16px",
           })}
         >
-          <AlbumCover artist={album.artist} album={album.album} title={album.album} mbid={mbid} />
+          <AlbumCover artist={album.artist} album={album.album} mbid={mbid} />
           <div className={css({ display: "flex", justifyContent: "space-around" })}>
             <Stat align="center" value={formatCount(album.listenCount)} label={m.caps_listens()} />
             <Stat align="center" value={formatCount(album.tracks.length)} label={m.caps_tracks()} />

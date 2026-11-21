@@ -7,6 +7,7 @@ export interface UserRow {
   created_at: number;
   listen_count: number;
   is_private: number;
+  data_version: number;
 }
 
 export interface ListenRow {
@@ -23,7 +24,7 @@ export interface ListenRow {
   additional_info: string | null;
 }
 
-export const USER_COLUMNS = "id, name, created_at, listen_count, is_private";
+export const USER_COLUMNS = "id, name, created_at, listen_count, is_private, data_version";
 
 export const LISTEN_COLUMNS =
   "user_id, listened_at, inserted_at, recording_msid, artist_name, track_name, release_name, recording_mbid, release_mbid, artist_mbids, additional_info";
@@ -35,6 +36,7 @@ export function toUser(row: UserRow): User {
     createdAt: row.created_at,
     listenCount: row.listen_count,
     isPrivate: row.is_private === 1,
+    dataVersion: row.data_version ?? 0,
   };
 }
 

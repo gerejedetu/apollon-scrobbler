@@ -54,7 +54,7 @@ export function AlbumCard({
       search={{ mbid: mbid ?? undefined }}
       className={card}
     >
-      <AlbumCover artist={artist} album={album} title={album} mbid={mbid} />
+      <AlbumCover artist={artist} album={album} mbid={mbid} />
       <span className={lines}>
         {rank !== undefined ? <span className={css({ color: "muted" })}>{rank}.</span> : null}
         <span className={css({ display: "flex", gap: "6px", alignItems: "center", minWidth: 0 })}>
