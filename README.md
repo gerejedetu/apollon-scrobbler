@@ -50,6 +50,7 @@
       <ul>
         <li><a href="#connect-a-scrobbling-app">Connect a scrobbling app</a></li>
         <li><a href="#import-your-lastfm-history">Import your Last.fm history</a></li>
+        <li><a href="#connect-an-ai-assistant-mcp">Connect an AI assistant (MCP)</a></li>
         <li><a href="#api">API</a></li>
       </ul>
     </li>
@@ -88,6 +89,7 @@ Why another scrobbler?
 - **Artist, album and track pages** with first and last listen, play counts and a timeline.
 - **Album art and artist pictures** from the Cover Art Archive (by MusicBrainz release ID) with a Deezer fallback by name, cached at the edge.
 - **Last.fm import** from a CSV export.
+- **MCP server** at `/mcp`, so AI assistants (Claude, Cursor, VS Code…) can read your history and stats, search your library, love tracks and add or delete listens.
 - **Accounts and API tokens** with Better Auth (username + password, per-app API keys that you can revoke).
 - **Single-user by default**: sign-up closes once the first account exists, and the owner can reopen it from the settings.
 - **Private profiles**: hide your listens and stats from everyone but yourself.
@@ -128,7 +130,7 @@ Browse a real profile on the [live instance](https://apollon.dereje.cc/u/dereje)
 ## Getting Started
 
 Apollon runs as two Cloudflare Workers (the API and the web front) on top of a Turso database and a Workers KV
-namespace. The steps below deploy a personal instance from your machine.
+namespace, plus an optional third one for the MCP server. The steps below deploy a personal instance from your machine.
 
 ### Prerequisites
 
@@ -185,6 +187,16 @@ vp install
    URL of your web front (for example `https://scrobbler.example.com`), then redeploy the API. Open the web app and
    create your account: sign-up closes behind you, and you can reopen it from the settings.
 
+6. **Deploy the MCP server (optional).** It reaches the API through a service binding too. To serve it next to
+   the web front (`https://scrobbler.example.com/mcp`), copy `apps/mcp/.env.cloudflare.example` to
+   `apps/mcp/.env.cloudflare` and set `MCP_ROUTES=scrobbler.example.com/mcp`: a Worker route wins over the web
+   front's custom domain for that path. Without it the server answers on workers.dev at `/mcp`.
+
+   ```bash
+   cd ../mcp
+   vp run deploy
+   ```
+
 Optional API variable: `BASE_URL`, the public URL used by Better Auth (defaults to the request origin).
 
 ### Local development
@@ -235,6 +247,71 @@ Export your scrobbles from Last.fm as CSV, then drop the file under **Settings �
 browser and sent in batches of 1,000 listens; re-importing the same file is harmless because duplicates are
 ignored.
 
+### Connect an AI assistant (MCP)
+
+Apollon ships a remote [MCP](https://modelcontextprotocol.io/) server, so an AI assistant can answer questions
+like "what did I listen to most this month?", "when did I discover Daft Punk?" or "love the track I'm playing".
+It speaks Streamable HTTP at `https://scrobbler.example.com/mcp` and signs in with the same API token as your
+scrobbling apps (create one under **Settings → API tokens**), sent as `Authorization: Bearer <token>`. It sees
+exactly what that token's account can see.
+
+**Claude Code**
+
+```bash
+claude mcp add --transport http apollon https://scrobbler.example.com/mcp \
+  --header "Authorization: Bearer <token>"
+```
+
+**Claude Desktop.** Custom connectors added from the app's settings only support OAuth, so go through
+[`mcp-remote`](https://www.npmjs.com/package/mcp-remote): add this to `claude_desktop_config.json` (Settings →
+Developer → Edit Config), then restart the app.
+
+```json
+{
+  "mcpServers": {
+    "apollon": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://scrobbler.example.com/mcp",
+        "--header",
+        "Authorization:${APOLLON_AUTH}"
+      ],
+      "env": { "APOLLON_AUTH": "Bearer <token>" }
+    }
+  }
+}
+```
+
+**Cursor** (`~/.cursor/mcp.json`), **Windsurf** and other clients that take a URL and headers:
+
+```json
+{
+  "mcpServers": {
+    "apollon": {
+      "url": "https://scrobbler.example.com/mcp",
+      "headers": { "Authorization": "Bearer <token>" }
+    }
+  }
+}
+```
+
+**VS Code** (`.vscode/mcp.json`): the same with `"servers"` instead of `"mcpServers"` and `"type": "http"`.
+To try the tools by hand, run `npx @modelcontextprotocol/inspector`, pick Streamable HTTP and add the header.
+
+| Tool                                                | What it does                                                                                        |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `get_recent_listens`, `get_now_playing`             | Listening history (paged, by time window) and the track playing now                                 |
+| `get_top`                                           | Top artists, albums or tracks for a period                                                          |
+| `get_stats_summary`, `get_year_in_review`           | Totals for a period, and the Wrapped-style recap of a year                                          |
+| `get_listening_insight`                             | Activity, listening clock, streaks, discoveries, forgotten favourites, on repeat, trends, sessions… |
+| `get_artist`, `get_album`, `get_track`              | Details of one artist, album or track                                                               |
+| `search_library`                                    | Finds artists, albums and tracks by name (case and accents ignored) among your most played          |
+| `get_loved_tracks`, `love_track`, `unlove_track`    | Loved tracks                                                                                        |
+| `get_obsession`, `set_obsession`, `clear_obsession` | The track you are obsessed with right now                                                           |
+| `submit_listen`, `delete_listen`                    | Add a listen by hand (marked as manual) or delete one                                               |
+
 ### API
 
 | Path               | What it is                                                               |
@@ -244,6 +321,7 @@ ignored.
 | `/v1/openapi.json` | OpenAPI document for `/v1`.                                              |
 | `/v1/docs`         | Interactive API reference.                                               |
 | `/api/auth/*`      | Better Auth (sign-up, sign-in, sessions, API keys).                      |
+| `/mcp`             | MCP server (separate Worker), see above.                                 |
 
 Submit a listen exactly as you would to ListenBrainz:
 
@@ -279,6 +357,7 @@ your instance for every endpoint, parameter and response field.
 apps/
   api/        Hono Worker: /1 (ListenBrainz), /v1 (native API + OpenAPI), /api/auth (Better Auth)
   web/        TanStack Start front (Panda CSS, Zag.js) on its own Worker, relays API paths via a service binding
+  mcp/        Remote MCP server (Streamable HTTP) on its own Worker, calls /v1 with the caller's token
 packages/
   types/      Wire and domain types
   core/       Business rules behind ports: no I/O, no Cloudflare
@@ -286,6 +365,7 @@ packages/
   db-libsql/  Turso / libSQL driver for those repositories (production database)
   cache-kv/   Workers KV cache
   auth/       Better Auth setup (username + API key plugins)
+  client/     Typed client of the native API, shared by the web front and the MCP server
   testing/    Node-only test doubles (D1 on node:sqlite, KV in memory)
 ```
 
@@ -307,7 +387,7 @@ More detail for contributors is in [AGENTS.md](AGENTS.md).
 - [x] Private profiles and single-user sign-up
 - [x] English and French, light and dark themes
 - [x] Turso as the production database
-- [ ] MCP server, so AI assistants can read your listening history and stats
+- [x] MCP server, so AI assistants can read your listening history and stats
 
 See the [open issues](https://github.com/powpowchuuuu/stunning-winner/issues) for proposed features and known issues.
 
