@@ -18,6 +18,18 @@ export const transport: Transport = createIsomorphicFn()
     const request = new Request(new URL(path, incoming.url), { ...init, headers });
     return forwardToApi(request, apiTarget(await workerEnv()));
   })
-  .client((path: string, init?: RequestInit) =>
-    fetch(path, { credentials: "same-origin", ...init }),
-  );
+  .client(async (path: string, init?: RequestInit) => {
+    const request = () => fetch(path, { credentials: "same-origin", ...init });
+    const method = (init?.method ?? "GET").toUpperCase();
+    if (method !== "GET") return request();
+    // A read cut short (network blip, Worker restarting during a deploy) is tried again once before
+    // it becomes an error screen. Writes are never replayed.
+    try {
+      const response = await request();
+      if (![502, 503, 504].includes(response.status)) return response;
+    } catch (e) {
+      if (init?.signal?.aborted) throw e;
+    }
+    await new Promise((r) => setTimeout(r, 400));
+    return request();
+  });
