@@ -10,7 +10,7 @@ export const headerBar = css({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: { base: "12px", sm: "24px" },
+  gap: { base: "8px", sm: "24px" },
   px: { base: "16px", sm: "24px" },
   py: "14px",
 });

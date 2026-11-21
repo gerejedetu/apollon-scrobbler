@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import { PlusIcon } from "../../ui/icons.tsx";
 import { button } from "../../ui/primitives/index.ts";
 import { headerBar, headerSide, logo } from "../../ui/layout/index.ts";
@@ -83,7 +83,14 @@ export function AppHeader({
               <AccountMenu userName={userName} />
             </>
           ) : (
-            <Link to="/connexion" className={button({ tone: "outline", size: "sm" })}>
+            <Link
+              to="/connexion"
+              // A little narrower on phones, so the name stays centred between the two sides.
+              className={cx(
+                button({ tone: "outline", size: "sm" }),
+                css({ px: { base: "10px", sm: "12px" } }),
+              )}
+            >
               {m.signin_submit()}
             </Link>
           )}
