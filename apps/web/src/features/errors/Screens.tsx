@@ -3,6 +3,7 @@ import { css } from "styled-system/css";
 import { isNotFound } from "../../api/index.ts";
 import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
 import { button } from "../../ui/primitives/index.ts";
+import { isStaleBuildError, reloadForNewBuild } from "../../lib/stale-build.ts";
 import { PreferencesMenu } from "../navigation/index.ts";
 import { m } from "../../paraglide/messages.js";
 
@@ -76,6 +77,8 @@ export function NotFound() {
 
 export function RouteError({ error, reset }: ErrorComponentProps) {
   if (isNotFound(error)) return <NotFound />;
+  // A tab older than the last deploy: reload into the new build instead of showing an error.
+  if (typeof window !== "undefined" && isStaleBuildError(error) && reloadForNewBuild()) return null;
   return (
     <Main narrow gap={16} padding="56px 24px 80px">
       <h1 className={title}>{m.error_title()}</h1>
