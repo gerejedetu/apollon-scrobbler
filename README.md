@@ -5,6 +5,8 @@ browse your listening history, and get detailed listening stats and a yearly "Wr
 handing your data to a third party. A free, open source alternative to Last.fm and a self-hostable
 ListenBrainz server, built on Cloudflare Workers, Turso and KV with Hono and Better Auth.
 
+**[See a live instance →](https://apollon.dereje.cc/u/dereje)** A real, public Apollon profile with real listening data.
+
 ![Profile page with top albums, on repeat, milestones and recent activity](docs/screenshots/profile.png)
 
 ## Why
@@ -29,7 +31,7 @@ ListenBrainz server, built on Cloudflare Workers, Turso and KV with Hono and Bet
 
 ## Screenshots
 
-The web front is called **Apollon**. Its interface is currently in French.
+The web front is called **Apollon**. It is available in English and French, with light and dark themes. Browse a real profile on the [live instance](https://apollon.dereje.cc/u/dereje).
 
 | Listening stats                                                                                                                     | Top artists                                                                        |
 | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
