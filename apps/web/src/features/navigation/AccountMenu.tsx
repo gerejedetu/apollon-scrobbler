@@ -1,14 +1,12 @@
 import * as menu from "@zag-js/menu";
 import { normalizeProps, useMachine } from "@zag-js/react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { useId, useState } from "react";
+import { useId } from "react";
 import { css } from "styled-system/css";
 import { authClient, forgetViewer } from "../../auth/index.ts";
-import { applyTheme, initialTheme, type ThemePref } from "../../lib/theme.ts";
-import { getLocale, type Locale, setLocale } from "../../paraglide/runtime.js";
 import { DownloadIcon, KeyIcon, SignOutIcon, UserIcon } from "../../ui/icons.tsx";
-import { capsLabel } from "../../ui/primitives/index.ts";
-import { Portal, SegmentedControl } from "../../ui/zag/index.ts";
+import { Portal } from "../../ui/zag/index.ts";
+import { PreferenceControls } from "./Preferences.tsx";
 import { m } from "../../paraglide/messages.js";
 
 const avatar = css({
@@ -63,17 +61,10 @@ const group = css({
   pb: "8px",
 });
 
-const THEMES: { value: ThemePref; label: () => string }[] = [
-  { value: "light", label: m.theme_light },
-  { value: "dark", label: m.theme_dark },
-  { value: "auto", label: m.theme_auto },
-];
-
 /** The avatar's dropdown: profile, settings pages, theme, sign-out (board "Profil", account menu). */
 export function AccountMenu({ userName }: { userName: string }) {
   const navigate = useNavigate();
   const router = useRouter();
-  const [theme, setTheme] = useState<ThemePref>(initialTheme);
   const service = useMachine(menu.machine, {
     id: useId(),
     positioning: { placement: "bottom-end", gutter: 10 },
@@ -149,31 +140,7 @@ export function AccountMenu({ userName }: { userName: string }) {
               {m.settings_import()}
             </div>
             <div {...api.getSeparatorProps()} className={separator} />
-            <div className={group}>
-              <span className={capsLabel}>{m.theme_caps()}</span>
-              <SegmentedControl<ThemePref>
-                label={m.theme()}
-                value={theme}
-                options={THEMES.map((o) => ({ value: o.value, label: o.label() }))}
-                onValueChange={(v) => {
-                  setTheme(v);
-                  applyTheme(v);
-                }}
-              />
-            </div>
-            <div className={group}>
-              <span className={capsLabel}>{m.language_caps()}</span>
-              <SegmentedControl<Locale>
-                label={m.language()}
-                value={getLocale()}
-                options={[
-                  { value: "fr", label: "Français" },
-                  { value: "en", label: "English" },
-                ]}
-                // Paraglide stores the choice in a cookie and reloads the page in that language.
-                onValueChange={(locale) => void setLocale(locale)}
-              />
-            </div>
+            <PreferenceControls groupClassName={group} />
             <div {...api.getSeparatorProps()} className={separator} />
             <div {...api.getItemProps({ value: "signout" })} className={item}>
               <SignOutIcon size={16} />

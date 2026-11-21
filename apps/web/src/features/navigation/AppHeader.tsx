@@ -5,6 +5,7 @@ import { button } from "../../ui/primitives/index.ts";
 import { headerBar, headerSide, logo } from "../../ui/layout/index.ts";
 import { Wordmark } from "../../ui/brand/index.ts";
 import { AccountMenu } from "./AccountMenu.tsx";
+import { PreferencesMenu } from "./Preferences.tsx";
 import { m } from "../../paraglide/messages.js";
 
 const navLink = css({
@@ -79,13 +80,16 @@ export function AppHeader({
               <AccountMenu userName={userName} />
             </>
           ) : (
-            <Link
-              to="/connexion"
-              className={button({ tone: "outline", size: "xs" })}
-              style={{ height: 32, fontSize: 13 }}
-            >
-              {m.signin_submit()}
-            </Link>
+            <>
+              <PreferencesMenu />
+              <Link
+                to="/connexion"
+                className={button({ tone: "outline", size: "xs" })}
+                style={{ height: 32, fontSize: 13 }}
+              >
+                {m.signin_submit()}
+              </Link>
+            </>
           )}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
 import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
+import { PreferencesMenu } from "../navigation/index.ts";
 
 export const authTitle = css({
   m: 0,
@@ -16,7 +17,7 @@ export const authFoot = css({ m: 0, textAlign: "center", fontSize: "12px", color
 /** The narrow centred column of the account screens. */
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <Page header={<BareHeader />}>
+    <Page header={<BareHeader right={<PreferencesMenu />} />}>
       <Main narrow gap={20} padding="56px 24px 80px">
         {children}
       </Main>

@@ -3,6 +3,7 @@ import { css } from "styled-system/css";
 import { isNotFound } from "../../api/index.ts";
 import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
 import { button } from "../../ui/primitives/index.ts";
+import { PreferencesMenu } from "../navigation/index.ts";
 import { m } from "../../paraglide/messages.js";
 
 const title = css({ m: 0, textStyle: "pageTitle", fontSize: "34px", textAlign: "center" });
@@ -95,7 +96,7 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
 /** At the root, where no layout drew a header yet. */
 export function RootNotFound() {
   return (
-    <Page header={<BareHeader />}>
+    <Page header={<BareHeader right={<PreferencesMenu />} />}>
       <NotFound />
     </Page>
   );
@@ -103,7 +104,7 @@ export function RootNotFound() {
 
 export function RootError(props: ErrorComponentProps) {
   return (
-    <Page header={<BareHeader />}>
+    <Page header={<BareHeader right={<PreferencesMenu />} />}>
       <RouteError {...props} />
     </Page>
   );
