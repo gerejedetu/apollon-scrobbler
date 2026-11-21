@@ -5,6 +5,7 @@ import {
   handleCovers,
   primaryArtist,
   artistVariants,
+  matches,
   readArtworkQuery,
   readCoverQuery,
   storageKey,
@@ -66,7 +67,9 @@ describe("cover lookup", () => {
     const q = readCoverQuery(new URL("https://x/covers?artist=A&album=B&track=C"))!;
     expect(searches(q)).toHaveLength(4);
     const fetcher = deezer((path) =>
-      path.includes("/search?") ? { data: [{ album: { cover_big: IMG } }] } : { data: [] },
+      path.includes("/search?")
+        ? { data: [{ title: "C", artist: { name: "A" }, album: { title: "B", cover_big: IMG } }] }
+        : { data: [] },
     );
     expect(await findCover(q, fetcher as unknown as typeof fetch)).toBe(IMG);
     expect(fetcher).toHaveBeenCalledTimes(3);
@@ -87,7 +90,7 @@ describe("cover lookup", () => {
     const fetcher = deezer(() =>
       ++calls === 1
         ? { error: { code: 4, message: "Quota limit exceeded" } }
-        : { data: [{ cover_medium: IMG }] },
+        : { data: [{ title: "B", artist: { name: "A" }, cover_medium: IMG }] },
     );
     const sleeps: number[] = [];
     const image = await findCover(
@@ -145,7 +148,9 @@ function sources(searchBody: () => unknown) {
 describe("stored artwork", () => {
   test("resolved once, stored in R2, then served from R2 for every size", async () => {
     const bucket = memoryBucket();
-    const fetcher = sources(() => ({ data: [{ cover_big: IMG }] }));
+    const fetcher = sources(() => ({
+      data: [{ title: "B", artist: { name: "A" }, cover_big: IMG }],
+    }));
     const deps = { bucket, fetcher: fetcher as unknown as typeof fetch };
     const first = await handleCovers(
       new Request("https://apollon.example/covers?artist=A&album=B&size=medium&v=3"),
@@ -217,7 +222,9 @@ describe("stored artwork", () => {
 
   test("identical lookups at once share one resolution", async () => {
     const bucket = memoryBucket();
-    const fetcher = sources(() => ({ data: [{ cover_big: IMG }] }));
+    const fetcher = sources(() => ({
+      data: [{ title: "Same", artist: { name: "Same" }, cover_big: IMG }],
+    }));
     const deps = { bucket, fetcher: fetcher as unknown as typeof fetch };
     const url = "https://apollon.example/covers?artist=Same&album=Same";
     const [a, b] = await Promise.all([
@@ -242,7 +249,7 @@ describe("stored artwork", () => {
       await storageKey({ kind: "album", artist: "Air", album: "Talkie Walkie", size: "big" }),
     ).not.toBe(a);
     expect(await storageKey({ kind: "artist", artist: "Air", size: "big" })).toMatch(
-      /^v1\/artist\//,
+      /^v2\/artist\//,
     );
   });
 });
@@ -278,4 +285,30 @@ describe("listens without an album", () => {
     expect([...bucket.objects.keys()]).toEqual(["v1/youtube/XGIAMH69y4M"]);
     expect(readArtworkQuery(new URL("https://x/covers?yt=bad"))).toBeNull();
   });
+});
+
+test("a loose search result is only used when its names match", () => {
+  const q = { kind: "album" as const, artist: "엄지 (UMJI)", track: "Lemon", size: "big" as const };
+  // What "UMJI Lemon" returns on Deezer: another artist entirely.
+  expect(
+    matches(
+      { title: "Hummingbird", artist: { name: "UMI" }, album: { title: "All Is Yellow" } },
+      q,
+    ),
+  ).toBe(false);
+  expect(matches({ title: "Lemon", artist: { name: "UMJI" }, album: { title: "Lemon" } }, q)).toBe(
+    true,
+  );
+  expect(
+    matches({ title: "Lemon (Inst.)", artist: { name: "엄지" }, album: { title: "x" } }, q),
+  ).toBe(true);
+  const album = {
+    kind: "album" as const,
+    artist: "Beyoncé",
+    album: "Renaissance (Deluxe Edition)",
+    size: "big" as const,
+  };
+  expect(matches({ title: "RENAISSANCE", artist: { name: "Beyonce" } }, album)).toBe(true);
+  expect(matches({ title: "Lemonade", artist: { name: "Beyoncé" } }, album)).toBe(false);
+  expect(matches({ name: "Air" }, { kind: "artist", artist: "air", size: "big" })).toBe(true);
 });

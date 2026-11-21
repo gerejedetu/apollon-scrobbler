@@ -133,8 +133,45 @@ function searchesFor(q: CoverQuery): string[] {
 
 type DeezerItem = Record<string, unknown> & { album?: Record<string, unknown> };
 
+/** Lower case, no accents, no punctuation: "Beyoncé (Live)" -> "beyonce live". */
+export function fold(s: string): string {
+  return s
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
+function close(a: string, b: string): boolean {
+  const x = fold(a);
+  const y = fold(b);
+  if (!x || !y) return false;
+  return x === y || (x.length >= 3 && y.includes(x)) || (y.length >= 3 && x.includes(y));
+}
+
+/**
+ * Whether a search result really is the asked artist / album / track. Loose searches ("artist title")
+ * return *something* for almost any text, so a result is only used when its names match.
+ */
+export function matches(item: DeezerItem, q: CoverQuery): boolean {
+  const artist = item.artist as { name?: unknown } | undefined;
+  const artistName = typeof artist?.name === "string" ? artist.name : item.name;
+  if (typeof artistName !== "string") return false;
+  if (!artistVariants(q.artist).some((v) => close(v, artistName))) return false;
+  if (q.kind === "artist") return true;
+  const album = item.album as { title?: unknown } | undefined;
+  const isTrack = typeof album?.title === "string";
+  const title = typeof item.title === "string" ? item.title : "";
+  if (q.album) {
+    const wanted = cleanTitle(q.album) || q.album;
+    return close(wanted, isTrack ? String(album?.title) : title);
+  }
+  return q.track ? close(cleanTitle(q.track) || q.track, title) : false;
+}
+
 export function pickImage(item: DeezerItem | undefined, q: CoverQuery): string | null {
-  if (!item) return null;
+  if (!item || !matches(item, q)) return null;
   const key = q.kind === "artist" ? `picture_${q.size}` : `cover_${q.size}`;
   const value = item[key] ?? item.album?.[`cover_${q.size}`];
   // Deezer's placeholder for missing artist pictures has an empty hash ("/images/artist//").
@@ -242,7 +279,8 @@ export async function storageKey(q: ArtworkQuery): Promise<string> {
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(name)),
   );
   const hex = [...digest].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return `v1/${q.kind}/${hex}`;
+  // v2: results are checked against the names (v1 could hold a wrong match from a loose search).
+  return `v2/${q.kind}/${hex}`;
 }
 
 type Fetched = { bytes: ArrayBuffer; contentType: string } | null | undefined;
