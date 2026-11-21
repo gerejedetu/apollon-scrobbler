@@ -82,11 +82,7 @@ export function AppHeader({
           ) : (
             <>
               <PreferencesMenu />
-              <Link
-                to="/connexion"
-                className={button({ tone: "outline", size: "xs" })}
-                style={{ height: 32, fontSize: 13 }}
-              >
+              <Link to="/connexion" className={button({ tone: "outline", size: "sm" })}>
                 {m.signin_submit()}
               </Link>
             </>

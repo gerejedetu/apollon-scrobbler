@@ -12,6 +12,8 @@ export const semanticColors = {
   field: c("#F4F4F4", "#1E1E1E"),
   panel: c("#F7F7F7", "#191919"),
   chip: c("#F0F0F0", "#232323"),
+  /** The thumb of a switch: white on both themes. */
+  knob: c("#FFFFFF", "#F2F2F2"),
   rule: c("#EBEBEB", "#262626"),
   ruleSoft: c("#F0F0F0", "#1E1E1E"),
   dashed: c("#DADADA", "#3A3A3A"),

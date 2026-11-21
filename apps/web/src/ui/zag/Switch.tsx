@@ -21,8 +21,8 @@ const thumb = css({
   width: "20px",
   height: "20px",
   borderRadius: "10px",
-  bg: "page",
-  boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  bg: "knob",
+  boxShadow: "0 1px 2px token(colors.shadow)",
   transition: "left 120ms",
   "&[data-state=checked]": { left: "21px" },
 });

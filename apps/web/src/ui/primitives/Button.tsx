@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from "react";
 import { cva, cx, type RecipeVariantProps } from "styled-system/css";
 
-/** Buttons of the design: black primary, violet accent, white outline, red danger. */
+/** Buttons of the design: black primary, violet accent, outline, red danger; two sizes, nothing ad hoc. */
 export const button = cva({
   base: {
     display: "inline-flex",
@@ -21,13 +21,13 @@ export const button = cva({
       primary: { bg: "ink", color: "onInk", _hover: { color: "onInk", bg: "inkHover" } },
       accent: { bg: "violet", color: "page", _hover: { color: "page", bg: "violetHover" } },
       outline: {
-        bg: "page",
+        bg: "transparent",
         color: "ink",
         border: "1px solid token(colors.dashed)",
         _hover: { color: "ink", borderColor: "ink" },
       },
       soft: {
-        bg: "page",
+        bg: "transparent",
         color: "ink",
         border: "1px solid token(colors.violetLine)",
         _hover: { color: "ink", borderColor: "violet" },
@@ -35,9 +35,10 @@ export const button = cva({
       danger: { bg: "danger", color: "page", _hover: { color: "page", bg: "dangerInk" } },
     },
     size: {
+      /** Forms and main actions. */
       md: { height: "40px", px: "16px" },
-      sm: { height: "36px", px: "14px" },
-      xs: { height: "30px", px: "12px", fontSize: "12px" },
+      /** Toolbars, rows and headers: the height of the dropdowns beside them. */
+      sm: { height: "32px", px: "12px" },
     },
   },
   defaultVariants: { tone: "primary", size: "md" },

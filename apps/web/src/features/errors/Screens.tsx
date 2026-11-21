@@ -81,11 +81,7 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
       <h1 className={title}>{m.error_title()}</h1>
       <p className={text}>{error instanceof Error ? error.message : m.error_unknown()}</p>
       <p className={text}>
-        <button
-          type="button"
-          onClick={reset}
-          className={css({ border: 0, bg: "transparent", color: "violet", fontSize: "13px" })}
-        >
+        <button type="button" onClick={reset} className={button({ tone: "outline", size: "sm" })}>
           {m.retry()}
         </button>
       </p>

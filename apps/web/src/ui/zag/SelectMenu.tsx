@@ -22,7 +22,7 @@ export const dropdownTrigger = css({
   flexShrink: 0,
   border: "1px solid token(colors.dashed)",
   borderRadius: "button",
-  bg: "page",
+  bg: "transparent",
   color: "ink",
   fontSize: "13px",
   fontWeight: "500",

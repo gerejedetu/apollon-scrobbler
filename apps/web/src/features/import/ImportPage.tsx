@@ -261,8 +261,7 @@ export function ImportPage() {
               </span>
               <Button
                 tone="outline"
-                size="xs"
-                className={css({ height: "32px" })}
+                size="sm"
                 onClick={() => {
                   cancelled.current = true;
                 }}

@@ -190,7 +190,7 @@ export function ProfileSettings({ me }: { me: Me }) {
           tone="outline"
           onClick={signOut}
           disabled={leaving}
-          className={css({ alignSelf: "flex-start", gap: "8px", fontSize: "14px" })}
+          className={css({ alignSelf: "flex-start" })}
         >
           <SignOutIcon />
           {m.signout()}
