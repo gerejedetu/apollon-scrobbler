@@ -412,3 +412,69 @@ describe("documentation", () => {
     expect(await res.text()).toContain('data-url="./openapi.json"');
   });
 });
+
+describe("instance sign-up", () => {
+  const signUpRaw = (api: ReturnType<typeof testApi>, name: string) =>
+    api.request("/api/auth/sign-up/email", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        email: `${name}@example.test`,
+        password: "correct horse battery",
+        name,
+        username: name,
+      }),
+    });
+
+  test("open until the first account, then closed server-side; only the owner reopens it", async () => {
+    const fresh = testApi();
+    expect((await fresh.json("/v1/instance")).body).toEqual({ hasUsers: false, signupOpen: true });
+    const ownerToken = await fresh.signUp("owner");
+    expect((await fresh.json("/v1/instance")).body).toEqual({ hasUsers: true, signupOpen: false });
+
+    // Closed in Better Auth itself, not just hidden: a direct sign-up is refused.
+    const refused = await signUpRaw(fresh, "intruder");
+    expect(refused.status).toBe(403);
+    expect(await refused.text()).toContain("closed");
+
+    expect(
+      (await fresh.json("/v1/me", { headers: { authorization: `Bearer ${ownerToken}` } })).body
+        .owner,
+    ).toBe(true);
+    const open = await fresh.json("/v1/instance", {
+      method: "PATCH",
+      headers: { "content-type": "application/json", authorization: `Bearer ${ownerToken}` },
+      body: JSON.stringify({ signupOpen: true }),
+    });
+    expect(open.body.signupOpen).toBe(true);
+    expect((await signUpRaw(fresh, "friend")).status).toBe(200);
+
+    // A second account is not the owner and cannot change instance settings.
+    const friendToken = await fresh.signUp("friend2");
+    expect(
+      (await fresh.json("/v1/me", { headers: { authorization: `Bearer ${friendToken}` } })).body
+        .owner,
+    ).toBe(false);
+    const denied = await fresh.json("/v1/instance", {
+      method: "PATCH",
+      headers: { "content-type": "application/json", authorization: `Bearer ${friendToken}` },
+      body: JSON.stringify({ signupOpen: false }),
+    });
+    expect(denied.status).toBe(403);
+    expect((await fresh.json("/v1/instance", { method: "PATCH", body: "{}" })).status).toBe(401);
+    expect(
+      (
+        await fresh.json("/v1/instance", {
+          method: "PATCH",
+          headers: { "content-type": "application/json", authorization: `Bearer ${ownerToken}` },
+          body: JSON.stringify({ signupOpen: "yes" }),
+        })
+      ).status,
+    ).toBe(400);
+  });
+
+  test("DISABLE_SIGNUP keeps it closed even for the first account", async () => {
+    const closed = testApi({ DISABLE_SIGNUP: "true" });
+    expect((await closed.json("/v1/instance")).body.signupOpen).toBe(false);
+  });
+});

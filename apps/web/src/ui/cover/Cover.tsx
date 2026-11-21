@@ -134,18 +134,44 @@ export function Cover({ seed, title, round, size, mbid, lookup, className }: Cov
   );
 }
 
-/** The real sleeve over the pattern: tries each source in turn (also failures before hydration), else nothing. */
+/**
+ * The real sleeve over the pattern: tries each source in turn (also failures before hydration), else nothing.
+ * A name lookup (/covers) that fails is retried once a few seconds later: on a first visit a page asks for many
+ * new covers at once and the artwork provider may be briefly over quota.
+ */
 function Artwork({ sources }: { sources: string[] }) {
   const key = sources.join("|");
   const [index, setIndex] = useState(0);
+  const [retried, setRetried] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
-  useEffect(() => setIndex(0), [key]);
+  useEffect(() => {
+    setIndex(0);
+    setRetried(false);
+  }, [key]);
+  const failed = () => {
+    const current = sources[index];
+    const isLast = index === sources.length - 1;
+    if (isLast && !retried && current?.startsWith("/covers?")) {
+      setRetried(true);
+      return;
+    }
+    setIndex((i) => i + 1);
+  };
   useEffect(() => {
     const img = ref.current;
-    if (img?.complete && img.naturalWidth === 0) setIndex((i) => i + 1);
+    if (img?.complete && img.naturalWidth === 0) failed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, index]);
-  const src = sources[index];
-  if (!src) return null;
+  const [delayed, setDelayed] = useState(false);
+  useEffect(() => {
+    if (!retried) return;
+    setDelayed(true);
+    const t = setTimeout(() => setDelayed(false), 4000);
+    return () => clearTimeout(t);
+  }, [retried]);
+  const base = sources[index];
+  if (!base || delayed) return null;
+  const src = retried && index === sources.length - 1 ? `${base}&retry=1` : base;
   return (
     <img
       ref={ref}
@@ -154,7 +180,7 @@ function Artwork({ sources }: { sources: string[] }) {
       alt=""
       loading="lazy"
       decoding="async"
-      onError={() => setIndex((i) => i + 1)}
+      onError={failed}
       className={css({
         position: "absolute",
         inset: 0,

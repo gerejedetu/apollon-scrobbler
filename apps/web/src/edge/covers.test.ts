@@ -102,4 +102,60 @@ describe("cover lookup", () => {
       (await handleCovers(new Request("https://apollon.example/covers"), { cache })).status,
     ).toBe(400);
   });
+
+  test("a search hit by Deezer's quota is retried after a pause", async () => {
+    let calls = 0;
+    const fetcher = deezer(() =>
+      ++calls === 1
+        ? { error: { code: 4, message: "Quota limit exceeded" } }
+        : { data: [{ cover_medium: IMG }] },
+    );
+    const sleeps: number[] = [];
+    const image = await findCover(
+      { kind: "album", artist: "A", album: "B", size: "medium" },
+      fetcher as unknown as typeof fetch,
+      async (ms) => void sleeps.push(ms),
+    );
+    expect(image).toBe(IMG);
+    expect(sleeps).toEqual([600]);
+  });
+
+  test("gives up (no cache) when the quota keeps failing", async () => {
+    const fetcher = deezer(() => ({ error: { code: 4 } }));
+    const store = new Map<string, Response>();
+    const cache = {
+      match: async (r: Request) => store.get(r.url)?.clone(),
+      put: async (r: Request, res: Response) => void store.set(r.url, res),
+    };
+    const res = await handleCovers(
+      new Request("https://apollon.example/covers?artist=A&album=Q&size=medium"),
+      {
+        cache,
+        fetcher: fetcher as unknown as typeof fetch,
+        sleep: async () => {},
+      },
+    );
+    expect(res.status).toBe(503);
+    expect(store.size).toBe(0);
+  });
+
+  test("identical lookups at once share one search, and the retry parameter shares the cache entry", async () => {
+    const store = new Map<string, Response>();
+    const cache = {
+      match: async (r: Request) => store.get(r.url)?.clone(),
+      put: async (r: Request, res: Response) => void store.set(r.url, res),
+    };
+    const hit = deezer(() => ({ data: [{ cover_medium: IMG }] }));
+    const url = "https://apollon.example/covers?artist=Same&album=Same&size=medium&v=2";
+    const deps = { cache, fetcher: hit as unknown as typeof fetch };
+    const [a, b] = await Promise.all([
+      handleCovers(new Request(url), deps),
+      handleCovers(new Request(url), deps),
+    ]);
+    expect([a.status, b.status]).toEqual([302, 302]);
+    expect(hit).toHaveBeenCalledTimes(1);
+    const retried = await handleCovers(new Request(`${url}&retry=1`), deps);
+    expect(retried.status).toBe(302);
+    expect(hit).toHaveBeenCalledTimes(1);
+  });
 });

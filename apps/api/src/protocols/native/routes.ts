@@ -14,12 +14,13 @@ import {
   toTrackMetadata,
 } from "./mapping.ts";
 
-function presentMe(user: User) {
+function presentMe(user: User, owner: boolean) {
   return {
     userName: user.name,
     listenCount: user.listenCount,
     createdAt: user.createdAt,
     private: user.isPrivate,
+    owner,
   };
 }
 
@@ -29,7 +30,7 @@ const MAX_SUBMIT_BYTES = 11 * 1024 * 1024;
 export const nativeRoutes = new Hono<AppEnv>()
   .get("/me", async (c) => {
     const user = await requireUserOrSession(c);
-    return c.json(presentMe(user));
+    return c.json(presentMe(user, await c.var.services.instance.isOwner(user)));
   })
   .patch("/me", async (c) => {
     const user = await requireUserOrSession(c);
@@ -40,7 +41,12 @@ export const nativeRoutes = new Hono<AppEnv>()
     >;
     const updated =
       "private" in changes ? await c.var.services.users.setPrivate(user, changes.private) : user;
-    return c.json(presentMe(updated));
+    return c.json(presentMe(updated, await c.var.services.instance.isOwner(updated)));
+  })
+  .get("/instance", async (c) => c.json(await c.var.services.instance.settings()))
+  .patch("/instance", async (c) => {
+    const user = await requireUserOrSession(c);
+    return c.json(await c.var.services.instance.update(user, await jsonBody(c)));
   })
   .post(
     "/listens",

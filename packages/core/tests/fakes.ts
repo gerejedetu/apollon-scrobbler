@@ -9,6 +9,7 @@ export function fakeVerifier(tokens: Map<string, string>): TokenVerifier {
 
 export function fakeRepositories(): Repositories & { _listens: StoredListen[] } {
   const users: (User & { authUserId: string })[] = [];
+  const settings = new Map<string, string>();
   const listens: StoredListen[] = [];
   const playing = new Map<number, PlayingNow>();
   const imports = new Map<string, number>();
@@ -144,6 +145,17 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
       },
     },
     // Insights are SQL-heavy: they are tested against the real schema in db-d1 and apps/api, not faked here.
+    instance: {
+      async hasUsersAndSetting(key) {
+        return [users.length > 0, settings.get(key) ?? null];
+      },
+      async setSetting(key, value) {
+        settings.set(key, value);
+      },
+      async ownerUserId() {
+        return users[0]?.id ?? null;
+      },
+    },
     insights: new Proxy({} as InsightsRepository, {
       get: () => () => Promise.reject(new Error("insights are not faked")),
     }),

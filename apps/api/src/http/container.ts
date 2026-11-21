@@ -64,6 +64,7 @@ function buildAuth(
       .filter(Boolean),
     disableSignUp: env.DISABLE_SIGNUP === "true",
     waitUntil,
+    canSignUp: () => services().instance.signupOpen(),
     onAccountCreated: async ({ id, userName }) => {
       await services().users.createProfile(id, userName);
     },
@@ -89,6 +90,7 @@ export const createContainer =
         cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined,
         authCache,
         clock: options.clock,
+        signupForceClosed: c.env.DISABLE_SIGNUP === "true",
         cacheMinListens: c.env.CACHE_MIN_LISTENS
           ? Number(c.env.CACHE_MIN_LISTENS)
           : c.env.TURSO_DATABASE_URL
