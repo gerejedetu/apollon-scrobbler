@@ -87,7 +87,7 @@ the container. Better Auth needs its own adapter for that database too.
   and rows written: keep every query index-bounded (the query-plan test enforces it), never `count(*)` a growing
   table at request time (use maintained counters such as `users.listen_count`), batch writes.
 
-- Migrations live in `packages/db-d1/migrations`, applied to Turso by `apps/api/scripts/turso.ts` (`vp run @scrobbler/api#db:migrate`), tracked by file name and applied in name order. Never edit or rename one that is applied: add the next number (two files share `0008_`; both are applied, leave them).
+- Migrations live in `packages/db-d1/migrations`, applied to Turso by `apps/api/scripts/turso.ts` (`vp run @scrobbler/api#db:migrate`), tracked by file name and applied in name order. Never edit or rename one that is applied: add the next number. (If a rename is ever unavoidable, update its row in `_migrations` in the same step, or it runs again.)
 - `0001_auth.sql` is generated: `vp run @scrobbler/auth#migration` prints it. Regenerate when Better Auth or its plugins change, and add a new numbered migration for the difference rather than editing an applied one.
 - Query budget matters (Turso counts every row a query scans; D1 also limits statements per invocation and bound parameters):
   - batch inserts go through one `json_each` statement per ~900 KB of listens;
