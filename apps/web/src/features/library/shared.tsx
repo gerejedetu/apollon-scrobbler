@@ -86,13 +86,23 @@ export function PeriodBars({
   );
 }
 
-/** Fill the months without listens, so the bars keep a regular time scale. */
-export function fillMonths(periods: { period: string; listenCount: number }[]) {
+/**
+ * Fill the months without listens, so the bars keep a regular time scale. At least `minMonths` are shown
+ * (empty ones before the first listen): a single month of data is one bar among twelve, not a wall.
+ */
+export function fillMonths(periods: { period: string; listenCount: number }[], minMonths = 12) {
   if (periods.length === 0) return periods;
   const counts = new Map(periods.map((p) => [p.period.slice(0, 7), p.listenCount]));
   const sorted = [...counts.keys()].sort();
-  const [y0, m0] = sorted[0]!.split("-").map(Number) as [number, number];
   const [y1, m1] = sorted.at(-1)!.split("-").map(Number) as [number, number];
+  let [y0, m0] = sorted[0]!.split("-").map(Number) as [number, number];
+  const span = (y1 - y0) * 12 + (m1 - m0) + 1;
+  for (let i = span; i < minMonths; i++) {
+    if (m0 === 1) {
+      m0 = 12;
+      y0--;
+    } else m0--;
+  }
   const out: { period: string; listenCount: number }[] = [];
   for (let y = y0, m = m0; y < y1 || (y === y1 && m <= m1); m === 12 ? ((m = 1), y++) : m++) {
     const key = `${y}-${String(m).padStart(2, "0")}`;

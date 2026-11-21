@@ -37,8 +37,11 @@ export interface CoverQuery {
   album?: string;
   track?: string;
   size: "medium" | "big";
+  /** YouTube video a listen came from: its thumbnail stands in when the name finds nothing. */
+  videoId?: string;
 }
 
+const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 const MBID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** A release sleeve by MusicBrainz id, or a name lookup. */
@@ -49,7 +52,8 @@ export type ArtworkQuery =
 
 export function readArtworkQuery(url: URL): ArtworkQuery | null {
   const yt = url.searchParams.get("yt");
-  if (yt) return /^[A-Za-z0-9_-]{11}$/.test(yt) ? { kind: "youtube", videoId: yt } : null;
+  if (yt && !url.searchParams.get("artist"))
+    return YT_ID.test(yt) ? { kind: "youtube", videoId: yt } : null;
   const mbid = url.searchParams.get("mbid");
   if (mbid) return MBID.test(mbid) ? { kind: "release", mbid: mbid.toLowerCase() } : null;
   return readCoverQuery(url);
@@ -68,6 +72,10 @@ export function readCoverQuery(url: URL): CoverQuery | null {
     album,
     track,
     size: url.searchParams.get("size") === "medium" ? "medium" : "big",
+    videoId: (() => {
+      const yt = url.searchParams.get("yt");
+      return yt && YT_ID.test(yt) ? yt : undefined;
+    })(),
   };
 }
 
@@ -308,14 +316,17 @@ export async function resolveArtwork(
   sleep?: (ms: number) => Promise<void>,
 ): Promise<Fetched> {
   if (q.kind === "release") return download(`${CAA}/release/${q.mbid}/front-500`, fetcher);
-  if (q.kind === "youtube") {
-    // The largest thumbnail when the video has one, else the always-present 480x360.
-    const big = await download(`https://i.ytimg.com/vi/${q.videoId}/maxresdefault.jpg`, fetcher);
-    return big ?? download(`https://i.ytimg.com/vi/${q.videoId}/hqdefault.jpg`, fetcher);
-  }
+  if (q.kind === "youtube") return thumbnail(q.videoId, fetcher);
   const url = await findCover({ ...q, size: "big" }, fetcher, sleep);
+  if (url === null && q.videoId) return thumbnail(q.videoId, fetcher);
   if (url === null || url === undefined) return url;
   return queued(() => download(url, fetcher));
+}
+
+/** The largest thumbnail of a YouTube video when it has one, else the always-present 480x360. */
+async function thumbnail(videoId: string, fetcher: typeof fetch): Promise<Fetched> {
+  const big = await download(`https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`, fetcher);
+  return big ?? download(`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`, fetcher);
 }
 
 /** The same cover asked several times at once (two rows of one page) is resolved once per isolate. */
@@ -361,6 +372,7 @@ export async function handleCovers(
 
   // 2. R2: the image, or a miss marker that has not expired yet.
   const stored = await deps.bucket?.get(key);
+  let skipSearch = false;
   if (stored) {
     const missUntil = Number(stored.customMetadata?.missUntil ?? 0);
     if (!missUntil) {
@@ -368,13 +380,23 @@ export async function handleCovers(
       await later(deps.cache?.put(cacheRequest, response.clone()));
       return response;
     }
-    if (missUntil > now && stored.customMetadata?.resolver === RESOLVER) return missResponse();
+    // A stored miss still answers 404, unless this request brings a video thumbnail to stand in.
+    const canFill = q.kind !== "release" && q.kind !== "youtube" && Boolean(q.videoId);
+    if (missUntil > now && stored.customMetadata?.resolver === RESOLVER) {
+      if (!canFill) return missResponse();
+      // The name is known to have no artwork: go straight to the thumbnail.
+      skipSearch = true;
+    }
   }
 
   // 3. Resolve once (deduplicated), then store for good.
   let resolving = pending.get(key);
   if (!resolving) {
-    resolving = resolveArtwork(q, deps.fetcher, deps.sleep).finally(() => pending.delete(key));
+    resolving = (
+      skipSearch && q.kind !== "release" && q.kind !== "youtube" && q.videoId
+        ? thumbnail(q.videoId, deps.fetcher ?? fetch)
+        : resolveArtwork(q, deps.fetcher, deps.sleep)
+    ).finally(() => pending.delete(key));
     pending.set(key, resolving);
   }
   const image = await resolving;

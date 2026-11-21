@@ -24,7 +24,11 @@ export type Lookup =
 
 export const LOOKUP_VERSION = "4";
 
-export function lookupUrl(lookup: Lookup | undefined, size: ArtworkSize = 250): string | null {
+export function lookupUrl(
+  lookup: Lookup | undefined,
+  size: ArtworkSize = 250,
+  videoId?: string | null,
+): string | null {
   if (!lookup?.artist) return null;
   // `v` changes when the lookup gets smarter, so misses cached by an older version are retried.
   const params = new URLSearchParams({
@@ -37,6 +41,9 @@ export function lookupUrl(lookup: Lookup | undefined, size: ArtworkSize = 250): 
     if (!lookup.album && !lookup.track) return null;
     if (lookup.album) params.set("album", lookup.album);
     else if (lookup.track) params.set("track", lookup.track);
+    // The video the listen came from: if the name finds nothing, its thumbnail becomes this name's cover,
+    // so pages that only know the name (track page, tops, year in review) show the same image.
+    if (videoId) params.set("yt", videoId);
   }
   return `/covers?${params.toString()}`;
 }
@@ -70,7 +77,8 @@ export function artworkSources(
   size: ArtworkSize,
   videoId?: string | null,
 ): string[] {
-  return [artworkUrl(mbid, size), lookupUrl(lookup, size), youtubeUrl(videoId)].filter(
-    (s): s is string => Boolean(s),
+  const byName = lookupUrl(lookup, size, videoId);
+  return [artworkUrl(mbid, size), byName ?? youtubeUrl(videoId)].filter((s): s is string =>
+    Boolean(s),
   );
 }
