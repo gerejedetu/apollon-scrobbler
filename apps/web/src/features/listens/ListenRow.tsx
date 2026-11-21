@@ -3,7 +3,7 @@ import { css } from "styled-system/css";
 import type { Listen, Track } from "../../api/index.ts";
 import { formatListenedAt } from "../../lib/format/index.ts";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
-import { AlbumCover } from "../../ui/cover/index.ts";
+import { CoverLink, CreditLine, TitleLink } from "./TrackLinks.tsx";
 import { color } from "../../ui/theme/index.ts";
 
 const row = css({
@@ -13,15 +13,16 @@ const row = css({
   py: "10px",
   borderTop: "1px solid token(colors.ruleSoft)",
 });
-const ellipsis = css({ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
 
 /** One listen: thumbnail, title, "artist · album", when (violet while playing), and its actions. */
 export function ListenRow({
+  userName,
   track,
   when,
   playing,
   actions,
 }: {
+  userName: string;
   track: Track;
   when: string;
   playing?: boolean;
@@ -29,15 +30,7 @@ export function ListenRow({
 }) {
   return (
     <div className={row}>
-      <div className={css({ width: "40px", flexShrink: 0 })}>
-        <AlbumCover
-          artist={track.artist}
-          album={track.album}
-          track={track.track}
-          mbid={track.mbids?.release}
-          size={40}
-        />
-      </div>
+      <CoverLink userName={userName} track={track} size={40} />
       <div
         className={css({
           flex: 1,
@@ -48,20 +41,14 @@ export function ListenRow({
         })}
       >
         <span className={css({ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 })}>
-          <span className={`${ellipsis} ${css({ fontSize: "13px", fontWeight: "500" })}`}>
-            {track.track}
+          <span
+            className={css({ fontSize: "13px", fontWeight: "500", minWidth: 0, display: "flex" })}
+          >
+            <TitleLink userName={userName} track={track} />
           </span>
           <LovedMark track={track} />
         </span>
-        <span className={`${ellipsis} ${css({ fontSize: "12px", color: "muted" })}`}>
-          {track.artist}
-          {track.album ? (
-            <>
-              {" · "}
-              <i>{track.album}</i>
-            </>
-          ) : null}
-        </span>
+        <CreditLine userName={userName} track={track} />
       </div>
       <span
         className={css({ fontSize: "12px", whiteSpace: "nowrap" })}
@@ -75,11 +62,20 @@ export function ListenRow({
 }
 
 /** A stored listen; its owner can act on it from the "⋯" menu (deleting is immediate). */
-export function ListenItem({ listen, now }: { listen: Listen; now?: number }) {
+export function ListenItem({
+  userName,
+  listen,
+  now,
+}: {
+  userName: string;
+  listen: Listen;
+  now?: number;
+}) {
   const fav = useFavourites();
   if (fav.isDeleted(listen)) return null;
   return (
     <ListenRow
+      userName={userName}
       track={listen}
       when={formatListenedAt(listen.listenedAt, now)}
       actions={<ListenActions listen={listen} onDelete={() => void fav.deleteListen(listen)} />}

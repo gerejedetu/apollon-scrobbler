@@ -1,8 +1,7 @@
-import { Link } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { Listen, Track } from "../../api/index.ts";
 import { formatTime } from "../../lib/format/index.ts";
-import { AlbumCover } from "../../ui/cover/index.ts";
+import { CoverLink, CreditLine, TitleLink } from "./TrackLinks.tsx";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { formatTrackLength, listenSource } from "./source.ts";
 import { m } from "../../paraglide/messages.js";
@@ -15,7 +14,6 @@ const row = css({
   py: "10px",
   borderBottom: "1px solid token(colors.ruleSoft)",
 });
-const ellipsis = css({ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
 
 /** One line of the history: time, sleeve, title and artist (links), source chip, length, actions. */
 function Row({
@@ -44,13 +42,7 @@ function Row({
       >
         {time}
       </span>
-      <AlbumCover
-        artist={track.artist}
-        album={track.album}
-        track={track.track}
-        mbid={track.mbids?.release}
-        size={40}
-      />
+      <CoverLink userName={userName} track={track} size={40} />
       <span
         className={css({
           flex: 1,
@@ -61,31 +53,14 @@ function Row({
         })}
       >
         <span className={css({ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 })}>
-          <Link
-            to="/u/$userName/titres/$artist/$track"
-            params={{ userName, artist: track.artist, track: track.track }}
-            search={{ album: track.album ?? undefined, mbid: track.mbids?.release ?? undefined }}
-            className={`${ellipsis} ${css({ fontSize: "13px", fontWeight: "500", textDecoration: "none" })}`}
+          <span
+            className={css({ fontSize: "13px", fontWeight: "500", minWidth: 0, display: "flex" })}
           >
-            {track.track}
-          </Link>
+            <TitleLink userName={userName} track={track} />
+          </span>
           <LovedMark track={track} />
         </span>
-        <span className={`${ellipsis} ${css({ fontSize: "12px", color: "muted" })}`}>
-          <Link
-            to="/u/$userName/artistes/$artist"
-            params={{ userName, artist: track.artist }}
-            className={css({ color: "muted", textDecoration: "none" })}
-          >
-            {track.artist}
-          </Link>
-          {track.album ? (
-            <>
-              {" · "}
-              <i>{track.album}</i>
-            </>
-          ) : null}
-        </span>
+        <CreditLine userName={userName} track={track} />
       </span>
       {source ? (
         <span

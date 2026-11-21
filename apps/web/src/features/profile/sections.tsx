@@ -151,11 +151,15 @@ export function RecentListens({
           <ChevronRight />
         </Link>
       </div>
-      {nowPlaying ? <ListenRow track={nowPlaying} when={m.now_playing_short()} playing /> : null}
+      {nowPlaying ? (
+        <ListenRow userName={userName} track={nowPlaying} when={m.now_playing_short()} playing />
+      ) : null}
       {listens.length === 0 && !nowPlaying ? (
         <Empty>{m.empty_listens()}</Empty>
       ) : (
-        listens.map((l) => <ListenItem key={`${l.listenedAt}/${l.id}`} listen={l} />)
+        listens.map((l) => (
+          <ListenItem key={`${l.listenedAt}/${l.id}`} userName={userName} listen={l} />
+        ))
       )}
     </section>
   );
