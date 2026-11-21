@@ -22,7 +22,11 @@ export default defineConfig({
     "html, body": { bg: "page", color: "ink", fontFamily: "body", fontSize: "14px" },
     a: { color: "ink" },
     "a:hover": { color: "violet" },
-    button: { fontFamily: "inherit", cursor: "pointer" },
+    button: { fontFamily: "inherit" },
+    // Everything that reacts to a click shows the hand, Zag parts included (menu items, radios, tabs, switches).
+    "a[href], button, summary, select, label[for], input[type=checkbox], input[type=radio], input[type=file], input[type=date]::-webkit-calendar-picker-indicator, [role=button], [role=tab], [role=menuitem], [role=menuitemradio], [role=option], [role=radio], [role=switch], [data-part=trigger], [data-part=item], [data-part=item-control], [data-part=control]":
+      { cursor: "pointer" },
+    "button:disabled, [aria-disabled=true], [data-disabled]": { cursor: "not-allowed" },
     "input::placeholder": { color: "placeholder" },
   },
 });
