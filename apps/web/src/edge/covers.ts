@@ -37,9 +37,14 @@ export interface CoverQuery {
 const MBID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** A release sleeve by MusicBrainz id, or a name lookup. */
-export type ArtworkQuery = { kind: "release"; mbid: string } | CoverQuery;
+export type ArtworkQuery =
+  | { kind: "release"; mbid: string }
+  | { kind: "youtube"; videoId: string }
+  | CoverQuery;
 
 export function readArtworkQuery(url: URL): ArtworkQuery | null {
+  const yt = url.searchParams.get("yt");
+  if (yt) return /^[A-Za-z0-9_-]{11}$/.test(yt) ? { kind: "youtube", videoId: yt } : null;
   const mbid = url.searchParams.get("mbid");
   if (mbid) return MBID.test(mbid) ? { kind: "release", mbid: mbid.toLowerCase() } : null;
   return readCoverQuery(url);
@@ -83,11 +88,21 @@ export function primaryArtist(artist: string): string {
   return lead || artist;
 }
 
-/** Searches to try, most precise first; then the same with the lead artist alone. */
+/**
+ * The forms an artist name may be catalogued under, most likely first: as written, then for names like
+ * "엄지 (UMJI)" the romanization in parentheses and the name outside them, then the lead artist of a credit.
+ */
+export function artistVariants(artist: string): string[] {
+  const out = [artist];
+  const paren = /^(.*?)\s*[(（]([^()（）]+)[)）]\s*$/.exec(artist);
+  if (paren?.[1] && paren[2]) out.push(paren[2].trim(), paren[1].trim());
+  out.push(primaryArtist(artist));
+  return [...new Set(out.filter(Boolean))];
+}
+
+/** Searches to try, most precise first, for each form of the artist's name. */
 export function searches(q: CoverQuery): string[] {
-  const lead = primaryArtist(q.artist);
-  const full = searchesFor(q);
-  return lead === q.artist ? full : [...full, ...searchesFor({ ...q, artist: lead })];
+  return [...new Set(artistVariants(q.artist).flatMap((artist) => searchesFor({ ...q, artist })))];
 }
 
 function searchesFor(q: CoverQuery): string[] {
@@ -213,6 +228,7 @@ const norm = (s: string | undefined) => (s ?? "").replace(/\s+/g, " ").trim().to
 /** Where an image lives in R2: one object per release or per normalized name, whatever size is asked. */
 export async function storageKey(q: ArtworkQuery): Promise<string> {
   if (q.kind === "release") return `v1/release/${q.mbid}`;
+  if (q.kind === "youtube") return `v1/youtube/${q.videoId}`;
   const name =
     q.kind === "artist"
       ? norm(q.artist)
@@ -249,6 +265,11 @@ export async function resolveArtwork(
   sleep?: (ms: number) => Promise<void>,
 ): Promise<Fetched> {
   if (q.kind === "release") return download(`${CAA}/release/${q.mbid}/front-500`, fetcher);
+  if (q.kind === "youtube") {
+    // The largest thumbnail when the video has one, else the always-present 480x360.
+    const big = await download(`https://i.ytimg.com/vi/${q.videoId}/maxresdefault.jpg`, fetcher);
+    return big ?? download(`https://i.ytimg.com/vi/${q.videoId}/hqdefault.jpg`, fetcher);
+  }
   const url = await findCover({ ...q, size: "big" }, fetcher, sleep);
   if (url === null || url === undefined) return url;
   return queued(() => download(url, fetcher));

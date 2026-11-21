@@ -8,7 +8,7 @@
  *
  * Safe to run again: stored images and stored misses answer without any outside lookup.
  */
-import { artworkSources, type Lookup } from "../src/ui/cover/artwork.ts";
+import { artworkSources, type Lookup, youtubeId } from "../src/ui/cover/artwork.ts";
 
 const [base, user] = process.argv.slice(2);
 if (!base || !user) {
@@ -31,6 +31,7 @@ interface Item {
   track?: string | null;
   album?: string | null;
   mbids?: { release?: string | null };
+  extra?: Record<string, unknown>;
 }
 
 /** Every page of a top list. */
@@ -69,13 +70,17 @@ const [artists, releases, recordings, history] = await Promise.all([
 
 /** What each page asks for: the same source lists the browser builds (src/ui/cover/artwork.ts). */
 const jobs = new Map<string, string[]>();
-const add = (mbid: string | null | undefined, lookup: Lookup) => {
-  const sources = artworkSources(mbid, lookup, 500);
+const add = (mbid: string | null | undefined, lookup: Lookup, video?: string | null) => {
+  const sources = artworkSources(mbid, lookup, 500, video);
   if (sources.length) jobs.set(sources.join("|"), sources);
 };
 for (const a of artists) add(null, { kind: "artist", artist: a.artist });
 for (const r of [...releases, ...recordings, ...history]) {
-  add(r.mbids?.release, { kind: "album", artist: r.artist, album: r.album, track: r.track });
+  add(
+    r.mbids?.release,
+    { kind: "album", artist: r.artist, album: r.album, track: r.track },
+    youtubeId(r.extra?.origin_url),
+  );
 }
 
 console.log(

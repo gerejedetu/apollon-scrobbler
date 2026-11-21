@@ -4,6 +4,7 @@ import {
   findCover,
   handleCovers,
   primaryArtist,
+  artistVariants,
   readArtworkQuery,
   readCoverQuery,
   storageKey,
@@ -237,5 +238,38 @@ describe("stored artwork", () => {
     expect(await storageKey({ kind: "artist", artist: "Air", size: "big" })).toMatch(
       /^v1\/artist\//,
     );
+  });
+});
+
+describe("listens without an album", () => {
+  test("names with a romanization in parentheses are searched under each form", () => {
+    expect(artistVariants("엄지 (UMJI)")).toEqual(["엄지 (UMJI)", "UMJI", "엄지"]);
+    expect(artistVariants("Peso Pluma & Estevan Plazola")).toEqual([
+      "Peso Pluma & Estevan Plazola",
+      "Peso Pluma",
+    ]);
+    expect(artistVariants("Air")).toEqual(["Air"]);
+    const paths = searches({ kind: "album", artist: "엄지 (UMJI)", track: "Lemon", size: "big" });
+    expect(paths.some((p) => decodeURIComponent(p).includes('artist:"UMJI"'))).toBe(true);
+  });
+
+  test("the YouTube video's thumbnail is stored like any cover, largest available first", async () => {
+    const bucket = memoryBucket();
+    const fetcher = vi.fn(async (input: string) =>
+      input.includes("maxresdefault")
+        ? new Response(null, { status: 404 })
+        : new Response(JPEG, { headers: { "content-type": "image/jpeg" } }),
+    );
+    const res = await handleCovers(new Request("https://apollon.example/covers?yt=XGIAMH69y4M"), {
+      bucket,
+      fetcher: fetcher as unknown as typeof fetch,
+    });
+    expect(res.status).toBe(200);
+    expect(fetcher.mock.calls.map(([u]) => u)).toEqual([
+      "https://i.ytimg.com/vi/XGIAMH69y4M/maxresdefault.jpg",
+      "https://i.ytimg.com/vi/XGIAMH69y4M/hqdefault.jpg",
+    ]);
+    expect([...bucket.objects.keys()]).toEqual(["v1/youtube/XGIAMH69y4M"]);
+    expect(readArtworkQuery(new URL("https://x/covers?yt=bad"))).toBeNull();
   });
 });

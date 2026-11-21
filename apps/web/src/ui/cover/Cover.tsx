@@ -26,11 +26,13 @@ interface CoverProps {
   mbid?: string | null;
   /** Otherwise (or if that fails), find the artwork by name. */
   lookup?: Lookup;
+  /** Last resort: the thumbnail of the YouTube video the listen was played from. */
+  youtube?: string | null;
   className?: string;
 }
 
 /** A square sleeve (round for artists): no radius, no shadow, a motif in two colours. */
-export function Cover({ seed, title, round, size, mbid, lookup, className }: CoverProps) {
+export function Cover({ seed, title, round, size, mbid, lookup, youtube, className }: CoverProps) {
   const p = coverPattern(seed);
   const fg = { background: p.fg };
   return (
@@ -128,7 +130,12 @@ export function Cover({ seed, title, round, size, mbid, lookup, className }: Cov
         </span>
       ) : null}
       <Artwork
-        sources={artworkSources(mbid, lookup, size !== undefined && size <= 64 ? 250 : 500)}
+        sources={artworkSources(
+          mbid,
+          lookup,
+          size !== undefined && size <= 64 ? 250 : 500,
+          youtube,
+        )}
       />
     </div>
   );
