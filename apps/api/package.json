@@ -5,6 +5,9 @@
   "description": "ListenBrainz-compatible HTTP API (Hono) on Cloudflare Workers.",
   "license": "AGPL-3.0-only",
   "type": "module",
+  "exports": {
+    "./testing": "./tests/helpers.ts"
+  },
   "scripts": {
     "dev": "wrangler dev",
     "test": "vp test && TEST_DB=libsql vp test",

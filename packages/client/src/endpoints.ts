@@ -41,9 +41,10 @@ export function createEndpoints(http: Http) {
       update: (patch: { private?: boolean }) => http.patch<T.Me>(`${v1}/me`, patch),
     },
     listens: {
-      /** POST /v1/listens: up to 1000 at once; duplicates (same time and track) are ignored. */
-      submit: (listens: (T.Track & { listenedAt?: number; extra?: Record<string, unknown> })[]) =>
-        http.post<{ accepted: number; inserted: number }>(`${v1}/listens`, { listens }),
+      /** POST /v1/listens: up to 1000 at once; duplicates (same time and track) are ignored. `listenedAt`: Unix seconds or ISO 8601, default now. */
+      submit: (
+        listens: (T.Track & { listenedAt?: number | string; extra?: Record<string, unknown> })[],
+      ) => http.post<{ accepted: number; inserted: number }>(`${v1}/listens`, { listens }),
       list: (name: string, q: { before?: number; after?: number; limit?: number } = {}) =>
         http.get<T.ListensPage>(`${user(name)}/listens`, q),
       /** DELETE /v1/listens/{listenedAt}/{id}: answers 204 even if it was already gone. */
