@@ -4,7 +4,8 @@ import type { Range, Top, TopItem } from "../../api/index.ts";
 import { barWidth, formatCount } from "../../lib/format/index.ts";
 import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
-import { Button, Empty } from "../../ui/primitives/index.ts";
+import { Empty } from "../../ui/primitives/index.ts";
+import { LoadMore } from "../../ui/feedback/index.ts";
 import type { Kind } from "./kinds.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { m } from "../../paraglide/messages.js";
@@ -150,15 +151,12 @@ export function TopList({
         </div>
       )}
       {onMore && top.items.length < top.total ? (
-        <Button
-          tone="outline"
-          size="sm"
-          onClick={onMore}
-          disabled={loadingMore}
-          className={css({ alignSelf: "center" })}
-        >
-          {loadingMore ? m.loading() : m.show_more()}
-        </Button>
+        <LoadMore
+          onMore={onMore}
+          loading={!!loadingMore}
+          label={m.show_more()}
+          loadingLabel={m.loading()}
+        />
       ) : null}
     </section>
   );

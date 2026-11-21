@@ -1,22 +1,16 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { css } from "styled-system/css";
-import type { ListensPage, Track } from "../../api/index.ts";
+import { api, type ListensPage, type Track } from "../../api/index.ts";
 import { formatCount, localDate } from "../../lib/format/index.ts";
 import { dateFormat } from "../../lib/locale.ts";
-import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight } from "../../ui/icons.tsx";
+import { CalendarIcon, ChevronDown } from "../../ui/icons.tsx";
+import { LoadMore } from "../../ui/feedback/index.ts";
 import { Button, Empty, input } from "../../ui/primitives/index.ts";
-import { dropdownTrigger, Popover, SelectMenu } from "../../ui/zag/index.ts";
+import { dropdownTrigger, Popover } from "../../ui/zag/index.ts";
 import { localToUnix } from "../scrobble/index.ts";
 import { HistoryListen, HistoryNowPlaying } from "./HistoryRow.tsx";
-import {
-  type HistorySearch,
-  neighbours,
-  PAGE_SIZES,
-  type PageSize,
-  pageNumbers,
-  pageRange,
-} from "./pages.ts";
+import { type HistorySearch, olderCursor, PAGE_SIZE } from "./pages.ts";
 import { m } from "../../paraglide/messages.js";
 
 const weekdayDate = () =>
@@ -38,22 +32,7 @@ function dayTitle(seconds: number, now: number) {
   return { key: day, title: full.charAt(0).toUpperCase() + full.slice(1), note: "" };
 }
 
-const pagerLink = css({
-  minWidth: "32px",
-  height: "32px",
-  px: "8px",
-  boxSizing: "border-box",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: "button",
-  textDecoration: "none",
-  fontWeight: "500",
-  color: "ink",
-  "&[aria-current=page]": { border: "1px solid token(colors.ink)" },
-});
-
-/** "Historique": every listen, newest first, by day, with paging and a jump to a date. */
+/** "Historique": every listen, newest first, by day; older ones load as the page scrolls. */
 export function HistoryPage({
   userName,
   page,
@@ -68,23 +47,35 @@ export function HistoryPage({
   search: HistorySearch;
 }) {
   const navigate = useNavigate();
-  const size: PageSize = search.taille ?? 50;
-  const number = search.avant === undefined && search.apres === undefined ? 1 : search.page;
-  const { older, newer } = neighbours(page, { ...search, page: number }, size);
-  const last = Math.max(1, Math.ceil(total / size));
+  const atStart = search.avant === undefined;
   const now = Date.now() / 1000;
   const [date, setDate] = useState("");
+  const [listens, setListens] = useState(page.listens);
+  const [cursor, setCursor] = useState(() => olderCursor(page));
+  const [loading, setLoading] = useState(false);
   const go = (s: HistorySearch) =>
     navigate({ to: "/u/$userName/historique", params: { userName }, search: s });
 
+  async function more() {
+    if (cursor === null || loading) return;
+    setLoading(true);
+    try {
+      const next = await api.listens.list(userName, { before: cursor, limit: PAGE_SIZE });
+      setListens((l) => [...l, ...next.listens]);
+      setCursor(olderCursor(next));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const groups: { key: string; title: string; note: string; items: ListensPage["listens"] }[] = [];
-  for (const l of page.listens) {
+  for (const l of listens) {
     const d = dayTitle(l.listenedAt, now);
     const g = groups.at(-1);
     if (g?.key === d.key) g.items.push(l);
     else groups.push({ ...d, items: [l] });
   }
-  if (number === 1 && nowPlaying && groups[0]?.title !== m.today_title()) {
+  if (atStart && nowPlaying && groups[0]?.title !== m.today_title()) {
     groups.unshift({ ...dayTitle(now, now), items: [] });
   }
 
@@ -135,7 +126,7 @@ export function HistoryPage({
                 const midnight = localToUnix(date, "00:00");
                 if (midnight === undefined) return;
                 close();
-                void go({ avant: midnight + 86_400, taille: size });
+                void go({ avant: midnight + 86_400 });
               }}
             >
               <input
@@ -155,7 +146,7 @@ export function HistoryPage({
         </Popover>
       </div>
 
-      {page.listens.length === 0 && !nowPlaying ? (
+      {listens.length === 0 && !nowPlaying ? (
         <Empty>{m.history_empty()}</Empty>
       ) : (
         <section className={css({ display: "flex", flexDirection: "column" })}>
@@ -174,7 +165,7 @@ export function HistoryPage({
                 <span className={css({ textStyle: "wide", fontSize: "15px" })}>{g.title}</span>
                 <span className={css({ fontSize: "12px", color: "muted" })}>{g.note}</span>
               </div>
-              {i === 0 && number === 1 && nowPlaying ? (
+              {i === 0 && atStart && nowPlaying ? (
                 <HistoryNowPlaying userName={userName} track={nowPlaying} />
               ) : null}
               {g.items.map((l) => (
@@ -185,138 +176,14 @@ export function HistoryPage({
         </section>
       )}
 
-      <nav
-        aria-label={m.pagination()}
-        className={css({
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-          fontSize: "13px",
-        })}
-      >
-        <div
-          className={css({ display: "flex", alignItems: "center", gap: "16px", color: "muted" })}
-        >
-          <span className={css({ display: "flex", alignItems: "center", gap: "8px" })}>
-            {m.show()}
-            <SelectMenu<string>
-              label={m.per_page()}
-              value={String(size)}
-              options={PAGE_SIZES.map((n) => ({ value: String(n), label: String(n) }))}
-              onValueChange={(v) => void go({ taille: Number(v) as PageSize })}
-            />
-          </span>
-          {pageRange(number, size, page.listens.length) ? (
-            <span>
-              <b className={css({ color: "ink", fontWeight: "600" })}>
-                {pageRange(number, size, page.listens.length)}
-              </b>{" "}
-              {m.of_listens({ count: formatCount(total) })}
-            </span>
-          ) : null}
-        </div>
-        <div className={css({ display: "flex", alignItems: "center", gap: "4px" })}>
-          {newer ? (
-            <Link
-              to="/u/$userName/historique"
-              params={{ userName }}
-              search={newer}
-              className={css({
-                height: "32px",
-                pl: "6px",
-                pr: "10px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                textDecoration: "none",
-                fontWeight: "500",
-                color: "ink",
-              })}
-            >
-              <ChevronLeft size={14} />
-              {m.previous()}
-            </Link>
-          ) : (
-            <span
-              aria-disabled="true"
-              className={css({
-                height: "32px",
-                pl: "6px",
-                pr: "10px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                color: "dashed",
-              })}
-            >
-              <ChevronLeft size={14} />
-              {m.previous()}
-            </span>
-          )}
-          {number
-            ? pageNumbers(number, last).map((n, i) =>
-                n === null ? (
-                  <span
-                    key={`gap${i}`}
-                    aria-hidden="true"
-                    className={css({ minWidth: "24px", textAlign: "center", color: "muted" })}
-                  >
-                    …
-                  </span>
-                ) : (
-                  <Link
-                    key={n}
-                    to="/u/$userName/historique"
-                    params={{ userName }}
-                    aria-label={`Page ${formatCount(n)}`}
-                    aria-current={n === number ? "page" : undefined}
-                    search={
-                      n === 1
-                        ? { taille: size }
-                        : n === number
-                          ? search
-                          : n === number - 1 && newer
-                            ? newer
-                            : n === number + 1 && older
-                              ? older
-                              : {
-                                  apres: (page.oldestListenedAt ?? 1) - 1,
-                                  page: last,
-                                  taille: size,
-                                }
-                    }
-                    className={pagerLink}
-                  >
-                    {formatCount(n)}
-                  </Link>
-                ),
-              )
-            : null}
-          {older ? (
-            <Link
-              to="/u/$userName/historique"
-              params={{ userName }}
-              search={older}
-              className={css({
-                height: "32px",
-                pl: "10px",
-                pr: "6px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                textDecoration: "none",
-                fontWeight: "500",
-                color: "ink",
-              })}
-            >
-              {m.next()}
-              <ChevronRight size={14} />
-            </Link>
-          ) : null}
-        </div>
-      </nav>
+      {cursor !== null ? (
+        <LoadMore
+          onMore={() => void more()}
+          loading={loading}
+          label={m.show_more()}
+          loadingLabel={m.loading()}
+        />
+      ) : null}
     </>
   );
 }
