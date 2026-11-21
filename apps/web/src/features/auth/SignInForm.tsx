@@ -8,7 +8,16 @@ import { authFoot, authForm, authTitle } from "./layout.tsx";
 import { m } from "../../paraglide/messages.js";
 
 /** "Connexion à Apollon": e-mail and password, then back where the visitor was going. */
-export function SignInForm({ created, redirectTo }: { created?: boolean; redirectTo?: string }) {
+export function SignInForm({
+  created,
+  redirectTo,
+  signupOpen = true,
+}: {
+  created?: boolean;
+  redirectTo?: string;
+  /** Hides the "create an account" link when the instance takes no new accounts. */
+  signupOpen?: boolean;
+}) {
   const router = useRouter();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -63,9 +72,11 @@ export function SignInForm({ created, redirectTo }: { created?: boolean; redirec
           {pending ? m.signin_pending() : m.signin_submit()}
         </Button>
       </form>
-      <p className={authFoot}>
-        {m.signin_no_account()} <Link to="/inscription">{m.signin_create()}</Link>
-      </p>
+      {signupOpen ? (
+        <p className={authFoot}>
+          {m.signin_no_account()} <Link to="/inscription">{m.signin_create()}</Link>
+        </p>
+      ) : null}
     </>
   );
 }

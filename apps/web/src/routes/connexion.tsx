@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { redirectIfSignedIn } from "../auth/index.ts";
+import { loadInstance } from "../auth/instance.ts";
 import { AuthLayout, SignInForm } from "../features/auth/index.ts";
 import { m } from "../paraglide/messages.js";
 import { pageTitle } from "../ui/brand/index.ts";
@@ -15,15 +16,17 @@ export const Route = createFileRoute("/connexion")({
     created: search.created === true || search.created === "true" ? true : undefined,
   }),
   beforeLoad: ({ context }) => redirectIfSignedIn(context.viewer),
+  loader: () => loadInstance(),
   head: () => ({ meta: [{ title: pageTitle(m.title_signin()) }] }),
   component: SignIn,
 });
 
 function SignIn() {
   const { redirect, created } = Route.useSearch();
+  const { signupOpen } = Route.useLoaderData();
   return (
     <AuthLayout>
-      <SignInForm created={created} redirectTo={redirect} />
+      <SignInForm created={created} redirectTo={redirect} signupOpen={signupOpen} />
     </AuthLayout>
   );
 }

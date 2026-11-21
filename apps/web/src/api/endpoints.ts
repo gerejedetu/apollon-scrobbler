@@ -31,6 +31,11 @@ export function createEndpoints(http: Http) {
       setObsession: (track: T.TrackRef) => http.put<void>(`${v1}/me/obsession`, track),
       clearObsession: () => http.delete<void>(`${v1}/me/obsession`),
     },
+    /** Instance settings: sign-up is open until the first account, then only if the owner reopens it. */
+    instance: {
+      get: () => http.get<T.Instance>(`${v1}/instance`),
+      update: (patch: { signupOpen?: boolean }) => http.patch<T.Instance>(`${v1}/instance`, patch),
+    },
     me: {
       get: () => http.get<T.Me>(`${v1}/me`),
       update: (patch: { private?: boolean }) => http.patch<T.Me>(`${v1}/me`, patch),

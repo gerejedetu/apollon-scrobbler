@@ -15,6 +15,7 @@ const MESSAGES: Record<string, () => string> = {
   PASSWORD_TOO_LONG: m.auth_err_password_long,
   INVALID_EMAIL: m.auth_err_email_invalid,
   EMAIL_AND_PASSWORD_SIGN_UP_IS_NOT_ENABLED: m.auth_err_signup_closed,
+  SIGNUP_CLOSED: m.auth_err_signup_closed,
 };
 
 /** Which field of the sign-up form an error belongs to, if any. */

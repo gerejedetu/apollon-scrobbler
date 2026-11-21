@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { css } from "styled-system/css";
 import { api, type Me } from "../../api/index.ts";
 import { authClient, forgetViewer } from "../../auth/index.ts";
@@ -37,6 +37,61 @@ function ReadOnly({ children }: { children: ReactNode }) {
 }
 
 type SaveState = "idle" | "saving" | "saved" | "failed";
+
+/** Owner only: whether new people may create an account on this instance (PATCH /v1/instance). */
+function SignupSetting() {
+  const [open, setOpen] = useState<boolean | null>(null);
+  const [state, setState] = useState<SaveState>("idle");
+  useEffect(() => {
+    api.instance
+      .get()
+      .then((i) => setOpen(i.signupOpen))
+      .catch(() => setState("failed"));
+  }, []);
+
+  async function toggle(next: boolean) {
+    setOpen(next);
+    setState("saving");
+    try {
+      setOpen((await api.instance.update({ signupOpen: next })).signupOpen);
+      setState("saved");
+    } catch {
+      setOpen(!next);
+      setState("failed");
+    }
+  }
+
+  return (
+    <div className={css({ display: "flex", flexDirection: "column", gap: "12px" })}>
+      <div className={css({ display: "flex", flexDirection: "column", gap: "4px" })}>
+        <span className={fieldLabel}>{m.signup_setting_title()}</span>
+        <p className={help}>{m.signup_setting_help()}</p>
+      </div>
+      <Switch
+        label={m.signup_allow()}
+        checked={open ?? false}
+        disabled={open === null || state === "saving"}
+        onCheckedChange={toggle}
+      />
+      {state === "saved" ? (
+        <span
+          role="status"
+          className={css({
+            fontSize: "12px",
+            color: "successInk",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          })}
+        >
+          <CheckIcon />
+          {m.saved()}
+        </span>
+      ) : null}
+      {state === "failed" ? <Notice tone="error">{m.setting_failed()}</Notice> : null}
+    </div>
+  );
+}
 
 /** "Profil" settings: name, membership, the private switch (PATCH /v1/me) and sign-out. */
 export function ProfileSettings({ me }: { me: Me }) {
@@ -117,6 +172,7 @@ export function ProfileSettings({ me }: { me: Me }) {
         ) : null}
         {state === "failed" ? <Notice tone="error">{m.setting_failed()}</Notice> : null}
       </div>
+      {me.owner ? <SignupSetting /> : null}
       <div
         className={css({
           display: "flex",

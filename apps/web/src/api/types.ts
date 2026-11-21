@@ -18,6 +18,14 @@ export interface Me {
   listenCount: number;
   createdAt: number;
   private: boolean;
+  /** The instance owner (first account): the only one who can open or close sign-up. */
+  owner?: boolean;
+}
+
+/** GET /v1/instance */
+export interface Instance {
+  signupOpen: boolean;
+  hasUsers: boolean;
 }
 
 export interface Mbids {
