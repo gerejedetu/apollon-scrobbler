@@ -39,17 +39,21 @@ export function createHandler(cache: ViewerCache = memoryViewerCache()) {
     // Stateless: no server-initiated stream to open (GET) and no session to end (DELETE).
     if (request.method !== "POST")
       return rpcError(405, "Method not allowed.", { allow: "POST, OPTIONS" });
+    const url = new URL(request.url);
     const authorization = apiAuthorization(request.headers.get("authorization"));
     if (!authorization)
-      return unauthorized("Send your Apollon API token as `Authorization: Bearer <token>`.");
+      return unauthorized(
+        "Sign in through OAuth, or send an Apollon API token as `Authorization: Bearer <token>`.",
+        url,
+      );
 
-    const api = connectApi(env, authorization);
+    const api = connectApi(env, authorization, url.origin);
     let me;
     try {
       me = await resolveViewer(api, authorization, cache);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401)
-        return unauthorized("Invalid or revoked API token.");
+        return unauthorized("Invalid, expired or revoked token.", url, true);
       if (e instanceof ApiError && e.status === 429) return rpcError(429, "Too many requests.");
       throw e;
     }
