@@ -117,7 +117,7 @@ describe("cover lookup", () => {
       async (ms) => void sleeps.push(ms),
     );
     expect(image).toBe(IMG);
-    expect(sleeps).toEqual([600]);
+    expect(sleeps).toEqual([800]);
   });
 
   test("gives up (no cache) when the quota keeps failing", async () => {
