@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { css, cx } from "styled-system/css";
-import { APP_NAME } from "../brand/index.ts";
+import { APP_NAME, SOURCE_URL } from "../brand/index.ts";
+import { GitHubIcon } from "../icons.tsx";
+import { m } from "../../paraglide/messages.js";
 
 const shell = css({
   minHeight: "100vh",
@@ -17,12 +19,31 @@ export function Footer() {
         borderTop: "1px solid token(colors.rule)",
         px: "24px",
         py: "20px",
-        textAlign: "center",
-        textStyle: "wide",
-        fontSize: "12px",
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "8px 16px",
       })}
     >
-      {APP_NAME.toUpperCase()}
+      <span className={css({ textStyle: "wide", fontSize: "12px" })}>{APP_NAME.toUpperCase()}</span>
+      <a
+        href={SOURCE_URL}
+        target="_blank"
+        rel="noreferrer"
+        className={css({
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+          fontSize: "12px",
+          color: "muted",
+          textDecoration: "none",
+          _hover: { color: "ink" },
+        })}
+      >
+        <GitHubIcon />
+        {m.source_code()}
+      </a>
     </footer>
   );
 }
