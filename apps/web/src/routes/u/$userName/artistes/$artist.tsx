@@ -12,7 +12,8 @@ export const Route = createFileRoute("/u/$userName/artistes/$artist")({
   loader: async ({ params: { userName, artist: name }, deps: { range } }) => {
     const offset = utcOffset();
     const timeline = (granularity: "week" | "month" | "year") =>
-      api.library.timeline(userName, name, { range, granularity, utcOffset: offset });
+      // The timeline is "the last 12 months" whatever the period picked above.
+      api.library.timeline(userName, name, { range: "all_time", granularity, utcOffset: offset });
     const [artist, month, week, year, summary] = await Promise.all([
       api.library.artist(userName, name, { range, limit: 10 }),
       timeline("month"),

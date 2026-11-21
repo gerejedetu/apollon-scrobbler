@@ -129,8 +129,11 @@ export function AlbumGrid({
 export function TrackRanking({
   userName,
   items,
+  subtitle = "artist",
 }: {
   userName: string;
+  /** What goes under the title: the artist (tops), or the album in italics (an artist's page). */
+  subtitle?: "artist" | "album";
   items: {
     artist: string;
     track: string;
@@ -173,7 +176,9 @@ export function TrackRanking({
             })}
           >
             <span className={name}>{t.track}</span>
-            <span className={css({ fontSize: "12px", color: "muted" })}>{t.artist}</span>
+            <span className={css({ fontSize: "12px", color: "muted" })}>
+              {subtitle === "album" ? t.album ? <i>{t.album}</i> : null : t.artist}
+            </span>
           </span>
           <span
             className={css({

@@ -1,20 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { api } from "../../../../api/index.ts";
+import { api, type Range } from "../../../../api/index.ts";
 import { AlbumPage } from "../../../../features/library/index.ts";
-import { textParam } from "../../../../lib/ranges.ts";
+import { isRange, textParam } from "../../../../lib/ranges.ts";
 
 export const Route = createFileRoute("/u/$userName/albums/$artist/$album")({
-  validateSearch: (search: Record<string, unknown>): { mbid?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { mbid?: string; periode?: Range } => ({
     mbid: textParam(search.mbid),
+    periode: isRange(search.periode) ? search.periode : undefined,
   }),
-  loader: ({ params }) =>
-    api.library.album(params.userName, params.artist, params.album, { range: "all_time" }),
+  loaderDeps: ({ search }) => ({ range: search.periode ?? "all_time" }),
+  loader: ({ params, deps }) =>
+    api.library.album(params.userName, params.artist, params.album, { range: deps.range }),
   head: ({ params }) => ({ meta: [{ title: `${params.album} · ${params.artist} · Needle` }] }),
   component: () => (
     <AlbumPage
       userName={Route.useParams().userName}
       album={Route.useLoaderData()}
       mbid={Route.useSearch().mbid}
+      range={Route.useLoaderDeps().range}
     />
   ),
 });

@@ -1,6 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
-import type { AlbumPage as Album } from "../../api/index.ts";
+import type { AlbumPage as Album, Range } from "../../api/index.ts";
+import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { SelectMenu } from "../../ui/zag/index.ts";
 import { barWidth, formatAgo, formatCount, formatDate } from "../../lib/format/index.ts";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { capsLabel, Stat } from "../../ui/primitives/index.ts";
@@ -12,12 +14,15 @@ export function AlbumPage({
   userName,
   album,
   mbid,
+  range,
 }: {
   userName: string;
   album: Album;
   /** Release MBID from the link that led here, for the real sleeve. */
   mbid?: string;
+  range: Range;
 }) {
+  const navigate = useNavigate();
   const max = Math.max(0, ...album.tracks.map((t) => t.listenCount));
   const artistLink = {
     to: "/u/$userName/artistes/$artist",
@@ -79,6 +84,21 @@ export function AlbumPage({
               </Link>
             }
           />
+          <div className={css({ alignSelf: "flex-start" })}>
+            <SelectMenu<Range>
+              label="Période"
+              value={range}
+              options={RANGE_OPTIONS}
+              onValueChange={(periode) =>
+                void navigate({
+                  to: "/u/$userName/albums/$artist/$album",
+                  params: { userName, artist: album.artist, album: album.album },
+                  search: (s) => ({ ...s, periode }),
+                  resetScroll: false,
+                })
+              }
+            />
+          </div>
           {album.firstListenedAt && album.lastListenedAt ? (
             <span className={css({ fontSize: "13px", color: "muted" })}>
               1re écoute le{" "}

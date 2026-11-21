@@ -1,6 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
-import type { TrackPage as Track } from "../../api/index.ts";
+import type { Range, TrackPage as Track } from "../../api/index.ts";
+import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { SelectMenu } from "../../ui/zag/index.ts";
 import {
   formatAgo,
   formatCount,
@@ -17,13 +19,16 @@ export function TrackPage({
   track,
   album,
   mbid,
+  range,
 }: {
   userName: string;
   track: Track;
   album?: string;
   /** Release MBID of that album, when known. */
   mbid?: string;
+  range: Range;
 }) {
+  const navigate = useNavigate();
   const months = fillMonths(track.byMonth);
   const record = recordOf(months);
   const artistLink = {
@@ -85,6 +90,21 @@ export function TrackPage({
               </span>
             }
           />
+          <div className={css({ mt: "10px" })}>
+            <SelectMenu<Range>
+              label="Période"
+              value={range}
+              options={RANGE_OPTIONS}
+              onValueChange={(periode) =>
+                void navigate({
+                  to: "/u/$userName/titres/$artist/$track",
+                  params: { userName, artist: track.artist, track: track.track },
+                  search: (s) => ({ ...s, periode }),
+                  resetScroll: false,
+                })
+              }
+            />
+          </div>
         </div>
       </section>
       <section
