@@ -68,6 +68,23 @@ const [artists, releases, recordings, history] = await Promise.all([
   listens(),
 ]);
 
+/** Artist pages list tracks and albums with their own album names: warm those combinations too. */
+const artistPages: Item[] = [];
+for (const a of artists) {
+  try {
+    const page = await getJson<{
+      topTracks?: { track: string; album: string | null; recordingMbid?: string | null }[];
+      albums?: { album: string; releaseMbid: string | null }[];
+    }>(`/v1/users/${encodeURIComponent(user!)}/artists/${encodeURIComponent(a.artist)}?limit=100`);
+    for (const t of page.topTracks ?? [])
+      artistPages.push({ artist: a.artist, track: t.track, album: t.album });
+    for (const al of page.albums ?? [])
+      artistPages.push({ artist: a.artist, album: al.album, mbids: { release: al.releaseMbid } });
+  } catch {
+    // An artist page that cannot be read is skipped; its covers are warmed on first view.
+  }
+}
+
 /** What each page asks for: the same source lists the browser builds (src/ui/cover/artwork.ts). */
 const jobs = new Map<string, string[]>();
 const add = (mbid: string | null | undefined, lookup: Lookup, video?: string | null) => {
@@ -75,7 +92,7 @@ const add = (mbid: string | null | undefined, lookup: Lookup, video?: string | n
   if (sources.length) jobs.set(sources.join("|"), sources);
 };
 for (const a of artists) add(null, { kind: "artist", artist: a.artist });
-for (const r of [...releases, ...recordings, ...history]) {
+for (const r of [...releases, ...recordings, ...history, ...artistPages]) {
   add(
     r.mbids?.release,
     { kind: "album", artist: r.artist, album: r.album, track: r.track },
