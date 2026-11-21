@@ -4,6 +4,7 @@ import { css } from "styled-system/css";
 import { ChevronLeft, DownloadIcon, KeyIcon, UserIcon } from "../../ui/icons.tsx";
 import { Breadcrumbs, Page } from "../../ui/layout/index.ts";
 import { AppHeader, MobileTabBar } from "../navigation/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const sideLink = css({
   display: "flex",
@@ -30,9 +31,14 @@ const tabLink = css({
 });
 
 const PAGES = [
-  { to: "/reglages", label: "Profil", icon: <UserIcon size={18} />, exact: true },
-  { to: "/reglages/tokens", label: "Tokens d'API", icon: <KeyIcon size={18} />, exact: false },
-  { to: "/reglages/import", label: "Importer", icon: <DownloadIcon size={18} />, exact: false },
+  { to: "/reglages", label: m.tab_profile, icon: <UserIcon size={18} />, exact: true },
+  { to: "/reglages/tokens", label: m.settings_tokens, icon: <KeyIcon size={18} />, exact: false },
+  {
+    to: "/reglages/import",
+    label: m.settings_import,
+    icon: <DownloadIcon size={18} />,
+    exact: false,
+  },
 ] as const;
 
 /**
@@ -58,7 +64,7 @@ export function SettingsLayout({ userName, children }: { userName: string; child
         <Link
           to="/u/$userName"
           params={{ userName }}
-          aria-label="Retour"
+          aria-label={m.back()}
           className={css({
             position: "absolute",
             left: "12px",
@@ -73,7 +79,7 @@ export function SettingsLayout({ userName, children }: { userName: string; child
         >
           <ChevronLeft size={22} />
         </Link>
-        <span className={css({ fontSize: "17px", fontWeight: "500" })}>Réglages</span>
+        <span className={css({ fontSize: "17px", fontWeight: "500" })}>{m.nav_settings()}</span>
       </div>
       <div
         className={css({
@@ -93,14 +99,14 @@ export function SettingsLayout({ userName, children }: { userName: string; child
           <Breadcrumbs
             items={[
               <Link key="h" to="/u/$userName" params={{ userName }}>
-                Accueil
+                {m.nav_home()}
               </Link>,
-              "Réglages",
+              m.nav_settings(),
             ]}
           />
         </div>
         <nav
-          aria-label="Réglages"
+          aria-label={m.nav_settings()}
           className={css({
             display: { base: "flex", sm: "none" },
             gap: "24px",
@@ -112,7 +118,7 @@ export function SettingsLayout({ userName, children }: { userName: string; child
         >
           {PAGES.map((p) => (
             <Link key={p.to} to={p.to} activeOptions={{ exact: p.exact }} className={tabLink}>
-              {p.label}
+              {p.label()}
             </Link>
           ))}
         </nav>
@@ -143,16 +149,16 @@ export function SettingsLayout({ userName, children }: { userName: string; child
                 color: "muted",
               })}
             >
-              RÉGLAGES
+              {m.settings_caps()}
             </span>
             <nav
-              aria-label="Réglages"
+              aria-label={m.nav_settings()}
               className={css({ display: "flex", flexDirection: "column", gap: "4px" })}
             >
               {PAGES.map((p) => (
                 <Link key={p.to} to={p.to} activeOptions={{ exact: p.exact }} className={sideLink}>
                   {p.icon}
-                  {p.label}
+                  {p.label()}
                 </Link>
               ))}
             </nav>

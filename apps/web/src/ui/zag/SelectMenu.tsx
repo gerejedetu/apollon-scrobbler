@@ -1,5 +1,6 @@
 import * as menu from "@zag-js/menu";
-import { normalizeProps, Portal, useMachine } from "@zag-js/react";
+import { normalizeProps, useMachine } from "@zag-js/react";
+import { Portal } from "./Portal.tsx";
 import { Fragment, useId } from "react";
 import { css } from "styled-system/css";
 import { CalendarIcon, CheckIcon, ChevronDown } from "../icons.tsx";

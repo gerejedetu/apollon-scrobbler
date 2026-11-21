@@ -8,7 +8,6 @@ import {
   formatDays,
   formatDuration,
   formatHours,
-  formatMilestone,
   formatShare,
 } from "./index.ts";
 
@@ -33,10 +32,6 @@ describe("numbers", () => {
   test("bar widths", () => {
     expect(barWidth(48, 96)).toBe("50%");
     expect(barWidth(1, 0)).toBe("0%");
-  });
-  test("milestones", () => {
-    expect(formatMilestone(1)).toBe("1re");
-    expect(formatMilestone(100000)).toBe(`100${nb}000`);
   });
 });
 

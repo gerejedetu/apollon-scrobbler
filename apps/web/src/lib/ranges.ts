@@ -1,30 +1,33 @@
 /** The API's ranges, labelled. `this_*` run to now; the others are the last complete period. */
 import type { Range } from "../api/index.ts";
+import { m } from "../paraglide/messages.js";
 
-export const RANGES: { value: Range; label: string }[] = [
-  { value: "this_week", label: "Cette semaine" },
-  { value: "this_month", label: "Ce mois-ci" },
-  { value: "this_year", label: "Cette année" },
-  { value: "week", label: "Semaine passée" },
-  { value: "month", label: "Mois passé" },
-  { value: "quarter", label: "Trimestre passé" },
-  { value: "half_yearly", label: "Semestre passé" },
-  { value: "year", label: "Année passée" },
-  { value: "all_time", label: "Depuis toujours" },
-];
+const LABELS: Record<Range, () => string> = {
+  this_week: m.range_this_week,
+  this_month: m.range_this_month,
+  this_year: m.range_this_year,
+  week: m.range_week,
+  month: m.range_month,
+  quarter: m.range_quarter,
+  half_yearly: m.range_half_yearly,
+  year: m.range_year,
+  all_time: m.range_all_time,
+};
 
-/** The ranges in the period menu, grouped like the design: current periods, past periods, all time. */
-export const RANGE_OPTIONS: { value: Range; label: string; separated?: boolean }[] = RANGES.map(
-  (r) => ({
-    ...r,
-    separated: r.value === "week" || r.value === "all_time",
-  }),
-);
+export const RANGE_VALUES = Object.keys(LABELS) as Range[];
 
-export const rangeLabel = (range: Range) => RANGES.find((r) => r.value === range)?.label ?? range;
+export const rangeLabel = (range: Range) => LABELS[range]();
+
+/** The period menu, grouped like the design: current periods, past periods, all time. */
+export const rangeOptions = (): { value: Range; label: string; separated?: boolean }[] =>
+  RANGE_VALUES.map((value) => ({
+    value,
+    label: rangeLabel(value),
+    separated: value === "week" || value === "all_time",
+  }));
 
 export function isRange(value: unknown): value is Range {
-  return typeof value === "string" && RANGES.some((r) => r.value === value);
+  return typeof value === "string" && value in LABELS;
 }
 
 /** A non-empty string search parameter, or undefined. */

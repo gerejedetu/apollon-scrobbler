@@ -11,7 +11,7 @@ import {
   localDate,
   monthKey,
 } from "../../lib/format/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { ArrowUpRight } from "../../ui/icons.tsx";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
@@ -20,13 +20,14 @@ import { SelectMenu, TextTabs } from "../../ui/zag/index.ts";
 import { TrackRanking } from "../tops/index.ts";
 import { lastMonths, LastPeriods, lastWeeks, lastYears } from "./LastPeriods.tsx";
 import { EntityTitle, recordOf } from "./shared.tsx";
+import { m } from "../../paraglide/messages.js";
 
 type Granularity = Timeline["granularity"];
 
-const CAPTIONS: Record<Granularity, string> = {
-  month: "Les 12 derniers mois, même ceux sans écoute. Le mois en cours est en violet.",
-  week: "Les 12 dernières semaines, même celles sans écoute. La semaine en cours est en violet.",
-  year: "Chaque année depuis ta première écoute. L'année en cours est en violet.",
+const CAPTIONS: Record<Granularity, () => string> = {
+  month: m.timeline_caption_month,
+  week: m.timeline_caption_week,
+  year: m.timeline_caption_year,
 };
 
 export interface ArtistData {
@@ -62,10 +63,10 @@ export function ArtistPage({
       <Breadcrumbs
         items={[
           <Link key="p" to="/u/$userName" params={{ userName }}>
-            Profil
+            {m.tab_profile()}
           </Link>,
           <Link key="a" to="/u/$userName/tops/$kind" params={{ userName, kind: "artistes" }}>
-            Artistes
+            {m.tab_artists()}
           </Link>,
           artist.artist,
         ]}
@@ -88,23 +89,23 @@ export function ArtistPage({
             gap: "18px",
           })}
         >
-          <EntityTitle kind="ARTISTE" title={artist.artist} size={36} />
+          <EntityTitle kind={m.caps_artist()} title={artist.artist} size={36} />
           <div className={css({ display: "flex", flexWrap: "wrap", gap: "28px" })}>
-            <Stat value={formatCount(artist.listenCount)} label="ÉCOUTES" />
-            <Stat value={formatCount(artist.trackCount)} label="TITRES" />
-            <Stat value={formatCount(artist.albumCount)} label="ALBUMS" />
+            <Stat value={formatCount(artist.listenCount)} label={m.caps_listens()} />
+            <Stat value={formatCount(artist.trackCount)} label={m.caps_tracks()} />
+            <Stat value={formatCount(artist.albumCount)} label={m.caps_albums()} />
             {artist.firstListenedAt ? (
-              <Stat value={formatDate(artist.firstListenedAt)} label="1RE ÉCOUTE" />
+              <Stat value={formatDate(artist.firstListenedAt)} label={m.caps_first_listen()} />
             ) : null}
             {artist.lastListenedAt ? (
-              <Stat value={formatAgo(artist.lastListenedAt)} label="DERNIÈRE" />
+              <Stat value={formatAgo(artist.lastListenedAt)} label={m.caps_last()} />
             ) : null}
           </div>
           <div className={css({ alignSelf: "flex-start" })}>
             <SelectMenu<Range>
-              label="Période"
+              label={m.period()}
               value={range}
-              options={RANGE_OPTIONS}
+              options={rangeOptions()}
               onValueChange={(periode) =>
                 void navigate({
                   to: "/u/$userName/artistes/$artist",
@@ -136,8 +137,11 @@ export function ArtistPage({
           })}
         >
           <BlockHeading
-            title="Titres les plus écoutés"
-            aside={`${artist.topTracks.length} sur ${formatCount(artist.trackCount)} titres`}
+            title={m.most_played_tracks()}
+            aside={m.n_of_tracks({
+              shown: artist.topTracks.length,
+              count: formatCount(artist.trackCount),
+            })}
           />
           <TrackRanking
             subtitle="album"
@@ -160,10 +164,10 @@ export function ArtistPage({
             fontSize: "13px",
           })}
         >
-          <h2 className={css({ m: 0, textStyle: "block" })}>Infos</h2>
+          <h2 className={css({ m: 0, textStyle: "block" })}>{m.facts()}</h2>
           {record ? (
             <span className={css({ display: "flex", justifyContent: "space-between" })}>
-              <span className={css({ color: "muted" })}>Mois record</span>
+              <span className={css({ color: "muted" })}>{m.record_month()}</span>
               <span>
                 {formatPeriodMonth(record.period)} · {formatCount(record.listenCount)}
               </span>
@@ -171,7 +175,7 @@ export function ArtistPage({
           ) : null}
           {summary.listenCount > 0 ? (
             <span className={css({ display: "flex", justifyContent: "space-between" })}>
-              <span className={css({ color: "muted" })}>Part de tes écoutes</span>
+              <span className={css({ color: "muted" })}>{m.share_of_listens()}</span>
               <span>{formatShare(artist.listenCount / summary.listenCount)}</span>
             </span>
           ) : null}
@@ -188,7 +192,7 @@ export function ArtistPage({
                 color: "violet",
               })}
             >
-              Voir sur MusicBrainz
+              {m.view_musicbrainz()}
               <ArrowUpRight />
             </a>
           ) : null}
@@ -197,7 +201,7 @@ export function ArtistPage({
 
       {artist.albums.length > 0 ? (
         <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
-          <BlockHeading title="Albums" aside="Du plus écouté au moins écouté" />
+          <BlockHeading title={m.tab_albums()} aside={m.albums_order()} />
           <div
             className={css({
               display: "grid",
@@ -241,11 +245,14 @@ export function ArtistPage({
                     {a.album}
                   </span>
                   <span>
-                    {formatCount(a.listenCount)} écoutes · {a.trackCount} titres
+                    {m.count_listens({ count: formatCount(a.listenCount) })} ·{" "}
+                    {m.count_tracks({ count: a.trackCount })}
                   </span>
                   <span className={css({ color: "muted" })}>
-                    de {formatPeriodMonth(monthKey(a.firstListenedAt))} à{" "}
-                    {formatPeriodMonth(monthKey(a.lastListenedAt))}
+                    {m.from_to({
+                      from: formatPeriodMonth(monthKey(a.firstListenedAt)),
+                      to: formatPeriodMonth(monthKey(a.lastListenedAt)),
+                    })}
                   </span>
                 </span>
               </Link>
@@ -256,7 +263,7 @@ export function ArtistPage({
 
       <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
         <TextTabs<Granularity>
-          label="Échelle"
+          label={m.scale()}
           value={granularity}
           onValueChange={setGranularity}
           renderHeading={(list) => (
@@ -270,18 +277,18 @@ export function ArtistPage({
               })}
             >
               <h2 className={css({ m: 0, textStyle: "serif", fontSize: "32px", lineHeight: 1 })}>
-                Au fil du temps
+                {m.over_time()}
               </h2>
               {list}
             </div>
           )}
           items={(["month", "week", "year"] as const).map((g) => ({
             value: g,
-            label: g === "month" ? "Par mois" : g === "week" ? "Par semaine" : "Par an",
+            label: g === "month" ? m.by_month() : g === "week" ? m.by_week() : m.by_year(),
             content: (
               <div className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
                 <LastPeriods bars={bars[g]} />
-                <span className={css({ fontSize: "12px", color: "muted" })}>{CAPTIONS[g]}</span>
+                <span className={css({ fontSize: "12px", color: "muted" })}>{CAPTIONS[g]()}</span>
               </div>
             ),
           }))}

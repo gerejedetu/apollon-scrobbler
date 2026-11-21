@@ -1,5 +1,6 @@
 import * as popover from "@zag-js/popover";
-import { normalizeProps, Portal, useMachine } from "@zag-js/react";
+import { normalizeProps, useMachine } from "@zag-js/react";
+import { Portal } from "./Portal.tsx";
 import { type ReactNode, useId } from "react";
 import { css } from "styled-system/css";
 

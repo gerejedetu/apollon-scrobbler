@@ -1,6 +1,7 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { css } from "styled-system/css";
 import { CloseIcon } from "../icons.tsx";
+import { m } from "../../paraglide/messages.js";
 
 type Show = (message: string) => void;
 const ToastContext = createContext<Show>(() => {});
@@ -51,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {message.text}
             <button
               type="button"
-              aria-label="Fermer"
+              aria-label={m.close()}
               onClick={() => setMessage(null)}
               className={css({
                 border: 0,

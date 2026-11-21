@@ -24,7 +24,7 @@ const mbid = (value: string | undefined) =>
 
 export class NotALastFmExport extends Error {
   constructor() {
-    super("Ce fichier n'est pas un export Last.fm (colonnes uts, artist, track attendues).");
+    super("Not a Last.fm export (expected columns: uts, artist, track).");
   }
 }
 

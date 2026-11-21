@@ -5,6 +5,7 @@ import { formatTime } from "../../lib/format/index.ts";
 import { AlbumCover } from "../../ui/cover/index.ts";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { formatTrackLength, listenSource } from "./source.ts";
+import { m } from "../../paraglide/messages.js";
 
 const row = css({
   position: "relative",
@@ -127,5 +128,5 @@ export function HistoryListen({ userName, listen }: { userName: string; listen: 
 }
 
 export function HistoryNowPlaying({ userName, track }: { userName: string; track: Track }) {
-  return <Row userName={userName} track={track} time="En cours" playing />;
+  return <Row userName={userName} track={track} time={m.playing()} playing />;
 }

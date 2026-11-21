@@ -9,7 +9,8 @@ import {
   localDate,
 } from "../../lib/format/index.ts";
 import { estimateListeningMs } from "../../lib/listening-time.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { dateFormat } from "../../lib/locale.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { AxisLabels } from "../../ui/charts/index.ts";
 import { ArtistCover } from "../../ui/cover/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
@@ -21,16 +22,18 @@ import { AlbumGrid, ArtistGrid, BlockTitle, moreLink, TrackRanking } from "../to
 import { rangeSentence, weekdayName } from "./copy.ts";
 import { Daily } from "./Daily.tsx";
 import type { StatsData } from "./data.ts";
+import { m } from "../../paraglide/messages.js";
 
-const monthName = new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" });
+const monthName = () => dateFormat({ month: "long", timeZone: "UTC" });
 
 /** "vs octobre", "vs 2025", "vs la semaine d'avant"… for the change figure. */
 function versus(range: Range, from: number): string {
   const before = localDate(from - 86_400);
   if (range === "this_month" || range === "month")
-    return `VS ${monthName.format(before).toUpperCase()}`;
-  if (range === "this_year" || range === "year") return `VS ${before.getUTCFullYear()}`;
-  return "VS AVANT";
+    return m.versus({ what: monthName().format(before) }).toUpperCase();
+  if (range === "this_year" || range === "year")
+    return m.versus({ what: String(before.getUTCFullYear()) }).toUpperCase();
+  return m.versus_before();
 }
 
 const aside = css({
@@ -103,11 +106,11 @@ export function StatsPage({
             gap: "12px",
           })}
         >
-          <h1 className={css({ m: 0, textStyle: "pageTitle" })}>Stats</h1>
+          <h1 className={css({ m: 0, textStyle: "pageTitle" })}>{m.nav_stats()}</h1>
           <SelectMenu<Range>
-            label="Période"
+            label={m.period()}
             value={range}
-            options={RANGE_OPTIONS}
+            options={rangeOptions()}
             onValueChange={(periode) =>
               void navigate({
                 to: "/u/$userName/stats",
@@ -127,16 +130,16 @@ export function StatsPage({
             color: "muted",
           })}
         >
-          {rangeSentence(range)}, tu as écouté{" "}
+          {m.you_listened({ when: rangeSentence(range) })}{" "}
           <b className={css({ color: "ink", fontWeight: "600" })}>
-            {formatCount(summary.listenCount)} titres
+            {m.count_tracks({ count: formatCount(summary.listenCount) })}
           </b>
           {hours > 0 ? (
             <>
               {" "}
-              pendant{" "}
+              {m.during()}{" "}
               <b className={css({ color: "ink", fontWeight: "600" })}>
-                {formatCount(hours)} heures
+                {m.count_hours({ count: formatCount(hours) })}
               </b>
             </>
           ) : null}
@@ -152,12 +155,12 @@ export function StatsPage({
             borderBottom: "1px solid token(colors.rule)",
           })}
         >
-          <Stat value={formatCount(summary.listenCount)} label="ÉCOUTES" />
-          <Stat value={formatCount(summary.artistCount)} label="ARTISTES" />
-          <Stat value={formatCount(summary.recordingCount)} label="TITRES" />
+          <Stat value={formatCount(summary.listenCount)} label={m.caps_listens()} />
+          <Stat value={formatCount(summary.artistCount)} label={m.caps_artists()} />
+          <Stat value={formatCount(summary.recordingCount)} label={m.caps_tracks()} />
           <Stat
             value={`${formatCount(summary.activeDays)} sur ${formatCount(days)}`}
-            label="JOURS ACTIFS"
+            label={m.caps_active_days()}
           />
           {change !== null && change !== undefined ? (
             <Stat
@@ -193,8 +196,8 @@ export function StatsPage({
           {data.artists.items.length ? (
             <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
               <BlockTitle
-                title="Top artistes"
-                more={more("artistes", `Les ${formatCount(data.artists.total)} artistes`)}
+                title={m.top_artists()}
+                more={more("artistes", m.all_artists({ count: formatCount(data.artists.total) }))}
               />
               <ArtistGrid
                 userName={userName}
@@ -208,8 +211,8 @@ export function StatsPage({
           {data.tracks.items.length ? (
             <section className={css({ display: "flex", flexDirection: "column", gap: "10px" })}>
               <BlockTitle
-                title="Top titres"
-                more={more("titres", `Les ${formatCount(data.tracks.total)} titres`)}
+                title={m.top_tracks()}
+                more={more("titres", m.all_tracks({ count: formatCount(data.tracks.total) }))}
               />
               <TrackRanking
                 userName={userName}
@@ -226,8 +229,8 @@ export function StatsPage({
           {data.albums.items.length ? (
             <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
               <BlockTitle
-                title="Top albums"
-                more={more("albums", `Les ${formatCount(data.albums.total)} albums`)}
+                title={m.top_albums()}
+                more={more("albums", m.all_albums({ count: formatCount(data.albums.total) }))}
               />
               <AlbumGrid
                 userName={userName}
@@ -253,10 +256,10 @@ export function StatsPage({
         >
           {hourCounts.some((n) => n > 0) ? (
             <section className={css({ display: "flex", flexDirection: "column", gap: "12px" })}>
-              <h2 className={css({ m: 0, textStyle: "block" })}>Quand tu écoutes</h2>
+              <h2 className={css({ m: 0, textStyle: "block" })}>{m.when_you_listen()}</h2>
               <div
                 role="img"
-                aria-label={`Écoutes par heure, surtout vers ${favourite} h`}
+                aria-label={m.hours_aria({ hour: favourite })}
                 className={css({
                   height: "64px",
                   display: "flex",
@@ -268,7 +271,7 @@ export function StatsPage({
                 {hourCounts.map((n, h) => (
                   <div
                     key={h}
-                    title={`${h} h : ${formatCount(n)} écoutes`}
+                    title={m.hour_listens({ hour: h, count: formatCount(n) })}
                     className={css({ flex: 1, minHeight: "2px" })}
                     style={{
                       height: `${Math.max(2, Math.round((n / hourMax) * 100))}%`,
@@ -277,12 +280,13 @@ export function StatsPage({
                   />
                 ))}
               </div>
-              <AxisLabels items={["0 h", "12 h", "23 h"]} />
+              <AxisLabels items={[0, 12, 23].map((hour) => m.hour_short({ hour }))} />
               <span className={css({ fontSize: "13px" })}>
-                Surtout vers <b className={css({ fontWeight: "600" })}>{favourite} h</b>
+                {m.mostly_around()}{" "}
+                <b className={css({ fontWeight: "600" })}>{m.hour_short({ hour: favourite })}</b>
                 {busiestDay && busiestDay.listenCount > 0 ? (
                   <>
-                    , et le{" "}
+                    {m.and_on()}{" "}
                     <b className={css({ fontWeight: "600" })}>{weekdayName(busiestDay.weekday)}</b>
                   </>
                 ) : null}
@@ -299,8 +303,8 @@ export function StatsPage({
               borderTop: "1px solid token(colors.rule)",
             })}
           >
-            <Stat value={formatDays(streaks.current.days)} label="SÉRIE EN COURS" />
-            <Stat value={formatDays(streaks.longest?.days ?? 0)} label="RECORD" />
+            <Stat value={formatDays(streaks.current.days)} label={m.streak_current()} />
+            <Stat value={formatDays(streaks.longest?.days ?? 0)} label={m.streak_record()} />
           </section>
 
           {discoveries.artists.items.length ? (
@@ -312,9 +316,9 @@ export function StatsPage({
                   alignItems: "baseline",
                 })}
               >
-                <h2 className={css({ m: 0, textStyle: "block" })}>Découvertes</h2>
+                <h2 className={css({ m: 0, textStyle: "block" })}>{m.discoveries()}</h2>
                 <span className={css({ fontSize: "12px", color: "muted" })}>
-                  {formatCount(discoveries.artists.total)} artistes
+                  {m.count_artists({ count: formatCount(discoveries.artists.total) })}
                 </span>
               </div>
               {discoveries.artists.items.map((d) => (
@@ -343,8 +347,8 @@ export function StatsPage({
                       {d.artistName}
                     </span>
                     <span className={css({ fontSize: "12px", color: "muted" })}>
-                      depuis le {formatDayMonth(d.firstListenedAt)} · {formatCount(d.listenCount)}{" "}
-                      écoutes
+                      {m.since_date({ date: formatDayMonth(d.firstListenedAt) })} ·{" "}
+                      {m.count_listens({ count: formatCount(d.listenCount) })}
                     </span>
                   </span>
                 </Link>
@@ -369,8 +373,10 @@ export function StatsPage({
             })}
           >
             <span className={css({ display: "flex", flexDirection: "column", gap: "2px" })}>
-              <span className={css({ fontSize: "13px", fontWeight: "600" })}>Ton année {year}</span>
-              <span className={css({ fontSize: "12px", color: "muted" })}>Le bilan complet</span>
+              <span className={css({ fontSize: "13px", fontWeight: "600" })}>
+                {m.your_year({ year })}
+              </span>
+              <span className={css({ fontSize: "12px", color: "muted" })}>{m.full_review()}</span>
             </span>
             <ChevronRight size={16} />
           </Link>

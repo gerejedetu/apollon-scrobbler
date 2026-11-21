@@ -17,6 +17,7 @@ import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { Empty, Stat } from "../../ui/primitives/index.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { AlbumGrid, ArtistGrid, BlockTitle, TrackRanking } from "../tops/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const muted = css({ fontSize: "12px", color: "muted" });
 
@@ -39,31 +40,40 @@ export function WrappedPage({
   const ongoing = w.year === thisYear;
   const moments = [
     w.busiestDay && {
-      label: "Jour le plus chargé",
+      label: m.moment_busiest_day(),
       value: formatDayString(w.busiestDay.date),
-      detail: `${formatCount(w.busiestDay.listenCount)} écoutes`,
+      detail: m.count_listens({ count: formatCount(w.busiestDay.listenCount) }),
     },
     w.busiestMonth && {
-      label: "Mois le plus chargé",
+      label: m.moment_busiest_month(),
       value: formatMonthName(w.busiestMonth.month),
-      detail: `${formatCount(w.busiestMonth.listenCount)} écoutes`,
+      detail: m.count_listens({ count: formatCount(w.busiestMonth.listenCount) }),
     },
     w.favouriteHour && {
-      label: "Heure préférée",
-      value: `${w.favouriteHour.hour} h`,
-      detail: `${formatCount(w.favouriteHour.listenCount)} écoutes entre ${w.favouriteHour.hour} h et ${(w.favouriteHour.hour + 1) % 24} h`,
+      label: m.moment_favourite_hour(),
+      value: m.hour_of_day({ hour: w.favouriteHour.hour }),
+      detail: m.moment_hour_detail({
+        count: formatCount(w.favouriteHour.listenCount),
+        from: w.favouriteHour.hour,
+        to: (w.favouriteHour.hour + 1) % 24,
+      }),
     },
     w.longestSession && {
-      label: "Plus longue session",
+      label: m.moment_longest_session(),
       value: formatDuration(w.longestSession.endedAt - w.longestSession.startedAt),
-      detail: `${formatCount(w.longestSession.listenCount)} écoutes, le ${formatDayMonth(w.longestSession.startedAt)} de ${formatTime(w.longestSession.startedAt)} à ${formatTime(w.longestSession.endedAt)}`,
+      detail: m.moment_session_detail({
+        count: formatCount(w.longestSession.listenCount),
+        day: formatDayMonth(w.longestSession.startedAt),
+        from: formatTime(w.longestSession.startedAt),
+        to: formatTime(w.longestSession.endedAt),
+      }),
     },
     w.longestStreakDays > 0 && {
-      label: "Plus longue série",
+      label: m.moment_longest_streak(),
       value: formatDays(w.longestStreakDays),
-      detail: "d'écoute d'affilée",
+      detail: m.moment_streak_detail(),
     },
-  ].filter((m): m is { label: string; value: string; detail: string } => Boolean(m));
+  ].filter((x): x is Exclude<typeof x, false | null | undefined | 0> => Boolean(x));
 
   return (
     <Main gap={32} padding="16px 24px 64px">
@@ -72,7 +82,7 @@ export function WrappedPage({
           <Link key="s" to="/u/$userName/stats" params={{ userName }}>
             Stats
           </Link>,
-          "Bilan annuel",
+          m.wrapped_title(),
         ]}
       />
       <section className={css({ display: "flex", flexDirection: "column", gap: "20px" })}>
@@ -87,7 +97,7 @@ export function WrappedPage({
         >
           <h1 className={css({ m: 0, textStyle: "pageTitle" })}>Bilan {w.year}</h1>
           <SelectMenu<string>
-            label="Année"
+            label={m.year_label()}
             value={String(w.year)}
             options={years.map((y) => ({ value: y, label: y }))}
             onValueChange={(y) =>
@@ -109,23 +119,23 @@ export function WrappedPage({
               color: "muted",
             })}
           >
-            En {w.year}, tu as écouté{" "}
+            {m.you_listened({ when: m.in_year({ year: w.year }) })}{" "}
             <b className={css({ color: "ink", fontWeight: "600" })}>
-              {formatCount(w.listenCount)} titres
+              {m.count_tracks({ count: formatCount(w.listenCount) })}
             </b>
             {hours > 0 ? (
               <>
                 {" "}
-                pendant{" "}
+                {m.during()}{" "}
                 <b className={css({ color: "ink", fontWeight: "600" })}>
-                  {formatCount(hours)} heures
+                  {m.count_hours({ count: formatCount(hours) })}
                 </b>
               </>
             ) : null}
             .
           </p>
           <span className={muted}>
-            {ongoing ? "Du 1er janvier à aujourd'hui" : `Du 1er janvier au 31 décembre ${w.year}`}
+            {ongoing ? m.wrapped_span_ongoing() : m.wrapped_span({ year: w.year })}
           </span>
         </div>
         <div
@@ -138,17 +148,17 @@ export function WrappedPage({
             borderBottom: "1px solid token(colors.rule)",
           })}
         >
-          <Stat value={formatCount(w.listenCount)} label="ÉCOUTES" />
-          <Stat value={formatCount(w.artistCount)} label="ARTISTES" />
-          <Stat value={formatCount(w.recordingCount)} label="TITRES" />
-          <Stat value={formatCount(w.releaseCount)} label="ALBUMS" />
-          <Stat value={formatCount(w.activeDays)} label="JOURS ACTIFS" />
-          <Stat value={formatDays(w.longestStreakDays)} label="PLUS LONGUE SÉRIE" />
+          <Stat value={formatCount(w.listenCount)} label={m.caps_listens()} />
+          <Stat value={formatCount(w.artistCount)} label={m.caps_artists()} />
+          <Stat value={formatCount(w.recordingCount)} label={m.caps_tracks()} />
+          <Stat value={formatCount(w.releaseCount)} label={m.caps_albums()} />
+          <Stat value={formatCount(w.activeDays)} label={m.caps_active_days()} />
+          <Stat value={formatDays(w.longestStreakDays)} label={m.caps_longest_streak()} />
         </div>
       </section>
 
       {w.listenCount === 0 ? (
-        <Empty>Aucune écoute cette année-là.</Empty>
+        <Empty>{m.wrapped_empty()}</Empty>
       ) : (
         <div
           className={css({
@@ -169,7 +179,7 @@ export function WrappedPage({
           >
             {w.topArtists.length ? (
               <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
-                <BlockTitle title="Top artistes" />
+                <BlockTitle title={m.top_artists()} />
                 <ArtistGrid
                   userName={userName}
                   items={w.topArtists
@@ -180,13 +190,13 @@ export function WrappedPage({
             ) : null}
             {w.topTracks.length ? (
               <section className={css({ display: "flex", flexDirection: "column", gap: "10px" })}>
-                <BlockTitle title="Top titres" />
+                <BlockTitle title={m.top_tracks()} />
                 <TrackRanking userName={userName} items={w.topTracks.slice(0, 5)} />
               </section>
             ) : null}
             {w.topAlbums.length ? (
               <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
-                <BlockTitle title="Top albums" />
+                <BlockTitle title={m.top_albums()} />
                 <AlbumGrid userName={userName} items={w.topAlbums.slice(0, 5)} />
               </section>
             ) : null}
@@ -202,10 +212,12 @@ export function WrappedPage({
                     pb: "10px",
                   })}
                 >
-                  <h2 className={css({ m: 0, textStyle: "block" })}>Meilleures découvertes</h2>
+                  <h2 className={css({ m: 0, textStyle: "block" })}>{m.best_discoveries()}</h2>
                   <span className={muted}>
-                    {formatCount(w.newArtists)} artistes et {formatCount(w.newTracks)} titres
-                    découverts
+                    {m.discovered_counts({
+                      artists: formatCount(w.newArtists),
+                      tracks: formatCount(w.newTracks),
+                    })}
                   </span>
                 </div>
                 {w.topDiscoveries.slice(0, 5).map((d) => (
@@ -252,7 +264,7 @@ export function WrappedPage({
                         {d.trackName ?? d.artistName}
                       </span>
                       <span className={muted}>
-                        {d.trackName ? `Titre · ${d.artistName}` : "Artiste"}
+                        {d.trackName ? m.track_by({ artist: d.artistName }) : m.kind_artist()}
                       </span>
                     </span>
                     <span
@@ -264,9 +276,9 @@ export function WrappedPage({
                         fontSize: "12px",
                       })}
                     >
-                      <span>{formatCount(d.listenCount)} écoutes</span>
+                      <span>{m.count_listens({ count: formatCount(d.listenCount) })}</span>
                       <span className={css({ color: "muted" })}>
-                        depuis le {formatDayMonth(d.firstListenedAt)}
+                        {m.since_day({ day: formatDayMonth(d.firstListenedAt) })}
                       </span>
                     </span>
                   </Link>
@@ -288,10 +300,12 @@ export function WrappedPage({
               <section
                 className={css({ display: "flex", flexDirection: "column", fontSize: "13px" })}
               >
-                <h2 className={css({ m: 0, pb: "10px", textStyle: "block" })}>Les moments</h2>
-                {moments.map((m) => (
+                <h2 className={css({ m: 0, pb: "10px", textStyle: "block" })}>
+                  {m.moments_title()}
+                </h2>
+                {moments.map((moment) => (
                   <div
-                    key={m.label}
+                    key={moment.label}
                     className={css({
                       display: "flex",
                       flexDirection: "column",
@@ -307,11 +321,11 @@ export function WrappedPage({
                         gap: "12px",
                       })}
                     >
-                      <span className={css({ color: "muted" })}>{m.label}</span>
-                      <span className={css({ fontWeight: "500" })}>{m.value}</span>
+                      <span className={css({ color: "muted" })}>{moment.label}</span>
+                      <span className={css({ fontWeight: "500" })}>{moment.value}</span>
                     </span>
                     <span className={css({ fontSize: "12px", color: "muted", textAlign: "right" })}>
-                      {m.detail}
+                      {moment.detail}
                     </span>
                   </div>
                 ))}
@@ -323,7 +337,7 @@ export function WrappedPage({
                     color: "muted",
                   })}
                 >
-                  À ton heure locale. Une session, ce sont des écoutes à moins de 30 min d'écart.
+                  {m.moments_note()}
                 </span>
               </section>
             ) : null}
@@ -344,9 +358,9 @@ export function WrappedPage({
             >
               <span className={css({ display: "flex", flexDirection: "column", gap: "2px" })}>
                 <span className={css({ fontSize: "13px", fontWeight: "600" })}>
-                  Tes stats du moment
+                  {m.current_stats()}
                 </span>
-                <span className={muted}>Ce mois-ci, jour par jour</span>
+                <span className={muted}>{m.this_month_daily()}</span>
               </span>
               <ChevronRight size={16} />
             </Link>

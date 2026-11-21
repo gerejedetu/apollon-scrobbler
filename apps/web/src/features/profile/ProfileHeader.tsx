@@ -5,6 +5,7 @@ import type { Me, Summary } from "../../api/index.ts";
 import { formatCompact, formatCount, formatDate, formatHours } from "../../lib/format/index.ts";
 import { PencilIcon } from "../../ui/icons.tsx";
 import { CountBadge, Stat } from "../../ui/primitives/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 /** The big round initial, name, membership line and three totals. */
 export function ProfileHeader({
@@ -18,11 +19,11 @@ export function ProfileHeader({
   me: Me | null;
 }) {
   const since = me
-    ? `Membre depuis ${formatDate(me.createdAt)}`
+    ? m.member_since({ date: formatDate(me.createdAt) })
     : summary.firstListenedAt
-      ? `Première écoute le ${formatDate(summary.firstListenedAt)}`
+      ? m.first_listen_on({ date: formatDate(summary.firstListenedAt) })
       : null;
-  const status = me ? (me.private ? "profil privé" : "profil public") : null;
+  const status = me ? (me.private ? m.profile_private_short() : m.profile_public_short()) : null;
   const hours = estimateListeningMs(
     summary.listenCount,
     summary.listeningTime.totalMs,
@@ -75,7 +76,7 @@ export function ProfileHeader({
               })}
             >
               <PencilIcon />
-              Modifier le profil
+              {m.edit_profile()}
             </Link>
           ) : null}
         </div>
@@ -86,14 +87,14 @@ export function ProfileHeader({
         ) : null}
       </div>
       <div className={css({ display: "flex", gap: "28px" })}>
-        <Stat align="center" value={formatCompact(summary.listenCount)} label="ÉCOUTES" />
-        <Stat align="center" value={formatCount(summary.artistCount)} label="ARTISTES" />
+        <Stat align="center" value={formatCompact(summary.listenCount)} label={m.caps_listens()} />
+        <Stat align="center" value={formatCount(summary.artistCount)} label={m.caps_artists()} />
         {hours > 0 ? (
           <Stat
             align="center"
             value={`≈ ${formatHours(hours)}`}
-            label="D'ÉCOUTE"
-            title="Estimé : les écoutes sans durée (imports Last.fm) comptent pour une durée moyenne de titre"
+            label={m.caps_listening()}
+            title={m.listening_estimate_note()}
           />
         ) : null}
       </div>
@@ -121,7 +122,7 @@ export function ProfileTabs({ userName, summary }: { userName: string; summary: 
   const params = { userName };
   return (
     <nav
-      aria-label="Onglets du profil"
+      aria-label={m.profile_tabs()}
       className={css({
         display: "flex",
         flexWrap: "wrap",
@@ -131,22 +132,22 @@ export function ProfileTabs({ userName, summary }: { userName: string; summary: 
       })}
     >
       <Link to="/u/$userName" params={params} activeOptions={{ exact: true }} className={tab}>
-        Profil
+        {m.tab_profile()}
       </Link>
       <Link to="/u/$userName/historique" params={params} className={tab}>
-        Historique <CountBadge>{formatCompact(summary.listenCount)}</CountBadge>
+        {m.nav_history()} <CountBadge>{formatCompact(summary.listenCount)}</CountBadge>
       </Link>
       <Link to="/u/$userName/tops/$kind" params={{ userName, kind: "artistes" }} className={tab}>
-        Artistes <CountBadge>{formatCompact(summary.artistCount)}</CountBadge>
+        {m.tab_artists()} <CountBadge>{formatCompact(summary.artistCount)}</CountBadge>
       </Link>
       <Link to="/u/$userName/tops/$kind" params={{ userName, kind: "albums" }} className={tab}>
-        Albums <CountBadge>{formatCompact(summary.releaseCount)}</CountBadge>
+        {m.tab_albums()} <CountBadge>{formatCompact(summary.releaseCount)}</CountBadge>
       </Link>
       <Link to="/u/$userName/tops/$kind" params={{ userName, kind: "titres" }} className={tab}>
-        Titres <CountBadge>{formatCompact(summary.recordingCount)}</CountBadge>
+        {m.tab_tracks()} <CountBadge>{formatCompact(summary.recordingCount)}</CountBadge>
       </Link>
       <Link to="/u/$userName/stats" params={params} className={tab}>
-        Stats
+        {m.nav_stats()}
       </Link>
     </nav>
   );

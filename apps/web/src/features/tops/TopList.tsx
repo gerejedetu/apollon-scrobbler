@@ -2,11 +2,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { Range, Top, TopItem } from "../../api/index.ts";
 import { barWidth, formatCount } from "../../lib/format/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { Button, Empty } from "../../ui/primitives/index.ts";
 import type { Kind } from "./kinds.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const row = css({
   display: "flex",
@@ -58,9 +59,9 @@ export function TopList({
     <section className={css({ display: "flex", flexDirection: "column", gap: "16px" })}>
       <div className={css({ display: "flex", justifyContent: "flex-end" })}>
         <SelectMenu<Range>
-          label="Période"
+          label={m.period()}
           value={range}
-          options={RANGE_OPTIONS}
+          options={rangeOptions()}
           onValueChange={(periode) =>
             void navigate({
               to: "/u/$userName/tops/$kind",
@@ -72,7 +73,7 @@ export function TopList({
         />
       </div>
       {top.items.length === 0 ? (
-        <Empty>Aucune écoute sur cette période.</Empty>
+        <Empty>{m.empty_period()}</Empty>
       ) : (
         <div>
           {top.items.map((item, i) => (
@@ -156,7 +157,7 @@ export function TopList({
           disabled={loadingMore}
           className={css({ alignSelf: "center" })}
         >
-          {loadingMore ? "Chargement…" : "Afficher plus"}
+          {loadingMore ? m.loading() : m.show_more()}
         </Button>
       ) : null}
     </section>

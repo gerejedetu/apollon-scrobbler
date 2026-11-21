@@ -1,74 +1,68 @@
 /**
- * Dates in French, short like the design: "12 janv. 2019", "15 nov.", "il y a 6 min".
+ * Dates short like the design: "12 janv. 2019" / "12 Jan 2019", "15 nov.", "il y a 6 min" / "6 min ago".
  * Everything is formatted in UTC after shifting by the viewer's offset, so the server render and the
  * browser print the same text (the Worker runs in UTC, the browser in local time).
  */
+import { m } from "../../paraglide/messages.js";
+import { dateFormat, intlLocale } from "../locale.ts";
 import { utcOffset } from "../timezone.ts";
 
 const DAY = 86_400;
 const UTC = { timeZone: "UTC" } as const;
 
-const dayMonthYear = new Intl.DateTimeFormat("fr-FR", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  ...UTC,
-});
-const dayMonth = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", ...UTC });
-const monthYear = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric", ...UTC });
-const monthLong = new Intl.DateTimeFormat("fr-FR", { month: "long", ...UTC });
-const clock = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", ...UTC });
-const weekdayShort = new Intl.DateTimeFormat("fr-FR", { weekday: "short", ...UTC });
-const numeric = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "2-digit",
-  ...UTC,
-});
+const dayMonthYear = () => dateFormat({ day: "numeric", month: "short", year: "numeric", ...UTC });
+const dayMonth = () => dateFormat({ day: "numeric", month: "short", ...UTC });
+const monthYear = () => dateFormat({ month: "short", year: "numeric", ...UTC });
+const monthLong = () => dateFormat({ month: "long", ...UTC });
+const clock = () => dateFormat({ hour: "2-digit", minute: "2-digit", ...UTC });
+const weekdayShort = () => dateFormat({ weekday: "short", ...UTC });
+const numeric = () => dateFormat({ day: "2-digit", month: "2-digit", year: "2-digit", ...UTC });
 
 /** A Unix time as the viewer's wall clock (read it with UTC getters or UTC formatters). */
 export const localDate = (seconds: number) => new Date((seconds + utcOffset() * 60) * 1000);
 const fromUnix = localDate;
 /** "1 nov." → "1er nov.", as French typography wants. */
-const firstOfMonth = (s: string) => s.replace(/^1 /, "1er ");
+const firstOfMonth = (s: string) => (intlLocale() === "fr-FR" ? s.replace(/^1 /, "1er ") : s);
 
-export const formatDate = (seconds: number) => firstOfMonth(dayMonthYear.format(fromUnix(seconds)));
-export const formatDayMonth = (seconds: number) => firstOfMonth(dayMonth.format(fromUnix(seconds)));
-export const formatMonthYear = (seconds: number) => monthYear.format(fromUnix(seconds));
-export const formatTime = (seconds: number) => clock.format(fromUnix(seconds));
+export const formatDate = (seconds: number) =>
+  firstOfMonth(dayMonthYear().format(fromUnix(seconds)));
+export const formatDayMonth = (seconds: number) =>
+  firstOfMonth(dayMonth().format(fromUnix(seconds)));
+export const formatMonthYear = (seconds: number) => monthYear().format(fromUnix(seconds));
+export const formatTime = (seconds: number) => clock().format(fromUnix(seconds));
 
 /** A calendar date string from the API ("2026-11-15") read as a local date. */
 export function parseDay(date: string): Date {
-  const [y, m, d] = date.split("-").map(Number);
-  return new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1));
+  const [y, mo, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y ?? 1970, (mo ?? 1) - 1, d ?? 1));
 }
 
-export const formatDayString = (date: string) => firstOfMonth(dayMonth.format(parseDay(date)));
+export const formatDayString = (date: string) => firstOfMonth(dayMonth().format(parseDay(date)));
 export const formatDayStringWithYear = (date: string) =>
-  firstOfMonth(dayMonthYear.format(parseDay(date)));
-export const formatWeekday = (date: string) => weekdayShort.format(parseDay(date));
+  firstOfMonth(dayMonthYear().format(parseDay(date)));
+export const formatWeekday = (date: string) => weekdayShort().format(parseDay(date));
 
 /** "2025-05" → "mai 2025". */
 export function formatPeriodMonth(period: string): string {
-  const [y, m] = period.split("-").map(Number);
-  return monthYear.format(new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, 1)));
+  const [y, mo] = period.split("-").map(Number);
+  return monthYear().format(new Date(Date.UTC(y ?? 1970, (mo ?? 1) - 1, 1)));
 }
 
 /** "2025-05" → "Mai". */
 export function formatMonthName(period: string): string {
-  const [y, m] = period.split("-").map(Number);
-  const name = monthLong.format(new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, 1)));
+  const [y, mo] = period.split("-").map(Number);
+  const name = monthLong().format(new Date(Date.UTC(y ?? 1970, (mo ?? 1) - 1, 1)));
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 /** How long ago, for lists of listens: "à l'instant", "il y a 6 min", "il y a 3 h", "hier", "il y a 4 j". */
 export function formatAgo(seconds: number, now = Date.now() / 1000): string {
   const diff = Math.max(0, now - seconds);
-  if (diff < 60) return "à l'instant";
-  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
-  if (diff < DAY) return `il y a ${Math.floor(diff / 3600)} h`;
-  if (diff < 2 * DAY) return "hier";
-  if (diff < 30 * DAY) return `il y a ${Math.floor(diff / DAY)} j`;
+  if (diff < 60) return m.ago_now();
+  if (diff < 3600) return m.ago_minutes({ count: Math.floor(diff / 60) });
+  if (diff < DAY) return m.ago_hours({ count: Math.floor(diff / 3600) });
+  if (diff < 2 * DAY) return m.ago_yesterday();
+  if (diff < 30 * DAY) return m.ago_days({ count: Math.floor(diff / DAY) });
   return formatDate(seconds);
 }
 
@@ -83,7 +77,7 @@ export function formatListenedAt(seconds: number, now = Date.now() / 1000): stri
 
 /** "12.01.19". */
 export const formatNumericDate = (seconds: number) =>
-  numeric.format(fromUnix(seconds)).replace(/\//g, ".");
+  numeric().format(fromUnix(seconds)).replace(/\//g, ".");
 
 /** "2025-05" of a Unix time, in the viewer's time. */
 export const monthKey = (seconds: number) => localDate(seconds).toISOString().slice(0, 7);

@@ -8,12 +8,8 @@ import { CheckIcon, SignOutIcon } from "../../ui/icons.tsx";
 import { Button, Notice } from "../../ui/primitives/index.ts";
 import { Switch } from "../../ui/zag/index.ts";
 import { settingsTitle } from "./SettingsLayout.tsx";
-
-const fullDate = new Intl.DateTimeFormat("fr-FR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+import { dateFormat } from "../../lib/locale.ts";
+import { m } from "../../paraglide/messages.js";
 
 const group = css({ display: "flex", flexDirection: "column", gap: "8px" });
 const fieldLabel = css({ fontSize: "15px", fontWeight: "500" });
@@ -74,31 +70,31 @@ export function ProfileSettings({ me }: { me: Me }) {
 
   return (
     <>
-      <h1 className={settingsTitle}>Profil</h1>
+      <h1 className={settingsTitle}>{m.tab_profile()}</h1>
       <div className={group}>
-        <span className={fieldLabel}>Nom d'utilisateur</span>
+        <span className={fieldLabel}>{m.field_username()}</span>
         <ReadOnly>{me.userName}</ReadOnly>
         <p className={help}>
-          Il apparaît dans l'adresse de ton profil : needle/
+          {m.username_help()} needle/
           <b className={css({ color: "ink", fontWeight: "500" })}>{me.userName}</b>
         </p>
       </div>
       <div className={group}>
-        <span className={fieldLabel}>Membre depuis</span>
+        <span className={fieldLabel}>{m.member_since_label()}</span>
         <ReadOnly>
-          {fullDate.format(new Date(me.createdAt * 1000))} · {formatCount(me.listenCount)} écoutes
+          {dateFormat({ day: "numeric", month: "long", year: "numeric" }).format(
+            new Date(me.createdAt * 1000),
+          )}{" "}
+          · {m.count_listens({ count: formatCount(me.listenCount) })}
         </ReadOnly>
       </div>
       <div className={css({ display: "flex", flexDirection: "column", gap: "12px" })}>
         <div className={css({ display: "flex", flexDirection: "column", gap: "4px" })}>
-          <span className={fieldLabel}>Visibilité du profil</span>
-          <p className={help}>
-            Activé, tes écoutes et tes stats ne sont visibles que par toi, une fois connecté.
-            Désactivé, n'importe qui avec l'adresse de ton profil peut les voir.
-          </p>
+          <span className={fieldLabel}>{m.profile_visibility()}</span>
+          <p className={help}>{m.private_help()}</p>
         </div>
         <Switch
-          label="Profil privé"
+          label={m.private_profile()}
           checked={isPrivate}
           disabled={state === "saving"}
           onCheckedChange={toggle}
@@ -115,12 +111,10 @@ export function ProfileSettings({ me }: { me: Me }) {
             })}
           >
             <CheckIcon />
-            Enregistré
+            {m.saved()}
           </span>
         ) : null}
-        {state === "failed" ? (
-          <Notice tone="error">Le réglage n'a pas été enregistré. Réessaie.</Notice>
-        ) : null}
+        {state === "failed" ? <Notice tone="error">{m.setting_failed()}</Notice> : null}
       </div>
       <div
         className={css({
@@ -132,11 +126,8 @@ export function ProfileSettings({ me }: { me: Me }) {
         })}
       >
         <div className={css({ display: "flex", flexDirection: "column", gap: "4px" })}>
-          <span className={fieldLabel}>Se déconnecter</span>
-          <p className={help}>
-            Tes tokens d'API continuent de fonctionner : tes applis gardent le droit d'envoyer tes
-            écoutes.
-          </p>
+          <span className={fieldLabel}>{m.signout()}</span>
+          <p className={help}>{m.signout_help()}</p>
         </div>
         <Button
           tone="outline"
@@ -145,7 +136,7 @@ export function ProfileSettings({ me }: { me: Me }) {
           className={css({ alignSelf: "flex-start", gap: "8px", fontSize: "14px" })}
         >
           <SignOutIcon />
-          Se déconnecter
+          {m.signout()}
         </Button>
       </div>
     </>

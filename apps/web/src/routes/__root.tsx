@@ -4,10 +4,12 @@ import { type ReactNode, useEffect } from "react";
 import { loadViewer } from "../auth/index.ts";
 import { RootError, RootNotFound } from "../features/errors/index.ts";
 import { initialTheme, THEME_SCRIPT } from "../lib/theme.ts";
+import { getLocale } from "../paraglide/runtime.js";
 import { rememberOffset } from "../lib/timezone.ts";
 import appCss from "../styles.css?url";
 import { ToastProvider } from "../ui/feedback/index.ts";
 import { fontsHref } from "../ui/theme/index.ts";
+import { m } from "../paraglide/messages.js";
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({ viewer: await loadViewer() }),
@@ -16,7 +18,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Needle" },
-      { name: "description", content: "Ton carnet d'écoute, tenu tout seul." },
+      { name: "description", content: m.meta_description() },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -48,7 +50,7 @@ function RootComponent() {
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html
-      lang="fr"
+      lang={getLocale()}
       className={initialTheme() === "dark" ? "dark" : undefined}
       suppressHydrationWarning
     >

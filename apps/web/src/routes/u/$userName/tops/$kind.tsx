@@ -5,6 +5,7 @@ import { isKind, KINDS, TOP_PAGE, TopsPage } from "../../../../features/tops/ind
 import { isRange } from "../../../../lib/ranges.ts";
 import { utcOffset } from "../../../../lib/timezone.ts";
 import { Main } from "../../../../ui/layout/index.ts";
+import { m } from "../../../../paraglide/messages.js";
 
 export const Route = createFileRoute("/u/$userName/tops/$kind")({
   validateSearch: (search: Record<string, unknown>): { periode?: Range } => ({
@@ -25,7 +26,10 @@ export const Route = createFileRoute("/u/$userName/tops/$kind")({
   head: ({ params }) => ({
     meta: [
       {
-        title: `${isKind(params.kind) ? KINDS[params.kind].title : "Tops"} de ${params.userName} · Needle`,
+        title: `${m.title_tops_of({
+          kind: isKind(params.kind) ? KINDS[params.kind].title() : "Tops",
+          user: params.userName,
+        })} · Needle`,
       },
     ],
   }),

@@ -1,3 +1,4 @@
+import { m } from "../../paraglide/messages.js";
 /** Turning the manual scrobble form into a listen. Pure, so the rules are tested on their own. */
 
 /** "5:30" or "5" (minutes) → milliseconds; empty → null; anything else → undefined (invalid). */
@@ -41,15 +42,15 @@ export type ScrobbleCheck = { errors: FieldErrors } | { listen: ScrobbleListen }
 
 export function validateScrobble(f: ScrobbleForm, now = Date.now() / 1000): ScrobbleCheck {
   const errors: FieldErrors = {};
-  if (!f.artist.trim()) errors.artist = "Indique l'artiste.";
-  if (!f.track.trim()) errors.track = "Indique le titre du morceau.";
+  if (!f.artist.trim()) errors.artist = m.scrobble_err_artist();
+  if (!f.track.trim()) errors.track = m.scrobble_err_track();
   const durationMs = parseDuration(f.duration);
-  if (durationMs === undefined) errors.duration = "Au format m:ss, par exemple 3:45.";
+  if (durationMs === undefined) errors.duration = m.scrobble_err_duration();
   let listenedAt = Math.floor(now);
   if (f.when === "other") {
     const at = localToUnix(f.date, f.time);
-    if (at === undefined) errors.date = "Indique la date et l'heure.";
-    else if (at > now + 60) errors.date = "Cette heure n'est pas encore passée.";
+    if (at === undefined) errors.date = m.scrobble_err_date();
+    else if (at > now + 60) errors.date = m.scrobble_err_future();
     else listenedAt = at;
   }
   if (Object.keys(errors).length) return { errors };

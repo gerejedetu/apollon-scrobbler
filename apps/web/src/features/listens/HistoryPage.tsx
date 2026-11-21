@@ -3,6 +3,7 @@ import { useState } from "react";
 import { css } from "styled-system/css";
 import type { ListensPage, Track } from "../../api/index.ts";
 import { formatCount, localDate } from "../../lib/format/index.ts";
+import { dateFormat } from "../../lib/locale.ts";
 import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight } from "../../ui/icons.tsx";
 import { Button, Empty, input } from "../../ui/primitives/index.ts";
 import { dropdownTrigger, Popover, SelectMenu } from "../../ui/zag/index.ts";
@@ -16,20 +17,12 @@ import {
   pageNumbers,
   pageRange,
 } from "./pages.ts";
+import { m } from "../../paraglide/messages.js";
 
-const weekdayDate = new Intl.DateTimeFormat("fr-FR", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  timeZone: "UTC",
-});
-const weekdayDateYear = new Intl.DateTimeFormat("fr-FR", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
+const weekdayDate = () =>
+  dateFormat({ weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const weekdayDateYear = () =>
+  dateFormat({ weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 /** Day headers: "Aujourd'hui · vendredi 20 novembre", "Hier · …", then the date itself. */
 function dayTitle(seconds: number, now: number) {
@@ -39,9 +32,9 @@ function dayTitle(seconds: number, now: number) {
     .toISOString()
     .slice(0, 10);
   const sameYear = day.slice(0, 4) === today.slice(0, 4);
-  const full = (sameYear ? weekdayDate : weekdayDateYear).format(localDate(seconds));
-  if (day === today) return { key: day, title: "Aujourd'hui", note: full };
-  if (day === yesterday) return { key: day, title: "Hier", note: full };
+  const full = (sameYear ? weekdayDate() : weekdayDateYear()).format(localDate(seconds));
+  if (day === today) return { key: day, title: m.today_title(), note: full };
+  if (day === yesterday) return { key: day, title: m.yesterday_title(), note: full };
   return { key: day, title: full.charAt(0).toUpperCase() + full.slice(1), note: "" };
 }
 
@@ -91,7 +84,7 @@ export function HistoryPage({
     if (g?.key === d.key) g.items.push(l);
     else groups.push({ ...d, items: [l] });
   }
-  if (number === 1 && nowPlaying && groups[0]?.title !== "Aujourd'hui") {
+  if (number === 1 && nowPlaying && groups[0]?.title !== m.today_title()) {
     groups.unshift({ ...dayTitle(now, now), items: [] });
   }
 
@@ -116,20 +109,20 @@ export function HistoryPage({
               lineHeight: 1.05,
             })}
           >
-            Historique
+            {m.nav_history()}
           </h1>
           <span className={css({ fontSize: "13px", color: "muted" })}>
             <b className={css({ color: "ink", fontWeight: "600" })}>{formatCount(total)}</b>{" "}
-            écoutes, de la plus récente à la plus ancienne
+            {m.history_sub()}
           </span>
         </div>
         <Popover
-          label="Aller à une date"
+          label={m.history_goto()}
           triggerClassName={dropdownTrigger}
           trigger={
             <>
               <CalendarIcon />
-              Aller à une date
+              {m.history_goto()}
               <ChevronDown size={14} />
             </>
           }
@@ -147,7 +140,7 @@ export function HistoryPage({
             >
               <input
                 type="date"
-                aria-label="Date"
+                aria-label={m.field_date()}
                 value={date}
                 max={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setDate(e.target.value)}
@@ -155,7 +148,7 @@ export function HistoryPage({
                 style={{ width: 170 }}
               />
               <Button type="submit" size="sm" disabled={!date}>
-                Aller
+                {m.go()}
               </Button>
             </form>
           )}
@@ -163,7 +156,7 @@ export function HistoryPage({
       </div>
 
       {page.listens.length === 0 && !nowPlaying ? (
-        <Empty>Pas d'écoute à cet endroit de ton historique.</Empty>
+        <Empty>{m.history_empty()}</Empty>
       ) : (
         <section className={css({ display: "flex", flexDirection: "column" })}>
           {groups.map((g, i) => (
@@ -193,7 +186,7 @@ export function HistoryPage({
       )}
 
       <nav
-        aria-label="Pagination"
+        aria-label={m.pagination()}
         className={css({
           display: "flex",
           flexWrap: "wrap",
@@ -207,9 +200,9 @@ export function HistoryPage({
           className={css({ display: "flex", alignItems: "center", gap: "16px", color: "muted" })}
         >
           <span className={css({ display: "flex", alignItems: "center", gap: "8px" })}>
-            Afficher
+            {m.show()}
             <SelectMenu<string>
-              label="Écoutes par page"
+              label={m.per_page()}
               value={String(size)}
               options={PAGE_SIZES.map((n) => ({ value: String(n), label: String(n) }))}
               onValueChange={(v) => void go({ taille: Number(v) as PageSize })}
@@ -220,7 +213,7 @@ export function HistoryPage({
               <b className={css({ color: "ink", fontWeight: "600" })}>
                 {pageRange(number, size, page.listens.length)}
               </b>{" "}
-              sur {formatCount(total)} écoutes
+              {m.of_listens({ count: formatCount(total) })}
             </span>
           ) : null}
         </div>
@@ -243,7 +236,7 @@ export function HistoryPage({
               })}
             >
               <ChevronLeft size={14} />
-              Précédent
+              {m.previous()}
             </Link>
           ) : (
             <span
@@ -259,7 +252,7 @@ export function HistoryPage({
               })}
             >
               <ChevronLeft size={14} />
-              Précédent
+              {m.previous()}
             </span>
           )}
           {number
@@ -318,7 +311,7 @@ export function HistoryPage({
                 color: "ink",
               })}
             >
-              Suivant
+              {m.next()}
               <ChevronRight size={14} />
             </Link>
           ) : null}

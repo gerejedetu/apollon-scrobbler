@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import { BarsIcon, HomeIcon, PlusIcon, PulseIcon, UserIcon } from "../../ui/icons.tsx";
+import { m } from "../../paraglide/messages.js";
 
 const tab = css({
   flex: 1,
@@ -20,7 +21,7 @@ export function MobileTabBar({ userName }: { userName: string }) {
   const params = { userName };
   return (
     <nav
-      aria-label="Navigation mobile"
+      aria-label={m.nav_mobile()}
       className={css({
         display: { base: "flex", sm: "none" },
         position: "sticky",
@@ -41,21 +42,26 @@ export function MobileTabBar({ userName }: { userName: string }) {
         to="/u/$userName"
         params={params}
         activeOptions={{ exact: true }}
-        aria-label="Accueil"
+        aria-label={m.nav_home()}
         className={tab}
       >
         <HomeIcon />
       </Link>
-      <Link to="/u/$userName/historique" params={params} aria-label="Historique" className={tab}>
+      <Link
+        to="/u/$userName/historique"
+        params={params}
+        aria-label={m.nav_history()}
+        className={tab}
+      >
         <PulseIcon />
       </Link>
-      <Link to="/scrobbler" aria-label="Scrobbler" className={tab}>
+      <Link to="/scrobbler" aria-label={m.nav_scrobble()} className={tab}>
         <PlusIcon size={24} />
       </Link>
-      <Link to="/u/$userName/stats" params={params} aria-label="Stats" className={tab}>
+      <Link to="/u/$userName/stats" params={params} aria-label={m.nav_stats()} className={tab}>
         <BarsIcon />
       </Link>
-      <Link to="/reglages" aria-label="Réglages" className={tab}>
+      <Link to="/reglages" aria-label={m.nav_settings()} className={tab}>
         <UserIcon size={24} />
       </Link>
     </nav>

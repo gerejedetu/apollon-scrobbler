@@ -4,6 +4,7 @@ import { useId } from "react";
 import { css } from "styled-system/css";
 import { CheckIcon, CopyIcon } from "../icons.tsx";
 import { button } from "../primitives/Button.tsx";
+import { m } from "../../paraglide/messages.js";
 
 const field = css({
   flex: 1,
@@ -52,7 +53,7 @@ export function CopyField({
           style={{ paddingInline: 14 }}
         >
           {api.copied ? <CheckIcon /> : <CopyIcon />}
-          {api.copied ? "Copié" : "Copier"}
+          {api.copied ? m.copied() : m.copy()}
         </button>
       </div>
     </div>
