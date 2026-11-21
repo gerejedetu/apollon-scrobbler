@@ -1,4 +1,5 @@
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig, type PluginOption } from "vite-plus";
@@ -15,6 +16,14 @@ const plugin = (p: unknown) => p as PluginOption;
 const plugins: PluginOption[] = testing
   ? [plugin(viteReact())]
   : [
+      // Compiles messages/*.json into typed message functions (src/paraglide, git-ignored).
+      plugin(
+        paraglideVitePlugin({
+          project: "./project.inlang",
+          outdir: "./src/paraglide",
+          strategy: ["cookie", "preferredLanguage", "baseLocale"],
+        }),
+      ),
       plugin(cloudflare({ viteEnvironment: { name: "ssr" } })),
       plugin(tanstackStart({ srcDirectory: "src", router: { routesDirectory: "routes" } })),
       plugin(viteReact()),

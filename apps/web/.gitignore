@@ -6,3 +6,7 @@ styled-system
 .env.cloudflare
 wrangler.deploy.jsonc
 !.env.cloudflare.example
+src/paraglide
+project.inlang/cache
+project.inlang/.gitignore
+project.inlang/README.md

@@ -4,6 +4,7 @@ import { type ReactNode, useEffect } from "react";
 import { loadViewer } from "../auth/index.ts";
 import { RootError, RootNotFound } from "../features/errors/index.ts";
 import { initialTheme, THEME_SCRIPT } from "../lib/theme.ts";
+import { getLocale } from "../paraglide/runtime.js";
 import { rememberOffset } from "../lib/timezone.ts";
 import appCss from "../styles.css?url";
 import { ToastProvider } from "../ui/feedback/index.ts";
@@ -48,7 +49,7 @@ function RootComponent() {
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html
-      lang="fr"
+      lang={getLocale()}
       className={initialTheme() === "dark" ? "dark" : undefined}
       suppressHydrationWarning
     >
