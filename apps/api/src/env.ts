@@ -18,7 +18,7 @@ export interface Bindings {
   TURSO_AUTH_TOKEN?: string;
   /**
    * Histories smaller than this skip the KV stats cache (recomputing is cheaper than a KV write).
-   * Default: 5000 on D1, 50000 on Turso, whose row reads cost far less than KV writes.
+   * Default: 5000 on D1, 500 on Turso (whose plans count rows read against a monthly allowance).
    */
   CACHE_MIN_LISTENS?: string;
   CACHE?: KVLike;

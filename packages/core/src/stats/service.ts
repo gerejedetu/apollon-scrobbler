@@ -57,11 +57,12 @@ export class StatsService {
     private readonly clock: Clock,
     private readonly cache?: Cache,
     private readonly cacheMinListens = DEFAULT_CACHE_MIN_LISTENS,
+    private readonly localCache?: Cache,
   ) {}
 
-  /** The cache to use for this user, or undefined when recomputing is cheaper (see cache/policy.ts). */
+  /** The shared cache for large histories (see cache/policy.ts), else the free per-isolate one. */
   private cacheFor(user: User): Cache | undefined {
-    return user.listenCount >= this.cacheMinListens ? this.cache : undefined;
+    return user.listenCount >= this.cacheMinListens ? this.cache : this.localCache;
   }
 
   async top(user: User, entity: StatsEntity, params: StatsParams): Promise<StatsResult> {

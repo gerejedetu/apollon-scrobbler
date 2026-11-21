@@ -24,8 +24,10 @@ export interface ServiceOptions {
   cache?: Cache;
   /** Short-lived cache for token lookups. */
   authCache?: Cache;
-  /** Users with fewer listens skip the stats cache (cheaper to recompute). Default 5000. */
+  /** Users with fewer listens skip the shared stats cache (cheaper to recompute). Default 5000. */
   cacheMinListens?: number;
+  /** Free per-isolate cache used for every user, including those below cacheMinListens. */
+  localCache?: Cache;
   /** Operator switch (env DISABLE_SIGNUP): sign-up closed whatever the instance setting says. */
   signupForceClosed?: boolean;
 }
@@ -51,7 +53,13 @@ export function createServices(
     auth: new AuthService(repos.users, tokens, options.authCache),
     users: new UserService(repos.users, clock),
     listens: new ListenService(repos.listens, repos.playingNow, clock),
-    stats: new StatsService(repos.stats, clock, options.cache, options.cacheMinListens),
+    stats: new StatsService(
+      repos.stats,
+      clock,
+      options.cache,
+      options.cacheMinListens,
+      options.localCache,
+    ),
     imports: new ImportService(repos.imports),
     insights: new InsightsService(
       repos.insights,
@@ -59,6 +67,7 @@ export function createServices(
       clock,
       options.cache,
       options.cacheMinListens,
+      options.localCache,
     ),
     favourites: new FavouriteService(repos.favourites, clock),
     instance: new InstanceService(repos.instance, options.signupForceClosed),
