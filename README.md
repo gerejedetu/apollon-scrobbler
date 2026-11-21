@@ -95,7 +95,9 @@ vp run deploy
 ```
 
 **4. Deploy the web front.** It reaches the API Worker through a service binding, so both share one origin and
-Better Auth cookies stay first-party.
+Better Auth cookies stay first-party. To serve it on your own domain, copy `apps/web/.env.cloudflare.example` to
+`apps/web/.env.cloudflare` and set `WEB_DOMAINS` (for example `scrobbler.example.com`, on a zone of your
+Cloudflare account): the deploy attaches it as a custom domain. Without it the front stays on workers.dev.
 
 ```bash
 cd ../web
