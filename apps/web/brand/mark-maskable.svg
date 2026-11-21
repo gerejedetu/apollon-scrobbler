@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Apollon: a lyre whose sound box is a rising sun. Violet and yellow from ui/theme/colors.ts. -->
+  <rect width="64" height="64" fill="#6E44FF"/>
+  <g transform="translate(32 33) scale(0.72) translate(-32 -32)">
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 45 C 15 41, 12 28, 18 20 C 21 16, 19 11, 13 11" stroke-width="5"/>
+    <path d="M39 45 C 49 41, 52 28, 46 20 C 43 16, 45 11, 51 11" stroke-width="5"/>
+    <path d="M18 19 H 46" stroke-width="4.5"/>
+    <path d="M26.5 20 V 36 M32 20 V 36 M37.5 20 V 36" stroke-width="2.5"/>
+  </g>
+  <circle cx="32" cy="45" r="9" fill="#F7B52C"/>
+  </g>
+</svg>
