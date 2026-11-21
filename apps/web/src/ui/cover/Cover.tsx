@@ -67,25 +67,35 @@ export function Cover({ round, size, mbid, lookup, youtube, className }: CoverPr
   );
 }
 
+/** Pauses before each new try of a failed /covers lookup (the provider may be over quota for a few seconds). */
+const RETRY_DELAYS_MS = [3000, 8000, 20000];
+
 /**
  * The real sleeve over the placeholder: tries each source in turn (also failures before hydration), else nothing.
- * A name lookup (/covers) that fails is retried once a few seconds later: on a first visit a page asks for many
- * new covers at once and the artwork provider may be briefly over quota.
+ * The last source, a /covers lookup, is retried a few times with growing pauses: on a first visit a page asks
+ * for many new covers at once and the artwork provider may be briefly over quota. Stored answers come back at once.
  */
 function Artwork({ sources }: { sources: string[] }) {
   const key = sources.join("|");
   const [index, setIndex] = useState(0);
-  const [retried, setRetried] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [waiting, setWaiting] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
   useEffect(() => {
     setIndex(0);
-    setRetried(false);
+    setAttempt(0);
+    setWaiting(false);
   }, [key]);
   const failed = () => {
     const current = sources[index];
     const isLast = index === sources.length - 1;
-    if (isLast && !retried && current?.startsWith("/covers?")) {
-      setRetried(true);
+    const delay = RETRY_DELAYS_MS[attempt];
+    if (isLast && delay !== undefined && current?.startsWith("/covers?")) {
+      setWaiting(true);
+      setTimeout(() => {
+        setAttempt((a) => a + 1);
+        setWaiting(false);
+      }, delay);
       return;
     }
     setIndex((i) => i + 1);
@@ -95,16 +105,9 @@ function Artwork({ sources }: { sources: string[] }) {
     if (img?.complete && img.naturalWidth === 0) failed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, index]);
-  const [delayed, setDelayed] = useState(false);
-  useEffect(() => {
-    if (!retried) return;
-    setDelayed(true);
-    const t = setTimeout(() => setDelayed(false), 4000);
-    return () => clearTimeout(t);
-  }, [retried]);
   const base = sources[index];
-  if (!base || delayed) return null;
-  const src = retried && index === sources.length - 1 ? `${base}&retry=1` : base;
+  if (!base || waiting) return null;
+  const src = attempt > 0 && index === sources.length - 1 ? `${base}&retry=${attempt}` : base;
   return (
     <img
       ref={ref}
