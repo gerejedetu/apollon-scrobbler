@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "../../../api/index.ts";
 import { FavouritesProvider, loadFavourites } from "../../../features/favourites/index.ts";
-import { HistoryPage, parseHistorySearch } from "../../../features/listens/index.ts";
+import { HistoryPage, PAGE_SIZE, parseHistorySearch } from "../../../features/listens/index.ts";
 import { utcOffset } from "../../../lib/timezone.ts";
 import { Main } from "../../../ui/layout/index.ts";
 import { m } from "../../../paraglide/messages.js";
@@ -11,10 +11,9 @@ export const Route = createFileRoute("/u/$userName/historique")({
   validateSearch: parseHistorySearch,
   loaderDeps: ({ search }) => search,
   loader: async ({ params, deps }) => {
-    const size = deps.taille ?? 50;
     const [summary, page, nowPlaying, favourites] = await Promise.all([
       api.stats.summary(params.userName, { range: "all_time", utcOffset: utcOffset() }),
-      api.listens.list(params.userName, { before: deps.avant, after: deps.apres, limit: size }),
+      api.listens.list(params.userName, { before: deps.avant, limit: PAGE_SIZE }),
       api.listens.nowPlaying(params.userName),
       loadFavourites(params.userName),
     ]);
@@ -36,6 +35,7 @@ function History() {
     <Main gap={28} padding="16px 24px 64px">
       <FavouritesProvider owner={owner} loved={favourites.loved} obsession={favourites.obsession}>
         <HistoryPage
+          key={search.avant ?? "latest"}
           userName={userName}
           page={page}
           total={total}
