@@ -89,8 +89,8 @@ Why another scrobbler?
 - **Artist, album and track pages** with first and last listen, play counts and a timeline.
 - **Album art and artist pictures** from the Cover Art Archive (by MusicBrainz release ID) with a Deezer fallback by name, cached at the edge.
 - **Last.fm import** from a CSV export.
-- **MCP server** at `/mcp`, so AI assistants (Claude, Cursor, VS Code…) can read your history and stats, search your library, love tracks and add or delete listens.
-- **Accounts and API tokens** with Better Auth (username + password, per-app API keys that you can revoke).
+- **MCP server** at `/mcp`, so AI assistants (claude.ai, Claude Desktop and Code, Cursor, VS Code…) can read your history and stats, search your library, love tracks and add or delete listens. Sign in with OAuth or an API token.
+- **Accounts and API tokens** with Better Auth (username + password, per-app API keys that you can revoke), and an OAuth 2.1 authorization server for MCP clients.
 - **Single-user by default**: sign-up closes once the first account exists, and the owner can reopen it from the settings.
 - **Private profiles**: hide your listens and stats from everyone but yourself.
 - **English and French**, light and dark themes.
@@ -251,40 +251,27 @@ ignored.
 
 Apollon ships a remote [MCP](https://modelcontextprotocol.io/) server, so an AI assistant can answer questions
 like "what did I listen to most this month?", "when did I discover Daft Punk?" or "love the track I'm playing".
-It speaks Streamable HTTP at `https://scrobbler.example.com/mcp` and signs in with the same API token as your
-scrobbling apps (create one under **Settings → API tokens**), sent as `Authorization: Bearer <token>`. It sees
-exactly what that token's account can see.
+It speaks Streamable HTTP at `https://scrobbler.example.com/mcp` and supports two ways to sign in:
 
-**Claude Code**
+- **OAuth** (claude.ai, Claude Desktop, Claude mobile and any client that follows the MCP authorization spec):
+  add the URL, then sign in to Apollon and allow access on the consent page. The client registers itself and
+  gets a token for your account only.
+- **API token** (any client that takes headers): create one under **Settings → API tokens** and send it as
+  `Authorization: Bearer <token>`, like a scrobbling app.
+
+**claude.ai and Claude Desktop.** Open **Settings → Connectors → Add custom connector**, name it Apollon and
+paste `https://scrobbler.example.com/mcp`. Claude opens Apollon's sign-in page, then asks you to allow access.
+The connector then follows you on the Claude apps signed in to the same account.
+
+**Claude Code** (OAuth: run `/mcp` after adding it to sign in, or pass a token as a header)
 
 ```bash
+claude mcp add --transport http apollon https://scrobbler.example.com/mcp
 claude mcp add --transport http apollon https://scrobbler.example.com/mcp \
   --header "Authorization: Bearer <token>"
 ```
 
-**Claude Desktop.** Custom connectors added from the app's settings only support OAuth, so go through
-[`mcp-remote`](https://www.npmjs.com/package/mcp-remote): add this to `claude_desktop_config.json` (Settings →
-Developer → Edit Config), then restart the app.
-
-```json
-{
-  "mcpServers": {
-    "apollon": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://scrobbler.example.com/mcp",
-        "--header",
-        "Authorization:${APOLLON_AUTH}"
-      ],
-      "env": { "APOLLON_AUTH": "Bearer <token>" }
-    }
-  }
-}
-```
-
-**Cursor** (`~/.cursor/mcp.json`), **Windsurf** and other clients that take a URL and headers:
+**Cursor** (`~/.cursor/mcp.json`), **Windsurf** and other clients that take a URL (and, for a token, headers):
 
 ```json
 {
