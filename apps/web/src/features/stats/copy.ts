@@ -1,23 +1,6 @@
 /** Words of the stats page that depend on the data. Pure, so they are tested on their own. */
 import type { Range } from "../../api/index.ts";
 
-/** "Tu es du soir." from the busiest hour, and the 4-hour window around it. */
-export function dayPart(hour: number): { title: string; from: number; to: number } {
-  if (hour >= 5 && hour < 12) return { title: "Tu es du matin.", from: 6, to: 10 };
-  if (hour >= 12 && hour < 18) return { title: "Tu es de l'après-midi.", from: 13, to: 17 };
-  if (hour >= 18) return { title: "Tu es du soir.", from: 20, to: 24 };
-  return { title: "Tu es de la nuit.", from: 0, to: 4 };
-}
-
-/** Share of listens within [from, to) hours. */
-export function shareBetween(hours: number[], from: number, to: number): number {
-  const total = hours.reduce((a, b) => a + b, 0);
-  if (total === 0) return 0;
-  let part = 0;
-  for (let h = from; h < to; h++) part += hours[h % 24] ?? 0;
-  return part / total;
-}
-
 const WEEKDAY_NAMES: Record<string, string> = {
   monday: "lundi",
   tuesday: "mardi",
@@ -40,6 +23,30 @@ export const weekdayName = (day: string) => WEEKDAY_NAMES[day.toLowerCase()] ?? 
 
 /** "sam", "lun"… for the weekday bars. */
 export const weekdayShort = (day: string) => weekdayName(day).slice(0, 3);
+
+/** The period in a sentence: "Ce mois-ci, tu as écouté…". */
+export function rangeSentence(range: Range): string {
+  switch (range) {
+    case "this_week":
+      return "Cette semaine";
+    case "this_month":
+      return "Ce mois-ci";
+    case "this_year":
+      return "Cette année";
+    case "week":
+      return "La semaine dernière";
+    case "month":
+      return "Le mois dernier";
+    case "quarter":
+      return "Le trimestre dernier";
+    case "half_yearly":
+      return "Le semestre dernier";
+    case "year":
+      return "L'an dernier";
+    case "all_time":
+      return "Depuis le début";
+  }
+}
 
 /** What the previous period is called in "+12 % vs …". */
 export function previousLabel(range: Range): string {

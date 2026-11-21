@@ -1,8 +1,7 @@
 import { css } from "styled-system/css";
 import type { Activity, Range } from "../../api/index.ts";
-import { formatCount, formatDayString, formatWeekday, parseDay } from "../../lib/format/index.ts";
-import { AxisLabels, Bars, type Bar } from "../../ui/charts/index.ts";
-import { displayHeading } from "../../ui/primitives/index.ts";
+import { formatCount, formatDayString, parseDay } from "../../lib/format/index.ts";
+import { AxisLabels } from "../../ui/charts/index.ts";
 import { isOngoing } from "./copy.ts";
 import { color } from "../../ui/theme/index.ts";
 
@@ -23,55 +22,65 @@ export function remainingDays(range: Range, lastDay: string): string[] {
   return out;
 }
 
-/** "Jour après jour": one bar per day, the busiest tagged, today violet. */
+/** "Écoutes par jour": a bar per day, today violet, days still to come as thin grey stubs. */
 export function Daily({ activity, range }: { activity: Activity; range: Range }) {
   const days = activity.days ?? [];
   if (days.length === 0) return null;
   const today = days.at(-1)!;
-  const future = range === "this_year" ? [] : remainingDays(range, today.date);
+  const future = remainingDays(range, today.date);
   const peak = days.reduce((best, d) => (d.listenCount > best.listenCount ? d : best), days[0]!);
-  const bars: Bar[] = [
-    ...days.map((d) => ({
-      value: d.listenCount,
-      color:
-        isOngoing(range) && d === today
-          ? color("violet")
-          : d === peak && peak.listenCount > 0
-            ? color("ink")
-            : color("yellow"),
-      label: `${formatDayString(d.date)} : ${formatCount(d.listenCount)}`,
-      tag:
-        d === peak && peak.listenCount > 0
-          ? `${formatWeekday(d.date)} ${parseDay(d.date).getUTCDate()} · ${d.listenCount}`
-          : undefined,
-    })),
-    ...future.map(() => ({ value: 0, pending: true })),
-  ];
-  const first = days[0]!;
-  const lastLabel = future.length ? formatDayString(future.at(-1)!) : formatDayString(today.date);
+  const max = Math.max(1, peak.listenCount);
+  const all = [...days.map((d) => d.date), ...future];
+  const label = (date: string) => formatDayString(date);
   return (
-    <section className={css({ display: "flex", flexDirection: "column", gap: "16px" })}>
-      <h2 className={displayHeading.serif}>Jour après jour</h2>
-      <Bars
-        bars={bars}
-        height={220}
-        gap={bars.length > 60 ? 1 : 4}
-        topPadding={36}
-        baseline="1px solid var(--colors-ink)"
-        label="Écoutes par jour"
-      />
+    <section className={css({ display: "flex", flexDirection: "column", gap: "12px" })}>
+      <div
+        className={css({
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: "12px",
+        })}
+      >
+        <h2 className={css({ m: 0, textStyle: "block" })}>Écoutes par jour</h2>
+        {peak.listenCount > 0 ? (
+          <span className={css({ fontSize: "12px", color: "muted" })}>
+            Record :{" "}
+            <b className={css({ color: "ink", fontWeight: "500" })}>
+              {formatCount(peak.listenCount)}
+            </b>{" "}
+            le {label(peak.date)}
+          </span>
+        ) : null}
+      </div>
+      <div
+        role="img"
+        aria-label={`Écoutes par jour, record ${peak.listenCount} le ${label(peak.date)}`}
+        className={css({
+          height: "120px",
+          display: "flex",
+          alignItems: "flex-end",
+          borderBottom: "1px solid token(colors.rule)",
+        })}
+        style={{ gap: all.length > 60 ? 1 : 4 }}
+      >
+        {days.map((d) => (
+          <div
+            key={d.date}
+            title={`${label(d.date)} : ${formatCount(d.listenCount)} écoutes`}
+            className={css({ flex: 1, minHeight: "2px" })}
+            style={{
+              height: `${Math.round((d.listenCount / max) * 100)}%`,
+              background: isOngoing(range) && d === today ? color("violet") : color("yellow"),
+            }}
+          />
+        ))}
+        {future.map((date) => (
+          <div key={date} className={css({ flex: 1, height: "2px", bg: "rule" })} />
+        ))}
+      </div>
       <AxisLabels
-        items={[
-          formatDayString(first.date),
-          ...(isOngoing(range) && future.length
-            ? [
-                <span key="t" className={css({ color: "violet", fontWeight: "600" })}>
-                  aujourd'hui
-                </span>,
-              ]
-            : []),
-          lastLabel,
-        ]}
+        items={[label(all[0]!), label(all[Math.floor(all.length / 2)]!), label(all.at(-1)!)]}
       />
     </section>
   );
