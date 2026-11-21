@@ -33,7 +33,7 @@ function Row({
   const source = listenSource(track);
   const fav = useFavourites();
   return (
-    <div className={row} style={playing ? { background: "var(--colors-violet-soft)" } : undefined}>
+    <div className={row}>
       <span
         className={css({
           width: "44px",
