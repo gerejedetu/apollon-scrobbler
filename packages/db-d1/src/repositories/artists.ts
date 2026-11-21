@@ -35,5 +35,18 @@ export function d1Artists(db: D1Like): ArtistRepository {
         .bind(JSON.stringify(pairs))
         .run();
     },
+    async knownAlbums(userId, pairs) {
+      if (pairs.length === 0) return new Set();
+      // Each pair seeks (user_id, artist_name, ...) and stops at the first listen of that album.
+      const { results } = await db
+        .prepare(
+          `SELECT json_extract(p.value, '$[0]') AS artist, json_extract(p.value, '$[1]') AS album FROM json_each(?2) AS p
+           WHERE EXISTS (SELECT 1 FROM listens WHERE user_id = ?1 AND artist_name = json_extract(p.value, '$[0]')
+                         AND release_name = json_extract(p.value, '$[1]'))`,
+        )
+        .bind(userId, JSON.stringify(pairs))
+        .all<{ artist: string; album: string }>();
+      return new Set(results.map((r) => `${r.artist}\u0000${r.album}`));
+    },
   };
 }

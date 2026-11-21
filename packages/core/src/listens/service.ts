@@ -7,6 +7,7 @@ import type {
   PlayingNowRepository,
 } from "../ports/index.ts";
 import { bilingualParts, canonicalArtist, hasNativeScript } from "../artists/names.ts";
+import { canonicalAlbum, editionBase, hasEditionMarker, withoutAdvisory } from "../albums/names.ts";
 import { LISTEN_LIMITS } from "./limits.ts";
 import { toApiListen, toNewListen } from "./mapping.ts";
 import { validateSubmission } from "./validate.ts";
@@ -84,6 +85,38 @@ export class ListenService {
     return out;
   }
 
+  /**
+   * One name per album: "Midnights [Clean]" is stored as "Midnights", and "X (Deluxe)" joins "X" when the
+   * library already has it. Only names carrying such a marker cost a lookup.
+   */
+  private async canonicalAlbums(
+    user: User,
+    listens: { trackMetadata: TrackMetadata }[],
+  ): Promise<void> {
+    const marked = listens.filter(
+      (l) => l.trackMetadata.release_name && hasEditionMarker(l.trackMetadata.release_name),
+    );
+    if (marked.length === 0) return;
+    const pairs = new Map<string, [string, string]>();
+    for (const { trackMetadata: m } of marked) {
+      const clean = withoutAdvisory(m.release_name!);
+      for (const album of [clean, editionBase(clean)])
+        pairs.set(`${m.artist_name}\u0000${album}`, [m.artist_name, album]);
+    }
+    const known = this.artists
+      ? await this.artists.knownAlbums(user.id, [...pairs.values()])
+      : new Set<string>();
+    for (const l of marked) {
+      const m = l.trackMetadata;
+      const prefix = `${m.artist_name}\u0000`;
+      const ofArtist = new Set(
+        [...known].filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length)),
+      );
+      const album = canonicalAlbum(m.release_name!, ofArtist);
+      if (album !== m.release_name) l.trackMetadata = { ...m, release_name: album };
+    }
+  }
+
   async submit(user: User, body: unknown): Promise<SubmitResult> {
     const submission = validateSubmission(body);
     const now = this.clock();
@@ -95,6 +128,7 @@ export class ListenService {
       const artist = renamed.get(l.trackMetadata.artist_name);
       if (artist) l.trackMetadata = { ...l.trackMetadata, artist_name: artist };
     }
+    await this.canonicalAlbums(user, submission.listens);
 
     if (submission.listenType === "playing_now") {
       const [listen] = submission.listens;

@@ -305,3 +305,28 @@ describe("one name per artist", () => {
     expect((await s.listens.current(user))?.artist_name).toBe("Heize");
   });
 });
+
+describe("one name per album", () => {
+  test("Midnights [Clean] is stored as Midnights; a deluxe edition joins the album the library has", async () => {
+    const { user } = await signUp("alice");
+    const one = (album: string, t: number) => ({
+      listen_type: "single",
+      payload: [
+        {
+          listened_at: T0 + t,
+          track_metadata: { artist_name: "Taylor Swift", track_name: `T${t}`, release_name: album },
+        },
+      ],
+    });
+    await s.listens.submit(user, one("Midnights", 1));
+    await s.listens.submit(user, one("Midnights [Clean]", 2));
+    await s.listens.submit(user, one("Midnights (3am Edition)", 3));
+    await s.listens.submit(user, one("Lover (Deluxe)", 4));
+    expect(repos._listens.map((l) => l.releaseName)).toEqual([
+      "Midnights",
+      "Midnights",
+      "Midnights",
+      "Lover (Deluxe)",
+    ]);
+  });
+});
