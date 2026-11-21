@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { Range } from "../../../api/index.ts";
 import { loadProfile, ProfilePage } from "../../../features/profile/index.ts";
 import { isRange } from "../../../lib/ranges.ts";
+import { pageTitle } from "../../../ui/brand/index.ts";
 
 export const Route = createFileRoute("/u/$userName/")({
   validateSearch: (search: Record<string, unknown>): { periode?: Range } => ({
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/u/$userName/")({
   }),
   loaderDeps: ({ search }) => ({ range: search.periode ?? "this_month" }),
   loader: ({ params, deps }) => loadProfile(params.userName, deps.range),
-  head: ({ params }) => ({ meta: [{ title: `${params.userName} · Needle` }] }),
+  head: ({ params }) => ({ meta: [{ title: pageTitle(params.userName) }] }),
   component: Profile,
 });
 

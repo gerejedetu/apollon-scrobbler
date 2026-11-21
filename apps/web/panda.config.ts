@@ -1,7 +1,7 @@
 import { defineConfig } from "@pandacss/dev";
 import { breakpoints, semanticTokens, textStyles, tokens } from "./src/ui/theme/index.ts";
 
-/** Needle design system (see src/ui/theme). Generated code is git-ignored; `prepare` regenerates it. */
+/** Apollon design system (see src/ui/theme). Generated code is git-ignored; `prepare` regenerates it. */
 export default defineConfig({
   // Panda 2 injects no preset: base gives utilities, shorthands and conditions; tokens are all ours.
   presets: ["@pandacss/preset-base"],

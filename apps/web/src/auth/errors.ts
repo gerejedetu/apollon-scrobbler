@@ -1,5 +1,5 @@
 import { m } from "../paraglide/messages.js";
-/** Better Auth error codes, said the Needle way. Unknown codes fall back to the server's message. */
+/** Better Auth error codes, said the Apollon way. Unknown codes fall back to the server's message. */
 /** Message functions, called when shown so they follow the current language. */
 const MESSAGES: Record<string, () => string> = {
   INVALID_EMAIL_OR_PASSWORD: m.auth_err_credentials,

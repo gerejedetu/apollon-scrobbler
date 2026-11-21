@@ -3,6 +3,7 @@ import { api } from "../../../api/index.ts";
 import { WrappedPage } from "../../../features/wrapped/index.ts";
 import { utcOffset } from "../../../lib/timezone.ts";
 import { m } from "../../../paraglide/messages.js";
+import { pageTitle } from "../../../ui/brand/index.ts";
 
 export const Route = createFileRoute("/u/$userName/bilan")({
   validateSearch: (search: Record<string, unknown>): { annee?: number } => {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/u/$userName/bilan")({
     };
   },
   head: ({ params }) => ({
-    meta: [{ title: `${m.title_wrapped_of({ user: params.userName })} · Needle` }],
+    meta: [{ title: pageTitle(m.title_wrapped_of({ user: params.userName })) }],
   }),
   component: () => {
     const { wrapped, firstYear } = Route.useLoaderData();

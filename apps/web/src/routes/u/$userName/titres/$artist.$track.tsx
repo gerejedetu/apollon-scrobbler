@@ -3,6 +3,7 @@ import { api, type Range } from "../../../../api/index.ts";
 import { TrackPage } from "../../../../features/library/index.ts";
 import { isRange, textParam } from "../../../../lib/ranges.ts";
 import { utcOffset } from "../../../../lib/timezone.ts";
+import { pageTitle } from "../../../../ui/brand/index.ts";
 
 export const Route = createFileRoute("/u/$userName/titres/$artist/$track")({
   validateSearch: (
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/u/$userName/titres/$artist/$track")({
       range: deps.range,
       utcOffset: utcOffset(),
     }),
-  head: ({ params }) => ({ meta: [{ title: `${params.track} · ${params.artist} · Needle` }] }),
+  head: ({ params }) => ({ meta: [{ title: pageTitle(params.track, params.artist) }] }),
   component: () => {
     const { album, mbid } = Route.useSearch();
     return (

@@ -1,4 +1,4 @@
-/** Figures as Needle prints them: "1 204" / "1,204", "142k", "7,3 %" / "7.3%". */
+/** Figures as Apollon prints them: "1 204" / "1,204", "142k", "7,3 %" / "7.3%". */
 import { numberFormat } from "../locale.ts";
 
 const integer = () => numberFormat({ maximumFractionDigits: 0 });

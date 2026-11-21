@@ -7,7 +7,7 @@ import { formText } from "./form.ts";
 import { authFoot, authForm, authTitle } from "./layout.tsx";
 import { m } from "../../paraglide/messages.js";
 
-/** "Connexion à Needle": e-mail and password, then back where the visitor was going. */
+/** "Connexion à Apollon": e-mail and password, then back where the visitor was going. */
 export function SignInForm({ created, redirectTo }: { created?: boolean; redirectTo?: string }) {
   const router = useRouter();
   const navigate = useNavigate();

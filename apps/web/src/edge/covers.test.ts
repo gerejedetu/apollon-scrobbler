@@ -85,7 +85,7 @@ describe("cover lookup", () => {
       put: async (r: Request, res: Response) => void store.set(r.url, res),
     };
     const hit = deezer(() => ({ data: [{ cover_medium: IMG }] }));
-    const req = new Request("https://needle.example/covers?artist=A&album=B&size=medium");
+    const req = new Request("https://apollon.example/covers?artist=A&album=B&size=medium");
     const first = await handleCovers(req, { cache, fetcher: hit as unknown as typeof fetch });
     expect(first.status).toBe(302);
     expect(first.headers.get("location")).toBe(IMG);
@@ -93,13 +93,13 @@ describe("cover lookup", () => {
     expect(hit).toHaveBeenCalledTimes(1);
 
     const miss = deezer(() => ({ data: [] }));
-    const res = await handleCovers(new Request("https://needle.example/covers?artist=A&album=Z"), {
+    const res = await handleCovers(new Request("https://apollon.example/covers?artist=A&album=Z"), {
       cache,
       fetcher: miss as unknown as typeof fetch,
     });
     expect(res.status).toBe(404);
     expect(
-      (await handleCovers(new Request("https://needle.example/covers"), { cache })).status,
+      (await handleCovers(new Request("https://apollon.example/covers"), { cache })).status,
     ).toBe(400);
   });
 });
