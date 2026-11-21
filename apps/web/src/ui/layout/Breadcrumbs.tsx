@@ -1,11 +1,12 @@
 import { Fragment, type ReactNode } from "react";
 import { css } from "styled-system/css";
+import { m } from "../../paraglide/messages.js";
 
 /** "Profil › Artistes › Radiohead": every crumb but the last is a link. */
 export function Breadcrumbs({ items }: { items: ReactNode[] }) {
   return (
     <nav
-      aria-label="Fil d'Ariane"
+      aria-label={m.breadcrumbs()}
       className={css({
         fontSize: "12px",
         color: "muted",

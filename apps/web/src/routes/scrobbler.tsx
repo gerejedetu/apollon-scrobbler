@@ -3,10 +3,11 @@ import { requireViewer } from "../auth/index.ts";
 import { AppHeader, MobileTabBar } from "../features/navigation/index.ts";
 import { ScrobblePage } from "../features/scrobble/index.ts";
 import { Main, Page } from "../ui/layout/index.ts";
+import { m } from "../paraglide/messages.js";
 
 export const Route = createFileRoute("/scrobbler")({
   beforeLoad: ({ context, location }) => ({ me: requireViewer(context.viewer, location.href) }),
-  head: () => ({ meta: [{ title: "Scrobbler une écoute · Needle" }] }),
+  head: () => ({ meta: [{ title: `${m.title_scrobble()} · Needle` }] }),
   component: Scrobbler,
 });
 

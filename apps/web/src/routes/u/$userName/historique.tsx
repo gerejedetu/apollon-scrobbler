@@ -4,6 +4,7 @@ import { FavouritesProvider, loadFavourites } from "../../../features/favourites
 import { HistoryPage, parseHistorySearch } from "../../../features/listens/index.ts";
 import { utcOffset } from "../../../lib/timezone.ts";
 import { Main } from "../../../ui/layout/index.ts";
+import { m } from "../../../paraglide/messages.js";
 
 export const Route = createFileRoute("/u/$userName/historique")({
   validateSearch: parseHistorySearch,
@@ -18,7 +19,9 @@ export const Route = createFileRoute("/u/$userName/historique")({
     ]);
     return { total: summary.listenCount, page, nowPlaying: nowPlaying.nowPlaying, favourites };
   },
-  head: ({ params }) => ({ meta: [{ title: `Historique de ${params.userName} · Needle` }] }),
+  head: ({ params }) => ({
+    meta: [{ title: `${m.title_history_of({ user: params.userName })} · Needle` }],
+  }),
   component: History,
 });
 

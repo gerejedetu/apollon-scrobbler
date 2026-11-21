@@ -9,6 +9,7 @@ import { rememberOffset } from "../lib/timezone.ts";
 import appCss from "../styles.css?url";
 import { ToastProvider } from "../ui/feedback/index.ts";
 import { fontsHref } from "../ui/theme/index.ts";
+import { m } from "../paraglide/messages.js";
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({ viewer: await loadViewer() }),
@@ -17,7 +18,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Needle" },
-      { name: "description", content: "Ton carnet d'écoute, tenu tout seul." },
+      { name: "description", content: m.meta_description() },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

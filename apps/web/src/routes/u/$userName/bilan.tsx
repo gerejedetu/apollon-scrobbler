@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { api } from "../../../api/index.ts";
 import { WrappedPage } from "../../../features/wrapped/index.ts";
 import { utcOffset } from "../../../lib/timezone.ts";
+import { m } from "../../../paraglide/messages.js";
 
 export const Route = createFileRoute("/u/$userName/bilan")({
   validateSearch: (search: Record<string, unknown>): { annee?: number } => {
@@ -26,7 +27,9 @@ export const Route = createFileRoute("/u/$userName/bilan")({
         : wrapped.year,
     };
   },
-  head: ({ params }) => ({ meta: [{ title: `Bilan de ${params.userName} · Needle` }] }),
+  head: ({ params }) => ({
+    meta: [{ title: `${m.title_wrapped_of({ user: params.userName })} · Needle` }],
+  }),
   component: () => {
     const { wrapped, firstYear } = Route.useLoaderData();
     return (

@@ -1,6 +1,7 @@
 /** Small typographic pieces repeated on every screen. */
 import type { ReactNode } from "react";
 import { css, cx } from "styled-system/css";
+import { m } from "../../paraglide/messages.js";
 
 export const capsLabel = css({ textStyle: "label", color: "muted", textTransform: "uppercase" });
 
@@ -44,7 +45,7 @@ export function NewTag({ className }: { className?: string }) {
         className,
       )}
     >
-      NOUVEAU
+      {m.new_tag()}
     </span>
   );
 }
