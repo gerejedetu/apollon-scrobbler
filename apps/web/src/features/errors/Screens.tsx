@@ -92,7 +92,7 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
 /** At the root, where no layout drew a header yet. */
 export function RootNotFound() {
   return (
-    <Page header={<BareHeader right={<PreferencesMenu />} />}>
+    <Page header={<BareHeader left={<PreferencesMenu />} />}>
       <NotFound />
     </Page>
   );
@@ -100,7 +100,7 @@ export function RootNotFound() {
 
 export function RootError(props: ErrorComponentProps) {
   return (
-    <Page header={<BareHeader right={<PreferencesMenu />} />}>
+    <Page header={<BareHeader left={<PreferencesMenu />} />}>
       <RouteError {...props} />
     </Page>
   );

@@ -17,7 +17,7 @@ export const authFoot = css({ m: 0, textAlign: "center", fontSize: "12px", color
 /** The narrow centred column of the account screens. */
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <Page header={<BareHeader right={<PreferencesMenu />} />}>
+    <Page header={<BareHeader left={<PreferencesMenu />} />}>
       <Main narrow gap={20} padding="56px 24px 80px">
         {children}
       </Main>

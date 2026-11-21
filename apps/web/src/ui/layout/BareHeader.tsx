@@ -8,10 +8,9 @@ export const headerBar = css({
   boxSizing: "border-box",
   mx: "auto",
   display: "flex",
-  flexWrap: "wrap",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: "12px 24px",
+  gap: { base: "12px", sm: "24px" },
   px: { base: "16px", sm: "24px" },
   py: "14px",
 });
@@ -23,12 +22,12 @@ export const headerSide = css({
 });
 export const logo = css({ textDecoration: "none", textStyle: "logo", color: "ink" });
 
-/** Top bar with only the mark, centred (account screens), or the mark and something on the right. */
-export function BareHeader({ right }: { right?: ReactNode }) {
+/** Top bar with the mark centred between two equal sides (account screens, errors). */
+export function BareHeader({ left, right }: { left?: ReactNode; right?: ReactNode }) {
   return (
     <header>
       <div className={headerBar}>
-        <span className={headerSide} />
+        <span className={headerSide}>{left}</span>
         <Link to="/" className={logo}>
           <Wordmark />
         </Link>
