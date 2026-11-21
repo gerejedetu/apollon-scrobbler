@@ -308,7 +308,6 @@ More detail for contributors is in [AGENTS.md](AGENTS.md).
 - [x] English and French, light and dark themes
 - [x] Turso as the production database
 - [ ] MCP server, so AI assistants can read your listening history and stats
-- [ ] Last.fm-compatible scrobbling API
 
 See the [open issues](https://github.com/powpowchuuuu/stunning-winner/issues) for proposed features and known issues.
 
