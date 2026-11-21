@@ -4,6 +4,7 @@ import { FlameIcon, HeartIcon, TrashIcon } from "../../ui/icons.tsx";
 import { ActionMenu } from "../../ui/zag/index.ts";
 import { useFavourites } from "./context.tsx";
 import { color } from "../../ui/theme/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 /** The "⋯" of a listen, for its owner: love, obsession, delete. */
 export function ListenActions({ listen, onDelete }: { listen: Listen; onDelete: () => void }) {
@@ -13,21 +14,21 @@ export function ListenActions({ listen, onDelete }: { listen: Listen; onDelete: 
   const obsession = fav.isObsession(listen);
   return (
     <ActionMenu
-      label={`Actions sur l'écoute de ${listen.track}`}
+      label={m.listen_actions({ track: listen.track })}
       items={[
         {
           value: "love",
-          label: loved ? "Retirer des coups de cœur" : "Coup de cœur",
+          label: loved ? m.unlove() : m.love(),
           icon: <HeartIcon color={color("danger")} filled={loved} />,
         },
         {
           value: "obsession",
-          label: obsession ? "Ce n'est plus mon obsession" : "Mon obsession du moment",
+          label: obsession ? m.obsession_clear() : m.obsession_make(),
           icon: <FlameIcon color={color("violet")} />,
         },
         {
           value: "delete",
-          label: "Supprimer cette écoute",
+          label: m.listen_delete(),
           icon: <TrashIcon />,
           tone: "danger",
           separated: true,
@@ -49,7 +50,7 @@ export function LovedMark({ track }: { track: { artist: string; track: string } 
   return (
     <span
       role="img"
-      aria-label="Coup de cœur"
+      aria-label={m.love()}
       className={css({ color: "violet", display: "inline-flex", flexShrink: 0 })}
     >
       <HeartIcon size={12} filled />

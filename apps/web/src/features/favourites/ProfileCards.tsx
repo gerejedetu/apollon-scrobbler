@@ -6,6 +6,7 @@ import { FlameIcon, HeartIcon } from "../../ui/icons.tsx";
 import { CountBadge } from "../../ui/primitives/index.ts";
 import { AlbumCover } from "../../ui/cover/index.ts";
 import { useFavourites } from "./context.tsx";
+import { m } from "../../paraglide/messages.js";
 
 const stack = css({ display: "flex", flexDirection: "column", gap: "12px" });
 const heading = css({
@@ -26,7 +27,7 @@ export function ObsessionCard({ userName }: { userName: string }) {
         <span className={css({ color: "violet", display: "inline-flex" })}>
           <FlameIcon />
         </span>
-        Obsession du moment
+        {m.obsession_title()}
       </h2>
       <Link
         to="/u/$userName/titres/$artist/$track"
@@ -64,7 +65,7 @@ export function ObsessionCard({ userName }: { userName: string }) {
           </span>
           {obsession.since ? (
             <span className={css({ fontSize: "11px", color: "muted" })}>
-              depuis le {formatDayMonth(obsession.since)}
+              {m.since_date({ date: formatDayMonth(obsession.since) })}
             </span>
           ) : null}
         </span>
@@ -89,7 +90,7 @@ export function LovedCard({
   return (
     <section className={stack}>
       <h2 className={heading}>
-        Coups de cœur <CountBadge>{total}</CountBadge>
+        {m.loved_title()} <CountBadge>{total}</CountBadge>
       </h2>
       {shown.map((f) => (
         <Link

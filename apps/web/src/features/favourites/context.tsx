@@ -7,6 +7,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { api, type Favourite, type Listen, type Track, type TrackRef } from "../../api/index.ts";
 import { forgetViewer } from "../../auth/index.ts";
 import { useToast } from "../../ui/feedback/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 export const trackKey = (artist: string, track: string) => `${artist}\u0000${track}`;
 
@@ -86,7 +87,7 @@ export function FavouritesProvider({
         try {
           if (was) await api.favourites.unlove(t);
           else await api.favourites.love(toRef(t));
-          toast(was ? "Retiré de tes coups de cœur." : "Ajouté à tes coups de cœur.");
+          toast(was ? m.loved_removed() : m.loved_added());
         } catch {
           setKeys((k) => {
             const next = new Set(k);
@@ -94,7 +95,7 @@ export function FavouritesProvider({
             else next.delete(key);
             return next;
           });
-          toast("Ça n'a pas marché. Réessaie.");
+          toast(m.error_generic());
         }
       },
       async toggleObsession(t) {
@@ -114,10 +115,10 @@ export function FavouritesProvider({
         try {
           if (clearing) await api.favourites.clearObsession();
           else await api.favourites.setObsession(toRef(t));
-          toast(clearing ? "Plus d'obsession pour l'instant." : "C'est ton obsession du moment.");
+          toast(clearing ? m.obsession_cleared() : m.obsession_set());
         } catch {
           setObsession(previous);
-          toast("Ça n'a pas marché. Réessaie.");
+          toast(m.error_generic());
         }
       },
       isDeleted: (l) => deleted.has(listenKey(l)),
@@ -125,11 +126,11 @@ export function FavouritesProvider({
         try {
           await api.listens.delete(l);
           setDeleted((d) => new Set(d).add(listenKey(l)));
-          toast("Écoute supprimée.");
+          toast(m.listen_deleted());
           forgetViewer();
           await router.invalidate();
         } catch {
-          toast("L'écoute n'a pas été supprimée. Réessaie.");
+          toast(m.listen_delete_failed());
         }
       },
     }),

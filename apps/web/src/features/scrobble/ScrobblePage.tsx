@@ -6,6 +6,7 @@ import { forgetViewer } from "../../auth/index.ts";
 import { CheckIcon } from "../../ui/icons.tsx";
 import { Button, Field } from "../../ui/primitives/index.ts";
 import { type FieldErrors, type ScrobbleForm, validateScrobble } from "./model.ts";
+import { m } from "../../paraglide/messages.js";
 
 const two = (n: number) => String(n).padStart(2, "0");
 function nowLocal() {
@@ -22,7 +23,9 @@ const required = (
     *
   </span>
 );
-const optional = <span className={css({ fontWeight: "400", color: "muted" })}> · facultatif</span>;
+const optional = (
+  <span className={css({ fontWeight: "400", color: "muted" })}> · {m.optional()}</span>
+);
 
 const choice = css({
   flex: 1,
@@ -85,7 +88,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
     } catch (e) {
       setOutcome({
         kind: "failed",
-        message: e instanceof Error ? e.message : "L'écoute n'a pas été enregistrée.",
+        message: e instanceof Error ? e.message : m.scrobble_failed(),
       });
     } finally {
       setPending(false);
@@ -104,10 +107,10 @@ export function ScrobblePage({ userName }: { userName: string }) {
             lineHeight: 1.05,
           })}
         >
-          Scrobbler une écoute
+          {m.scrobble_title()}
         </h1>
         <p className={css({ m: 0, fontSize: "14px", lineHeight: "22px", color: "muted" })}>
-          Ajoute à la main une écoute qu'aucune appli n'a envoyée : un vinyle, la radio, un concert.
+          {m.scrobble_intro()}
         </p>
       </div>
 
@@ -117,22 +120,37 @@ export function ScrobblePage({ userName }: { userName: string }) {
         className={css({ display: "flex", flexDirection: "column", gap: "18px" })}
       >
         <Field
-          label={<span>Artiste{required}</span>}
+          label={
+            <span>
+              {m.field_artist()}
+              {required}
+            </span>
+          }
           value={form.artist}
           onChange={set("artist")}
           required
           error={errors.artist}
         />
         <Field
-          label={<span>Titre{required}</span>}
+          label={
+            <span>
+              {m.field_track()}
+              {required}
+            </span>
+          }
           value={form.track}
           onChange={set("track")}
           required
           error={errors.track}
         />
         <Field
-          label={<span>Album{optional}</span>}
-          placeholder="Nom de l'album"
+          label={
+            <span>
+              {m.field_album()}
+              {optional}
+            </span>
+          }
+          placeholder={m.field_album_placeholder()}
           value={form.album}
           onChange={set("album")}
         />
@@ -155,7 +173,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
             })}
           >
             <legend className={css({ p: "0 0 8px", fontSize: "13px", fontWeight: "500" })}>
-              Quand
+              {m.field_when()}
             </legend>
             <div className={css({ display: "flex", gap: "8px" })}>
               <label className={choice}>
@@ -165,7 +183,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
                   checked={form.when === "now"}
                   onChange={() => setForm((f) => ({ ...f, when: "now" }))}
                 />
-                Maintenant
+                {m.when_now()}
               </label>
               <label className={choice}>
                 <input
@@ -174,12 +192,17 @@ export function ScrobblePage({ userName }: { userName: string }) {
                   checked={form.when === "other"}
                   onChange={() => setForm((f) => ({ ...f, when: "other", ...nowLocal() }))}
                 />
-                Autre moment
+                {m.when_other()}
               </label>
             </div>
           </fieldset>
           <Field
-            label={<span>Durée{optional}</span>}
+            label={
+              <span>
+                {m.field_length()}
+                {optional}
+              </span>
+            }
             inputMode="numeric"
             placeholder="m:ss"
             value={form.duration}
@@ -196,18 +219,16 @@ export function ScrobblePage({ userName }: { userName: string }) {
             })}
           >
             <Field
-              label="Date"
+              label={m.field_date()}
               type="date"
               value={form.date}
               onChange={set("date")}
               error={errors.date}
             />
-            <Field label="Heure" type="time" value={form.time} onChange={set("time")} />
+            <Field label={m.field_time()} type="time" value={form.time} onChange={set("time")} />
           </div>
         ) : null}
-        <span className={css({ fontSize: "12px", color: "muted" })}>
-          À ton heure locale. La durée sert au temps d'écoute dans tes stats.
-        </span>
+        <span className={css({ fontSize: "12px", color: "muted" })}>{m.scrobble_note()}</span>
         <div
           className={css({
             display: "flex",
@@ -218,14 +239,14 @@ export function ScrobblePage({ userName }: { userName: string }) {
           })}
         >
           <Button type="submit" disabled={pending} className={css({ px: "18px" })}>
-            {pending ? "Envoi…" : "Scrobbler"}
+            {pending ? m.sending() : m.nav_scrobble()}
           </Button>
           <Link
             to="/u/$userName/historique"
             params={{ userName }}
             className={css({ fontSize: "13px" })}
           >
-            Annuler
+            {m.cancel()}
           </Link>
         </div>
       </form>
@@ -249,7 +270,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
         >
           <span className={css({ display: "flex", alignItems: "center", gap: "8px" })}>
             <CheckIcon size={14} />
-            {outcome.track} est dans ton historique.
+            {m.scrobble_added({ track: outcome.track })}
           </span>
           <Link
             to="/u/$userName/historique"
@@ -260,7 +281,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
               _hover: { color: "successInk" },
             })}
           >
-            Voir
+            {m.view()}
           </Link>
         </div>
       ) : null}
@@ -276,7 +297,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
             color: "ink",
           })}
         >
-          Cette écoute était déjà enregistrée à cette heure-là, rien n'a été ajouté.
+          {m.scrobble_duplicate()}
         </div>
       ) : null}
       {outcome?.kind === "failed" ? (
