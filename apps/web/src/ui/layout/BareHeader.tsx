@@ -7,15 +7,16 @@ export const headerBar = css({
   maxWidth: "1000px",
   boxSizing: "border-box",
   mx: "auto",
-  display: "flex",
+  // Two equal side columns: the name sits at the exact centre whatever each side holds.
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
   alignItems: "center",
-  justifyContent: "space-between",
   gap: { base: "8px", sm: "24px" },
   px: { base: "16px", sm: "24px" },
   py: "14px",
 });
 export const headerSide = css({
-  flex: "1 1 0",
+  minWidth: 0,
   display: "flex",
   alignItems: "center",
   gap: "18px",
