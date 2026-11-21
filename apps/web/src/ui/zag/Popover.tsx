@@ -19,16 +19,18 @@ export function Popover({
   trigger,
   triggerClassName,
   label,
+  placement = "bottom-end",
   children,
 }: {
   trigger: ReactNode;
   triggerClassName: string;
   label: string;
+  placement?: "bottom-start" | "bottom-end";
   children: (close: () => void) => ReactNode;
 }) {
   const service = useMachine(popover.machine, {
     id: useId(),
-    positioning: { placement: "bottom-end" },
+    positioning: { placement },
   });
   const api = popover.connect(service, normalizeProps);
   return (

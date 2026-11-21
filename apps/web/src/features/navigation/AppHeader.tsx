@@ -16,7 +16,7 @@ const navLink = css({
 
 /**
  * Top bar: sections (hidden on phones, where the tab bar takes over), the Apollon wordmark, "Scrobbler" (add a
- * listen) and the account menu. Signed out: just "Se connecter".
+ * listen) and the account menu. Signed out: language and theme on the left, "Se connecter" on the right.
  */
 export function AppHeader({
   userName,
@@ -51,7 +51,10 @@ export function AppHeader({
                 {m.nav_stats()}
               </Link>
             </span>
-          ) : null}
+          ) : (
+            // Signed out: language and theme on the left, sign-in on the right, the name centred.
+            <PreferencesMenu />
+          )}
         </nav>
         <Link to="/" className={logo}>
           <Wordmark />
@@ -80,12 +83,9 @@ export function AppHeader({
               <AccountMenu userName={userName} />
             </>
           ) : (
-            <>
-              <PreferencesMenu />
-              <Link to="/connexion" className={button({ tone: "outline", size: "sm" })}>
-                {m.signin_submit()}
-              </Link>
-            </>
+            <Link to="/connexion" className={button({ tone: "outline", size: "sm" })}>
+              {m.signin_submit()}
+            </Link>
           )}
         </div>
       </div>

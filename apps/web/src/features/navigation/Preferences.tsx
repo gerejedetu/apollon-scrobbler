@@ -75,6 +75,7 @@ export function PreferencesMenu() {
   return (
     <Popover
       label={m.preferences()}
+      placement="bottom-start"
       triggerClassName={trigger}
       trigger={
         <>
