@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { AlbumPage as Album, Range } from "../../api/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { barWidth, formatAgo, formatCount, formatDate } from "../../lib/format/index.ts";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
@@ -88,7 +88,7 @@ export function AlbumPage({
             <SelectMenu<Range>
               label="Période"
               value={range}
-              options={RANGE_OPTIONS}
+              options={rangeOptions()}
               onValueChange={(periode) =>
                 void navigate({
                   to: "/u/$userName/albums/$artist/$album",

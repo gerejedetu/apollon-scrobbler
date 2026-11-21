@@ -11,7 +11,7 @@ import {
   localDate,
   monthKey,
 } from "../../lib/format/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { ArrowUpRight } from "../../ui/icons.tsx";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
@@ -104,7 +104,7 @@ export function ArtistPage({
             <SelectMenu<Range>
               label="Période"
               value={range}
-              options={RANGE_OPTIONS}
+              options={rangeOptions()}
               onValueChange={(periode) =>
                 void navigate({
                   to: "/u/$userName/artistes/$artist",

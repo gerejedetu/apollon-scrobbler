@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { Range, TrackPage as Track } from "../../api/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import {
   formatAgo,
@@ -94,7 +94,7 @@ export function TrackPage({
             <SelectMenu<Range>
               label="Période"
               value={range}
-              options={RANGE_OPTIONS}
+              options={rangeOptions()}
               onValueChange={(periode) =>
                 void navigate({
                   to: "/u/$userName/titres/$artist/$track",

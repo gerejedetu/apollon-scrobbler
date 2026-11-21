@@ -3,6 +3,7 @@ import { css } from "styled-system/css";
 import { isNotFound } from "../../api/index.ts";
 import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
 import { button } from "../../ui/primitives/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const title = css({ m: 0, textStyle: "pageTitle", fontSize: "34px", textAlign: "center" });
 const text = css({ m: 0, textAlign: "center", fontSize: "13px", color: "muted" });
@@ -44,19 +45,17 @@ export function HiddenProfile({ signedIn }: { signedIn: boolean }) {
         </svg>
       </span>
       <h1 className={css({ m: 0, textStyle: "wide", fontSize: "28px", lineHeight: 1.15 })}>
-        Ce profil n'est pas visible
+        {m.hidden_title()}
       </h1>
       <p className={css({ m: 0, fontSize: "14px", lineHeight: "22px", color: "muted" })}>
-        {signedIn
-          ? "Il est privé ou il n'existe pas."
-          : "Il est privé ou il n'existe pas. Si c'est le tien, connecte-toi pour le voir."}
+        {signedIn ? m.hidden_text() : m.hidden_text_signed_out()}
       </p>
       <Link
         to={signedIn ? "/" : "/connexion"}
         className={button({ tone: "primary" })}
         style={{ marginTop: 8, paddingInline: 18 }}
       >
-        {signedIn ? "Revenir à l'accueil" : "Se connecter"}
+        {signedIn ? m.back_home() : m.signin_submit()}
       </Link>
     </Main>
   );
@@ -66,9 +65,9 @@ export function HiddenProfile({ signedIn }: { signedIn: boolean }) {
 export function NotFound() {
   return (
     <Main narrow gap={16} padding="56px 24px 80px">
-      <h1 className={title}>Rien ici</h1>
+      <h1 className={title}>{m.notfound_title()}</h1>
       <p className={text}>
-        Cette page n'existe pas, ou ce profil est privé. <Link to="/">Revenir à l'accueil</Link>
+        {m.notfound_text()} <Link to="/">{m.back_home()}</Link>
       </p>
     </Main>
   );
@@ -78,15 +77,15 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
   if (isNotFound(error)) return <NotFound />;
   return (
     <Main narrow gap={16} padding="56px 24px 80px">
-      <h1 className={title}>Ça n'a pas marché</h1>
-      <p className={text}>{error instanceof Error ? error.message : "Erreur inconnue."}</p>
+      <h1 className={title}>{m.error_title()}</h1>
+      <p className={text}>{error instanceof Error ? error.message : m.error_unknown()}</p>
       <p className={text}>
         <button
           type="button"
           onClick={reset}
           className={css({ border: 0, bg: "transparent", color: "violet", fontSize: "13px" })}
         >
-          Réessayer
+          {m.retry()}
         </button>
       </p>
     </Main>

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
 import { AlbumCover } from "../../ui/cover/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 export const coverGrid = css({
   display: "grid",
@@ -61,7 +62,7 @@ export function AlbumCard({
           {badge}
         </span>
         <span className={`${ellipsis} ${css({ color: "muted" })}`}>
-          {artist} · {plays} écoutes
+          {artist} · {m.count_listens({ count: plays })}
         </span>
       </span>
     </Link>

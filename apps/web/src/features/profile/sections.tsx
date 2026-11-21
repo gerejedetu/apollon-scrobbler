@@ -15,9 +15,8 @@ import {
   formatDayStringWithYear,
   formatDays,
   formatDate,
-  formatMilestone,
 } from "../../lib/format/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { AxisLabels, Bars } from "../../ui/charts/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
@@ -25,6 +24,7 @@ import { BlockHeading, CountBadge, Empty, Stat } from "../../ui/primitives/index
 import { ListenItem, ListenRow } from "../listens/index.ts";
 import { AlbumCard, coverGrid } from "./cards.tsx";
 import { AlbumCover } from "../../ui/cover/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const stack14 = css({ display: "flex", flexDirection: "column", gap: "14px" });
 const stack12 = css({ display: "flex", flexDirection: "column", gap: "12px" });
@@ -42,11 +42,11 @@ export function TopAlbums({ userName, top, range }: { userName: string; top: Top
           gap: "12px",
         })}
       >
-        <h2 className={css({ m: 0, textStyle: "block" })}>Top albums</h2>
+        <h2 className={css({ m: 0, textStyle: "block" })}>{m.top_albums()}</h2>
         <SelectMenu<Range>
-          label="Période"
+          label={m.period()}
           value={range}
-          options={RANGE_OPTIONS}
+          options={rangeOptions()}
           onValueChange={(periode) =>
             void navigate({
               to: "/u/$userName",
@@ -58,7 +58,7 @@ export function TopAlbums({ userName, top, range }: { userName: string; top: Top
         />
       </div>
       {top.items.length === 0 ? (
-        <Empty>Aucune écoute sur cette période.</Empty>
+        <Empty>{m.empty_period()}</Empty>
       ) : (
         <div className={coverGrid}>
           {top.items.map((item, i) => (
@@ -83,7 +83,7 @@ export function Rotation({ userName, onRepeat }: { userName: string; onRepeat: O
   if (onRepeat.items.length === 0) return null;
   return (
     <section className={stack14}>
-      <BlockHeading title="En boucle" aside="30 derniers jours vs les 30 d'avant" />
+      <BlockHeading title={m.on_repeat()} aside={m.on_repeat_aside()} />
       <div className={coverGrid}>
         {onRepeat.items.map((item) => (
           <AlbumCard
@@ -135,7 +135,7 @@ export function RecentListens({
           pb: "10px",
         })}
       >
-        <h2 className={css({ m: 0, textStyle: "block" })}>Écoutes récentes</h2>
+        <h2 className={css({ m: 0, textStyle: "block" })}>{m.recent_listens()}</h2>
         <Link
           to="/u/$userName/historique"
           params={{ userName }}
@@ -147,13 +147,13 @@ export function RecentListens({
             gap: "2px",
           })}
         >
-          Tout l'historique
+          {m.all_history()}
           <ChevronRight />
         </Link>
       </div>
-      {nowPlaying ? <ListenRow track={nowPlaying} when="en écoute" playing /> : null}
+      {nowPlaying ? <ListenRow track={nowPlaying} when={m.now_playing_short()} playing /> : null}
       {listens.length === 0 && !nowPlaying ? (
-        <Empty>Pas encore d'écoute. Crée un token et branche ton lecteur.</Empty>
+        <Empty>{m.empty_listens()}</Empty>
       ) : (
         listens.map((l) => <ListenItem key={`${l.listenedAt}/${l.id}`} listen={l} />)
       )}
@@ -166,7 +166,7 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
   if (!nowPlaying) return null;
   return (
     <section className={stack12}>
-      <h2 className={css({ m: 0, textStyle: "block" })}>En écoute</h2>
+      <h2 className={css({ m: 0, textStyle: "block" })}>{m.now_playing()}</h2>
       <div
         className={css({
           display: "flex",
@@ -200,7 +200,7 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
         </div>
         <span
           role="img"
-          aria-label="En cours"
+          aria-label={m.playing()}
           className={css({
             display: "inline-flex",
             alignItems: "flex-end",
@@ -223,10 +223,10 @@ export function MilestoneList({ milestones }: { milestones: Milestones }) {
   const items = [...milestones.items].sort((a, b) => b.n - a.n).slice(0, 4);
   return (
     <section className={stack12}>
-      <h2 className={css({ m: 0, textStyle: "block" })}>Paliers</h2>
-      {items.map((m) => (
+      <h2 className={css({ m: 0, textStyle: "block" })}>{m.milestones()}</h2>
+      {items.map((ms) => (
         <div
-          key={m.n}
+          key={ms.n}
           className={css({
             display: "flex",
             gap: "10px",
@@ -237,20 +237,20 @@ export function MilestoneList({ milestones }: { milestones: Milestones }) {
           <span
             className={css({ width: "56px", flexShrink: 0, fontSize: "13px", fontWeight: "600" })}
           >
-            {formatMilestone(m.n)}
+            {ms.n === 1 ? m.milestone_first() : formatCount(ms.n)}
           </span>
           <span className={css({ fontSize: "13px", lineHeight: "18px" })}>
-            <i className={css({ fontWeight: "600" })}>{m.trackName}</i> · {m.artistName}
+            <i className={css({ fontWeight: "600" })}>{ms.trackName}</i> · {ms.artistName}
             <br />
-            <span className={css({ color: "muted" })}>{formatDate(m.listenedAt)}</span>
+            <span className={css({ color: "muted" })}>{formatDate(ms.listenedAt)}</span>
           </span>
         </div>
       ))}
       {milestones.next ? (
         <span className={css({ fontSize: "12px", color: "muted" })}>
-          Prochain palier :{" "}
+          {m.milestone_next()}{" "}
           <b className={css({ color: "ink", fontWeight: "600" })}>{formatCount(milestones.next)}</b>
-          , dans {formatCount(milestones.next - milestones.listenCount)} écoutes
+          {m.milestone_next_in({ count: formatCount(milestones.next - milestones.listenCount) })}
         </span>
       ) : null}
     </section>
@@ -273,17 +273,17 @@ export function RecentActivity({ days }: { days: { date: string; listenCount: nu
           textStyle: "block",
         })}
       >
-        Écoutes <CountBadge>{formatCount(total)}</CountBadge>
+        {m.listens()} <CountBadge>{formatCount(total)}</CountBadge>
       </h2>
       <Bars
         height={64}
-        label={`Écoutes des ${days.length} derniers jours`}
+        label={m.listens_last_days({ count: days.length })}
         bars={days.map((d) => ({
           value: d.listenCount,
           label: `${formatDayString(d.date)} : ${d.listenCount}`,
         }))}
       />
-      <AxisLabels items={[`il y a ${days.length} j`, "aujourd'hui"]} />
+      <AxisLabels items={[m.ago_days({ count: days.length }), m.today()]} />
     </section>
   );
 }
@@ -302,12 +302,12 @@ export function StreakFigures({ streaks }: { streaks: Streaks }) {
     >
       <Stat
         value={formatDays(current.days)}
-        label="SÉRIE EN COURS"
-        note={current.since ? `depuis le ${formatDayString(current.since)}` : undefined}
+        label={m.streak_current()}
+        note={current.since ? m.since_date({ date: formatDayString(current.since) }) : undefined}
       />
       <Stat
         value={formatDays(longest?.days ?? 0)}
-        label="RECORD"
+        label={m.streak_record()}
         note={
           longest
             ? `${formatDayString(longest.from)} – ${formatDayStringWithYear(longest.to)}`

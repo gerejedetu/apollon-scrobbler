@@ -4,6 +4,7 @@ import { PlusIcon } from "../../ui/icons.tsx";
 import { button } from "../../ui/primitives/index.ts";
 import { headerBar, headerSide, logo } from "../../ui/layout/index.ts";
 import { AccountMenu } from "./AccountMenu.tsx";
+import { m } from "../../paraglide/messages.js";
 
 const navLink = css({
   textDecoration: "none",
@@ -26,7 +27,7 @@ export function AppHeader({
     <header className={hideOnPhone ? css({ display: { base: "none", sm: "block" } }) : undefined}>
       <div className={headerBar}>
         <nav
-          aria-label="Principale"
+          aria-label={m.nav_main()}
           className={headerSide}
           style={{ flexWrap: "wrap", fontSize: 13 }}
           data-nav
@@ -39,13 +40,13 @@ export function AppHeader({
                 activeOptions={{ exact: true }}
                 className={navLink}
               >
-                Accueil
+                {m.nav_home()}
               </Link>
               <Link to="/u/$userName/historique" params={{ userName }} className={navLink}>
-                Historique
+                {m.nav_history()}
               </Link>
               <Link to="/u/$userName/stats" params={{ userName }} className={navLink}>
-                Stats
+                {m.nav_stats()}
               </Link>
             </span>
           ) : null}
@@ -58,7 +59,7 @@ export function AppHeader({
             <>
               <Link
                 to="/scrobbler"
-                aria-label="Scrobbler une écoute"
+                aria-label={m.scrobble_title()}
                 className={css({
                   display: "flex",
                   alignItems: "center",
@@ -70,7 +71,9 @@ export function AppHeader({
                 })}
               >
                 <PlusIcon />
-                <span className={css({ display: { base: "none", sm: "inline" } })}>Scrobbler</span>
+                <span className={css({ display: { base: "none", sm: "inline" } })}>
+                  {m.nav_scrobble()}
+                </span>
               </Link>
               <AccountMenu userName={userName} />
             </>
@@ -80,7 +83,7 @@ export function AppHeader({
               className={button({ tone: "outline", size: "xs" })}
               style={{ height: 32, fontSize: 13 }}
             >
-              Se connecter
+              {m.signin_submit()}
             </Link>
           )}
         </div>

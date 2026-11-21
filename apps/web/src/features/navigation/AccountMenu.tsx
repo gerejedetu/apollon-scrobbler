@@ -5,9 +5,11 @@ import { useId, useState } from "react";
 import { css } from "styled-system/css";
 import { authClient, forgetViewer } from "../../auth/index.ts";
 import { applyTheme, initialTheme, type ThemePref } from "../../lib/theme.ts";
+import { getLocale, type Locale, setLocale } from "../../paraglide/runtime.js";
 import { DownloadIcon, KeyIcon, SignOutIcon, UserIcon } from "../../ui/icons.tsx";
 import { capsLabel } from "../../ui/primitives/index.ts";
 import { SegmentedControl } from "../../ui/zag/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const avatar = css({
   width: "28px",
@@ -61,10 +63,10 @@ const group = css({
   pb: "8px",
 });
 
-const THEMES: { value: ThemePref; label: string }[] = [
-  { value: "light", label: "Clair" },
-  { value: "dark", label: "Sombre" },
-  { value: "auto", label: "Auto" },
+const THEMES: { value: ThemePref; label: () => string }[] = [
+  { value: "light", label: m.theme_light },
+  { value: "dark", label: m.theme_dark },
+  { value: "auto", label: m.theme_auto },
 ];
 
 /** The avatar's dropdown: profile, settings pages, theme, sign-out (board "Profil", account menu). */
@@ -91,10 +93,10 @@ export function AccountMenu({ userName }: { userName: string }) {
   const api = menu.connect(service, normalizeProps);
   return (
     <>
-      <button {...api.getTriggerProps()} aria-label="Mon compte" className={avatar} />
+      <button {...api.getTriggerProps()} aria-label={m.account()} className={avatar} />
       <Portal>
         <div {...api.getPositionerProps()}>
-          <div {...api.getContentProps()} aria-label="Mon compte" className={content}>
+          <div {...api.getContentProps()} aria-label={m.account()} className={content}>
             <div
               {...api.getItemProps({ value: "profile" })}
               className={css({
@@ -128,39 +130,54 @@ export function AccountMenu({ userName }: { userName: string }) {
                 })}
               >
                 <span className={css({ fontSize: "13px", fontWeight: "600" })}>{userName}</span>
-                <span className={css({ fontSize: "12px", color: "muted" })}>Voir mon profil</span>
+                <span className={css({ fontSize: "12px", color: "muted" })}>
+                  {m.account_view_profile()}
+                </span>
               </span>
             </div>
             <div {...api.getSeparatorProps()} className={separator} style={{ marginTop: 0 }} />
             <div {...api.getItemProps({ value: "settings" })} className={item}>
               <UserIcon />
-              Réglages du profil
+              {m.account_settings()}
             </div>
             <div {...api.getItemProps({ value: "tokens" })} className={item}>
               <KeyIcon />
-              Tokens d'API
+              {m.settings_tokens()}
             </div>
             <div {...api.getItemProps({ value: "import" })} className={item}>
               <DownloadIcon />
-              Importer
+              {m.settings_import()}
             </div>
             <div {...api.getSeparatorProps()} className={separator} />
             <div className={group}>
-              <span className={capsLabel}>THÈME</span>
+              <span className={capsLabel}>{m.theme_caps()}</span>
               <SegmentedControl<ThemePref>
-                label="Thème"
+                label={m.theme()}
                 value={theme}
-                options={THEMES}
+                options={THEMES.map((o) => ({ value: o.value, label: o.label() }))}
                 onValueChange={(v) => {
                   setTheme(v);
                   applyTheme(v);
                 }}
               />
             </div>
+            <div className={group}>
+              <span className={capsLabel}>{m.language_caps()}</span>
+              <SegmentedControl<Locale>
+                label={m.language()}
+                value={getLocale()}
+                options={[
+                  { value: "fr", label: "Français" },
+                  { value: "en", label: "English" },
+                ]}
+                // Paraglide stores the choice in a cookie and reloads the page in that language.
+                onValueChange={(locale) => void setLocale(locale)}
+              />
+            </div>
             <div {...api.getSeparatorProps()} className={separator} />
             <div {...api.getItemProps({ value: "signout" })} className={item}>
               <SignOutIcon size={16} />
-              Se déconnecter
+              {m.signout()}
             </div>
           </div>
         </div>

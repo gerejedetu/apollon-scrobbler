@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { css } from "styled-system/css";
 import type { Range, Top, TopItem } from "../../api/index.ts";
 import { barWidth, formatCount } from "../../lib/format/index.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { Button, Empty } from "../../ui/primitives/index.ts";
 import type { Kind } from "./kinds.ts";
@@ -60,7 +60,7 @@ export function TopList({
         <SelectMenu<Range>
           label="Période"
           value={range}
-          options={RANGE_OPTIONS}
+          options={rangeOptions()}
           onValueChange={(periode) =>
             void navigate({
               to: "/u/$userName/tops/$kind",

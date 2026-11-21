@@ -9,7 +9,7 @@ import {
   localDate,
 } from "../../lib/format/index.ts";
 import { estimateListeningMs } from "../../lib/listening-time.ts";
-import { RANGE_OPTIONS } from "../../lib/ranges.ts";
+import { rangeOptions } from "../../lib/ranges.ts";
 import { AxisLabels } from "../../ui/charts/index.ts";
 import { ArtistCover } from "../../ui/cover/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
@@ -107,7 +107,7 @@ export function StatsPage({
           <SelectMenu<Range>
             label="Période"
             value={range}
-            options={RANGE_OPTIONS}
+            options={rangeOptions()}
             onValueChange={(periode) =>
               void navigate({
                 to: "/u/$userName/stats",
