@@ -7,7 +7,9 @@ export function getRouter() {
     routeTree,
     scrollRestoration: true,
     defaultPreload: "intent",
-    defaultPreloadStaleTime: 30_000,
+    // Hovering links preloads their data: keep it (and visited pages) for a while instead of asking again.
+    defaultPreloadStaleTime: 120_000,
+    defaultStaleTime: 60_000,
     defaultNotFoundComponent: NotFound,
     defaultErrorComponent: RouteError,
   });

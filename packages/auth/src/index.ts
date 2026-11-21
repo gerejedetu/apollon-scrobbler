@@ -59,7 +59,12 @@ export function createAuth(config: AuthConfig) {
     trustedOrigins: config.trustedOrigins ?? [],
     emailAndPassword: { enabled: true, disableSignUp: config.disableSignUp ?? false },
     telemetry: { enabled: false },
-    advanced: config.waitUntil ? { backgroundTasks: { handler: config.waitUntil } } : {},
+    advanced: {
+      ...(config.waitUntil ? { backgroundTasks: { handler: config.waitUntil } } : {}),
+      // The schema is managed by our migrations (and tested): skip Better Auth's runtime check, which
+      // reads sqlite_master on every new instance, i.e. on every request that touches auth.
+      database: { validateSchema: false },
+    },
     plugins: [
       username({
         minUsernameLength: 1,

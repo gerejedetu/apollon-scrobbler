@@ -56,6 +56,7 @@ export class InsightsService {
     private readonly clock: Clock,
     private readonly cache?: Cache,
     private readonly cacheMinListens = DEFAULT_CACHE_MIN_LISTENS,
+    private readonly localCache?: Cache,
   ) {}
 
   private async cached<T>(
@@ -67,14 +68,15 @@ export class InsightsService {
     byListenCount = true,
   ): Promise<T> {
     // Small histories are cheaper to recompute than to cache (see cache/policy.ts).
-    if (!this.cache || user.listenCount < this.cacheMinListens) return compute();
+    const cache = user.listenCount >= this.cacheMinListens ? this.cache : this.localCache;
+    if (!cache) return compute();
     const version = byListenCount ? user.listenCount : "any";
     const key = `insights:v2:${user.id}:${version}:${name}:${JSON.stringify(params)}`;
-    const hit = await this.cache.get<T>(key);
+    const hit = await cache.get<T>(key);
     if (hit !== null && hit !== undefined) return hit;
     const value = await compute();
     // Not-found results are not cached: random names must not turn into cache writes.
-    if (value !== null) await this.cache.set(key, value, CACHE_TTL);
+    if (value !== null) await cache.set(key, value, CACHE_TTL);
     return value;
   }
 

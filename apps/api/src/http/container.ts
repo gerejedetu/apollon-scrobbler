@@ -4,7 +4,13 @@
  */
 import { createAuth, mcpResource, tokenVerifier, type Auth } from "@scrobbler/auth";
 import { KvCache } from "@scrobbler/cache-kv";
-import { type Clock, createServices, MemoryCache, type Services } from "@scrobbler/core";
+import {
+  type Clock,
+  createServices,
+  LayeredCache,
+  MemoryCache,
+  type Services,
+} from "@scrobbler/core";
 import { createClient } from "@libsql/client/web";
 import { createD1Repositories, type D1Like } from "@scrobbler/db-d1";
 import { LibsqlDriver } from "@scrobbler/db-libsql";
@@ -76,9 +82,13 @@ export interface ContainerOptions {
   clock?: Clock;
 }
 
-export const createContainer =
-  (options: ContainerOptions = {}): MiddlewareHandler<AppEnv> =>
-  async (c, next) => {
+export const createContainer = (options: ContainerOptions = {}): MiddlewareHandler<AppEnv> => {
+  /**
+   * Stats computed by this app (one per isolate in production), kept until the listen count changes
+   * (keys include it): repeated page loads and link previews cost no query. Bounded in size.
+   */
+  const statsMemory = new MemoryCache(2000);
+  return async (c, next) => {
     const db = database(c.env);
     let auth: Auth | undefined;
     const baseURL = c.env.BASE_URL || new URL(c.req.url).origin;
@@ -88,14 +98,17 @@ export const createContainer =
       // API keys, and OAuth access tokens that the MCP server forwards for its users.
       { verify: (raw) => tokenVerifier(getAuth(), mcpResource(baseURL)).verify(raw) },
       {
-        cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined,
+        cache: c.env.CACHE
+          ? new LayeredCache(statsMemory, new KvCache(c.env.CACHE, "v1:"))
+          : statsMemory,
+        localCache: statsMemory,
         authCache,
         clock: options.clock,
         signupForceClosed: c.env.DISABLE_SIGNUP === "true",
         cacheMinListens: c.env.CACHE_MIN_LISTENS
           ? Number(c.env.CACHE_MIN_LISTENS)
           : c.env.TURSO_DATABASE_URL
-            ? 50_000
+            ? 500
             : undefined,
       },
     );
@@ -103,3 +116,4 @@ export const createContainer =
     c.set("auth", getAuth);
     await next();
   };
+};

@@ -26,7 +26,7 @@ export {
 export { StatsService, type StatsParams } from "./stats/service.ts";
 export { parseRange, rangeWindow, STATS_RANGES } from "./stats/range.ts";
 export { ImportService } from "./imports/service.ts";
-export { MemoryCache } from "./cache/memory.ts";
+export { LayeredCache, MemoryCache } from "./cache/memory.ts";
 export { createServices, type ServiceOptions, type Services } from "./services.ts";
 export { FavouriteService, MAX_LOVED_PAGE, type TrackRef } from "./favourites/service.ts";
 export { InsightsService, type Params as InsightParams } from "./insights/service.ts";
