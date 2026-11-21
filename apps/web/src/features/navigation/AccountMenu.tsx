@@ -1,5 +1,5 @@
 import * as menu from "@zag-js/menu";
-import { normalizeProps, Portal, useMachine } from "@zag-js/react";
+import { normalizeProps, useMachine } from "@zag-js/react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { css } from "styled-system/css";
@@ -8,7 +8,7 @@ import { applyTheme, initialTheme, type ThemePref } from "../../lib/theme.ts";
 import { getLocale, type Locale, setLocale } from "../../paraglide/runtime.js";
 import { DownloadIcon, KeyIcon, SignOutIcon, UserIcon } from "../../ui/icons.tsx";
 import { capsLabel } from "../../ui/primitives/index.ts";
-import { SegmentedControl } from "../../ui/zag/index.ts";
+import { Portal, SegmentedControl } from "../../ui/zag/index.ts";
 import { m } from "../../paraglide/messages.js";
 
 const avatar = css({

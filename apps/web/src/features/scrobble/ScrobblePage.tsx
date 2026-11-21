@@ -23,9 +23,9 @@ const required = (
     *
   </span>
 );
-const optional = (
-  <span className={css({ fontWeight: "400", color: "muted" })}> · {m.optional()}</span>
-);
+function Optional() {
+  return <span className={css({ fontWeight: "400", color: "muted" })}> · {m.optional()}</span>;
+}
 
 const choice = css({
   flex: 1,
@@ -147,7 +147,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
           label={
             <span>
               {m.field_album()}
-              {optional}
+              <Optional />
             </span>
           }
           placeholder={m.field_album_placeholder()}
@@ -200,7 +200,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
             label={
               <span>
                 {m.field_length()}
-                {optional}
+                <Optional />
               </span>
             }
             inputMode="numeric"
