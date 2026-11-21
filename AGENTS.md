@@ -1,6 +1,6 @@
 # Scrobbler: guide for coding agents
 
-A ListenBrainz-compatible scrobbler that runs on Cloudflare Workers (Hono + D1 + KV), with accounts and
+A ListenBrainz-compatible scrobbler that runs on Cloudflare Workers (Hono + Turso/libSQL or D1 + KV), with accounts and
 user tokens from Better Auth. Monorepo managed by Vite+ (`vp`) and pnpm workspaces.
 
 ## Layout
@@ -14,7 +14,8 @@ apps/
 packages/
   types/          Wire (ListenBrainz) and domain types. No runtime code.
   core/           Business rules behind ports. No I/O, no Cloudflare, no Better Auth.
-  db-d1/          D1 implementation of core's Repositories + all SQL migrations
+  db-d1/          The SQLite repositories (written against a D1-shaped driver) + all SQL migrations
+  db-libsql/      Turso / libSQL driver for those same repositories (production database)
   cache-kv/       Workers KV implementation of core's Cache
   auth/           Better Auth setup (username + API key plugins) + core's TokenVerifier
   testing/        Node-only doubles: D1 on node:sqlite, KV in memory
@@ -48,7 +49,19 @@ Implement `Repositories` from `@scrobbler/core` (see `packages/db-d1/src/reposit
 behaviour) in a new `packages/db-<name>`, test it with the same cases as `packages/db-d1/tests`, then switch
 the container. Better Auth needs its own adapter for that database too.
 
-## Database (D1)
+## Database (Turso in production, D1 supported)
+
+- Production runs on **Turso** (libSQL). `packages/db-libsql` adapts a libSQL client to the D1-shaped driver the
+  repositories in `packages/db-d1` are written against, so Turso and D1 run the _same_ SQL, migrations and tests,
+  and Better Auth uses the same driver. The API picks Turso when `TURSO_DATABASE_URL` is set (Worker secrets
+  `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`), else the `DB` D1 binding.
+- Turso schema: `vp run @scrobbler/api#db:migrate:turso` (applies `packages/db-d1/migrations`, tracked in
+  `_migrations`); `db:status:turso` lists migrations and row counts. Credentials come from `apps/api/.env.turso`
+  (git-ignored, see `.env.turso.example`).
+- `vp run @scrobbler/api#test` runs the API suite twice: on the D1 double and on libSQL (`TEST_DB=libsql`).
+- Turso bills rows read (every row a query _scans_, aggregates included, and an UPDATE reads what it changes)
+  and rows written: keep every query index-bounded (the query-plan test enforces it), never `count(*)` a growing
+  table at request time (use maintained counters such as `users.listen_count`), batch writes.
 
 - Migrations live in `packages/db-d1/migrations`, applied by wrangler (`vp run @scrobbler/api#db:migrate:local`).
 - `0001_auth.sql` is generated: `vp run @scrobbler/auth#migration` prints it. Regenerate when Better Auth or its plugins change, and add a new numbered migration for the difference rather than editing an applied one.

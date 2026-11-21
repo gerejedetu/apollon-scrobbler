@@ -3,3 +3,4 @@
 .env.cloudflare
 wrangler.deploy.jsonc
 !.env.cloudflare.example
+!.env.turso.example

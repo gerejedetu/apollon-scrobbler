@@ -16,6 +16,11 @@ export interface Bindings {
   TURSO_DATABASE_URL?: string;
   /** Turso auth token for that database. Secret. */
   TURSO_AUTH_TOKEN?: string;
+  /**
+   * Histories smaller than this skip the KV stats cache (recomputing is cheaper than a KV write).
+   * Default: 5000 on D1, 50000 on Turso, whose row reads cost far less than KV writes.
+   */
+  CACHE_MIN_LISTENS?: string;
   CACHE?: KVLike;
   BETTER_AUTH_SECRET: string;
   /** Public URL of the Worker; defaults to the request's origin. */

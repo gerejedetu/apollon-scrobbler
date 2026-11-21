@@ -89,6 +89,11 @@ export const createContainer =
         cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined,
         authCache,
         clock: options.clock,
+        cacheMinListens: c.env.CACHE_MIN_LISTENS
+          ? Number(c.env.CACHE_MIN_LISTENS)
+          : c.env.TURSO_DATABASE_URL
+            ? 50_000
+            : undefined,
       },
     );
     c.set("services", services);
