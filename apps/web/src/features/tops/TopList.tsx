@@ -52,6 +52,7 @@ export function TopList({
   onMore?: () => void;
   loadingMore?: boolean;
 }) {
+  const navigate = useNavigate();
   const max = top.items[0]?.listenCount ?? 0;
   return (
     <section className={css({ display: "flex", flexDirection: "column", gap: "16px" })}>
