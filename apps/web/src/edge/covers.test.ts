@@ -250,7 +250,7 @@ describe("stored artwork", () => {
       await storageKey({ kind: "album", artist: "Air", album: "Talkie Walkie", size: "big" }),
     ).not.toBe(a);
     expect(await storageKey({ kind: "artist", artist: "Air", size: "big" })).toMatch(
-      /^v2\/artist\//,
+      /^v3\/artist\//,
     );
   });
 });
@@ -383,4 +383,21 @@ describe("artists written in another script", () => {
     expect(await findCover(q, down as unknown as typeof fetch)).toBeUndefined();
     expect(await artistAliases("x", down as unknown as typeof fetch)).toBeUndefined();
   });
+});
+
+test("an artist picture needs the exact name; among homonyms the most followed wins", async () => {
+  const fetcher = deezer(() => ({
+    data: [
+      { name: "Jennie & the Gold Endeavor", nb_fan: 2, picture_big: "https://x/wrong.jpg" },
+      { name: "Jennie", nb_fan: 23, picture_big: "https://x/small.jpg" },
+      { name: "JENNIE", nb_fan: 656025, picture_big: IMG },
+      { name: "Jennie Lena", nb_fan: 2772, picture_big: "https://x/other.jpg" },
+    ],
+  }));
+  const q = readCoverQuery(new URL("https://x/covers?kind=artist&artist=Jennie"))!;
+  expect(await findCover(q, fetcher as unknown as typeof fetch)).toBe(IMG);
+  const none = deezer(() => ({
+    data: [{ name: "Jennie & the Gold Endeavor", nb_fan: 2, picture_big: IMG }],
+  }));
+  expect(await findCover(q, none as unknown as typeof fetch)).toBeNull();
 });

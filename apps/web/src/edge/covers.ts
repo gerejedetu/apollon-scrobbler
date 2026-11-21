@@ -21,7 +21,7 @@ const MISS_TTL = 7 * 86_400;
  * Bumped when the name search gets smarter: misses stored by an older resolver are looked up again
  * (images already found are kept).
  */
-const RESOLVER = "3";
+const RESOLVER = "4";
 /** Refuse anything bigger: a 500 px sleeve is ~30-80 KB. */
 const MAX_IMAGE_BYTES = 2_000_000;
 /**
@@ -120,7 +120,8 @@ export function searches(q: CoverQuery): string[] {
 
 function searchesFor(q: CoverQuery): string[] {
   const quote = (s: string) => `"${s.replace(/"/g, "")}"`;
-  if (q.kind === "artist") return [`/search/artist?q=${encodeURIComponent(q.artist)}&limit=1`];
+  // Several results: homonyms are told apart below (exact name, most followed).
+  if (q.kind === "artist") return [`/search/artist?q=${encodeURIComponent(q.artist)}&limit=10`];
   const out: string[] = [];
   if (q.album) {
     const album = cleanTitle(q.album) || q.album;
@@ -204,6 +205,7 @@ export async function findCover(
   fetcher: typeof fetch = fetch,
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
 ): Promise<string | null | undefined> {
+  if (q.kind === "artist") return findArtistPicture(q, fetcher, sleep);
   let failed = false;
   /** Results whose only problem is the artist's name: maybe the same artist written another way. */
   const otherNames: DeezerItem[] = [];
@@ -216,7 +218,12 @@ export async function findCover(
     const image = pickImage(data[0], q);
     if (image) return image;
     const item = data[0];
-    if (item && pickImage(item, q, [itemArtist(item) ?? ""])) otherNames.push(item);
+    if (
+      item &&
+      otherScript(q.artist, itemArtist(item) ?? "") &&
+      pickImage(item, q, [itemArtist(item) ?? ""])
+    )
+      otherNames.push(item);
   }
   // "헤이즈" vs "HEIZE", "BTS" vs "방탄소년단": ask MusicBrainz for the artist's other names and
   // accept a result only if its artist is one of them.
@@ -229,6 +236,58 @@ export async function findCover(
     }
   }
   return failed ? undefined : null;
+}
+
+/**
+ * An artist's picture. Only an artist whose name is *exactly* one of the names asked for (or, for another
+ * script, one of its MusicBrainz aliases) qualifies: "Jennie" is not "Jennie & the Gold Endeavor". Among
+ * homonyms ("JENNIE", "Jennie"), the most followed one wins.
+ */
+async function findArtistPicture(
+  q: CoverQuery,
+  fetcher: typeof fetch,
+  sleep: (ms: number) => Promise<void>,
+): Promise<string | null | undefined> {
+  let failed = false;
+  const results: DeezerItem[] = [];
+  for (const path of searches(q)) {
+    const data = await search(path, fetcher, sleep);
+    if (data === undefined) failed = true;
+    else results.push(...data);
+  }
+  const best = (names: string[]) => {
+    const wanted = new Set(names.map(fold));
+    const exact = results.filter((r) => typeof r.name === "string" && wanted.has(fold(r.name)));
+    const ranked = exact
+      .map((r) => ({ r, image: pictureOf(r, q) }))
+      .filter((x) => x.image)
+      .sort((a, b) => Number(b.r.nb_fan ?? 0) - Number(a.r.nb_fan ?? 0));
+    return ranked[0]?.image ?? null;
+  };
+  const direct = best(artistVariants(q.artist));
+  if (direct) return direct;
+  if (results.some((r) => otherScript(q.artist, typeof r.name === "string" ? r.name : ""))) {
+    const aliases = await artistAliases(q.artist, fetcher);
+    if (aliases === undefined) return undefined;
+    const viaAlias = best(aliases);
+    if (viaAlias) return viaAlias;
+  }
+  return failed ? undefined : null;
+}
+
+/** Letters outside Latin (Hangul, kana, Cyrillic…). */
+const NON_LATIN = /[^\p{Script=Latin}\p{N}\p{P}\p{S}\s]/u;
+
+/** Whether two names may be the same artist written in two scripts ("헤이즈" / "HEIZE"): worth asking MusicBrainz. */
+function otherScript(a: string, b: string): boolean {
+  return NON_LATIN.test(a) !== NON_LATIN.test(b);
+}
+
+function pictureOf(item: DeezerItem, q: CoverQuery): string | null {
+  const value = item[`picture_${q.size}`];
+  return typeof value === "string" && value.startsWith("https://") && !value.includes("/artist//")
+    ? value
+    : null;
 }
 
 function itemArtist(item: DeezerItem): string | undefined {
@@ -359,7 +418,8 @@ export async function storageKey(q: ArtworkQuery): Promise<string> {
   );
   const hex = [...digest].map((b) => b.toString(16).padStart(2, "0")).join("");
   // v2: results are checked against the names (v1 could hold a wrong match from a loose search).
-  return `v2/${q.kind}/${hex}`;
+  // Artists v3: exact names only (v2 could hold a homonym such as "Jennie & the Gold Endeavor").
+  return `${q.kind === "artist" ? "v3" : "v2"}/${q.kind}/${hex}`;
 }
 
 type Fetched = { bytes: ArrayBuffer; contentType: string } | null | undefined;
