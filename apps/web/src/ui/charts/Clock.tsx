@@ -1,4 +1,5 @@
 import { css } from "styled-system/css";
+import { color } from "../../ui/theme/index.ts";
 
 /**
  * 24 spokes around a dial, one per hour, longer when more is played. Midnight at the top.
@@ -22,7 +23,8 @@ export function HourClock({ hours, favourite }: { hours: number[]; favourite: nu
     >
       {hours.map((v, i) => {
         const share = v / max;
-        const color = i === favourite ? "#6E44FF" : share >= 0.6 ? "#F7B52C" : "#4A4A4A";
+        const fill =
+          i === favourite ? color("violet") : share >= 0.6 ? color("yellow") : color("nightBar");
         return (
           <div
             key={i}
@@ -38,7 +40,7 @@ export function HourClock({ hours, favourite }: { hours: number[]; favourite: nu
           >
             <div
               className={css({ position: "absolute", left: 0, right: 0, bottom: "52px" })}
-              style={{ height: Math.round(share * 76) + 4, background: color }}
+              style={{ height: Math.round(share * 76) + 4, background: fill }}
             />
           </div>
         );

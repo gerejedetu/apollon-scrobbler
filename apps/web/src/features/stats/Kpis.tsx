@@ -2,6 +2,7 @@ import { css } from "styled-system/css";
 import type { Compare, Summary } from "../../api/index.ts";
 import { barWidth, formatChange, formatCount } from "../../lib/format/index.ts";
 import { capsLabel } from "../../ui/primitives/index.ts";
+import { color } from "../../ui/theme/index.ts";
 
 const KPIS = [
   { key: "listenCount", label: "ÉCOUTES" },
@@ -61,7 +62,7 @@ export function Kpis({
               {change !== null && change !== undefined ? (
                 <span
                   className={css({ fontSize: "12px", fontWeight: "600" })}
-                  style={{ color: change >= 0 ? "#1F7A3A" : "#B4232A" }}
+                  style={{ color: change >= 0 ? color("up") : color("danger") }}
                 >
                   {formatChange(change)}
                 </span>
@@ -85,7 +86,7 @@ export function Kpis({
                   className={css({ flex: 1 })}
                   style={{
                     height: barWidth(n, max),
-                    background: i === spark.length - 1 ? "#111111" : "#F7B52C",
+                    background: i === spark.length - 1 ? color("ink") : color("yellow"),
                   }}
                 />
               ))}

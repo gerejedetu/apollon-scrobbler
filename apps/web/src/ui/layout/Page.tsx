@@ -26,12 +26,21 @@ export function Footer() {
   );
 }
 
-/** Header, a column of content and the footer. */
-export function Page({ header, children }: { header: ReactNode; children: ReactNode }) {
+/** Header, a column of content, the phone tab bar (when given) and the footer. */
+export function Page({
+  header,
+  children,
+  tabBar,
+}: {
+  header: ReactNode;
+  children: ReactNode;
+  tabBar?: ReactNode;
+}) {
   return (
     <div className={shell}>
       {header}
       {children}
+      {tabBar}
       <Footer />
     </div>
   );
@@ -42,6 +51,9 @@ const mainBase = css({
   width: "100%",
   boxSizing: "border-box",
   mx: "auto",
+  pt: "8px",
+  pb: "64px",
+  px: { base: "16px", sm: "24px" },
   display: "flex",
   flexDirection: "column",
 });
@@ -51,19 +63,24 @@ export function Main({
   children,
   gap = 32,
   narrow,
-  padding = "8px 24px 64px",
+  padding,
   className,
 }: {
   children: ReactNode;
   gap?: number;
-  narrow?: boolean;
+  /** true: the 448 px column of account forms; a number: that width. */
+  narrow?: boolean | number;
   padding?: string;
   className?: string;
 }) {
   return (
     <main
       className={cx(mainBase, className)}
-      style={{ maxWidth: narrow ? 448 : 1000, gap, padding }}
+      style={{
+        maxWidth: typeof narrow === "number" ? narrow : narrow ? 448 : 1000,
+        gap,
+        ...(padding ? { padding } : {}),
+      }}
     >
       {children}
     </main>

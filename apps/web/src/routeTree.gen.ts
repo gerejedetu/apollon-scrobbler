@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as ReglagesRouteRouteImport } from './routes/reglages/route'
+import { Route as ScrobblerRouteImport } from './routes/scrobbler'
 import { Route as ReglagesIndexRouteImport } from './routes/reglages/index'
 import { Route as ReglagesImportRouteImport } from './routes/reglages/import'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
@@ -44,6 +45,11 @@ const InscriptionRoute = InscriptionRouteImport.update({
 const ReglagesRouteRoute = ReglagesRouteRouteImport.update({
   id: '/reglages',
   path: '/reglages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScrobblerRoute = ScrobblerRouteImport.update({
+  id: '/scrobbler',
+  path: '/scrobbler',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReglagesIndexRoute = ReglagesIndexRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/reglages': typeof ReglagesRouteRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/scrobbler': typeof ScrobblerRoute
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
   '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/scrobbler': typeof ScrobblerRoute
   '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages': typeof ReglagesIndexRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/reglages': typeof ReglagesRouteRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/scrobbler': typeof ScrobblerRoute
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
   '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/reglages'
     | '/connexion'
     | '/inscription'
+    | '/scrobbler'
     | '/u/$userName'
     | '/reglages/import'
     | '/reglages/tokens'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
     | '/connexion'
     | '/inscription'
+    | '/scrobbler'
     | '/reglages/import'
     | '/reglages/tokens'
     | '/reglages'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/reglages'
     | '/connexion'
     | '/inscription'
+    | '/scrobbler'
     | '/u/$userName'
     | '/reglages/import'
     | '/reglages/tokens'
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   ReglagesRouteRoute: typeof ReglagesRouteRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
   InscriptionRoute: typeof InscriptionRoute
+  ScrobblerRoute: typeof ScrobblerRoute
   UUserNameRouteRoute: typeof UUserNameRouteRouteWithChildren
 }
 
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/reglages'
       fullPath: '/reglages'
       preLoaderRoute: typeof ReglagesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scrobbler': {
+      id: '/scrobbler'
+      path: '/scrobbler'
+      fullPath: '/scrobbler'
+      preLoaderRoute: typeof ScrobblerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reglages/': {
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReglagesRouteRoute: ReglagesRouteRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
   InscriptionRoute: InscriptionRoute,
+  ScrobblerRoute: ScrobblerRoute,
   UUserNameRouteRoute: UUserNameRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport

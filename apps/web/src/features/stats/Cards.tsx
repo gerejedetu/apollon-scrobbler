@@ -11,6 +11,7 @@ import {
   parseDay,
 } from "../../lib/format/index.ts";
 import { Caps } from "../../ui/primitives/index.ts";
+import { color } from "../../ui/theme/index.ts";
 
 const card = css({ p: "24px", bg: "panel", display: "flex", flexDirection: "column", gap: "14px" });
 const big = css({ textStyle: "narrow", fontSize: "56px", lineHeight: 0.9 });
@@ -55,10 +56,10 @@ export function StreakCard({
             style={{
               background:
                 i === last30.length - 1 && d.listenCount > 0
-                  ? "#6E44FF"
+                  ? color("violet")
                   : d.listenCount > 0
-                    ? "#111111"
-                    : "#DADADA",
+                    ? color("ink")
+                    : color("dashed"),
             }}
           />
         ))}
@@ -106,7 +107,7 @@ export function DiversityCard({
             justifyContent: "center",
           })}
           style={{
-            background: `conic-gradient(#111111 0 ${a}%, #F7B52C ${a}% ${b}%, #DADADA ${b}% 100%)`,
+            background: `conic-gradient(var(--colors-ink) 0 ${a}%, var(--colors-yellow) ${a}% ${b}%, var(--colors-dashed) ${b}% 100%)`,
           }}
         >
           <span
@@ -133,12 +134,12 @@ export function DiversityCard({
             fontSize: "12px",
           })}
         >
-          <Legend color="#111111">
+          <Legend color={color("ink")}>
             {topArtist ?? "1er artiste"} · {formatShare(top, 0)}
           </Legend>
-          <Legend color="#F7B52C">Top 2 à 10 · {formatShare(top10 - top, 0)}</Legend>
+          <Legend color={color("yellow")}>Top 2 à 10 · {formatShare(top10 - top, 0)}</Legend>
           {others > 0 ? (
-            <Legend color="#DADADA">
+            <Legend color={color("dashed")}>
               {formatCount(others)} autres · {formatShare(1 - top10, 0)}
             </Legend>
           ) : null}

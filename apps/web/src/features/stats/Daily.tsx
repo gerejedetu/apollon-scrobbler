@@ -4,6 +4,7 @@ import { formatCount, formatDayString, formatWeekday, parseDay } from "../../lib
 import { AxisLabels, Bars, type Bar } from "../../ui/charts/index.ts";
 import { displayHeading } from "../../ui/primitives/index.ts";
 import { isOngoing } from "./copy.ts";
+import { color } from "../../ui/theme/index.ts";
 
 /** Days still to come in the current week, month or year (empty slots after today). */
 export function remainingDays(range: Range, lastDay: string): string[] {
@@ -34,10 +35,10 @@ export function Daily({ activity, range }: { activity: Activity; range: Range })
       value: d.listenCount,
       color:
         isOngoing(range) && d === today
-          ? "#6E44FF"
+          ? color("violet")
           : d === peak && peak.listenCount > 0
-            ? "#111111"
-            : "#F7B52C",
+            ? color("ink")
+            : color("yellow"),
       label: `${formatDayString(d.date)} : ${formatCount(d.listenCount)}`,
       tag:
         d === peak && peak.listenCount > 0
@@ -56,7 +57,7 @@ export function Daily({ activity, range }: { activity: Activity; range: Range })
         height={220}
         gap={bars.length > 60 ? 1 : 4}
         topPadding={36}
-        baseline="1px solid #111111"
+        baseline="1px solid var(--colors-ink)"
         label="Écoutes par jour"
       />
       <AxisLabels

@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
-import { AppHeader, Page } from "../../ui/layout/index.ts";
+import { Page } from "../../ui/layout/index.ts";
+import { AppHeader, MobileTabBar } from "../navigation/index.ts";
 import { capsLabel } from "../../ui/primitives/index.ts";
 
 const item = css({
@@ -16,7 +17,7 @@ const item = css({
 /** Settings: a side menu (Profil, Tokens d'API) and the page. */
 export function SettingsLayout({ userName, children }: { userName: string; children: ReactNode }) {
   return (
-    <Page header={<AppHeader userName={userName} />}>
+    <Page header={<AppHeader userName={userName} />} tabBar={<MobileTabBar userName={userName} />}>
       <div
         className={css({
           flex: 1,

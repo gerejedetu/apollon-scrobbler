@@ -3,6 +3,7 @@ import type { Clock } from "../../api/index.ts";
 import { barWidth, formatShare } from "../../lib/format/index.ts";
 import { HourClock } from "../../ui/charts/index.ts";
 import { dayPart, shareBetween, weekdayName, weekdayShort } from "./copy.ts";
+import { color } from "../../ui/theme/index.ts";
 
 /** The black band: the 24-hour clock, "Tu es du soir.", and listens per weekday. */
 export function ClockBand({ clock }: { clock: Clock }) {
@@ -68,7 +69,7 @@ export function ClockBand({ clock }: { clock: Clock }) {
                   className={css({ height: "10px" })}
                   style={{
                     width: barWidth(w.listenCount, maxDay),
-                    background: w === busiest ? "#F7B52C" : "#FFFFFF",
+                    background: w === busiest ? color("yellow") : "#FFFFFF",
                   }}
                 />
               </div>

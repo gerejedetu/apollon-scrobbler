@@ -5,6 +5,7 @@ import { barWidth, formatCount } from "../../lib/format/index.ts";
 import { displayHeading, Empty } from "../../ui/primitives/index.ts";
 import { TextTabs } from "../../ui/zag/index.ts";
 import { TREND_ENTITIES } from "./data.ts";
+import { color } from "../../ui/theme/index.ts";
 
 type TrendEntity = (typeof TREND_ENTITIES)[number];
 
@@ -45,7 +46,7 @@ function Column({ items, max, rising }: { items: Change[]; max: number; rising: 
             </span>
             <span
               className={css({ textStyle: "narrow", fontSize: "22px" })}
-              style={{ color: rising ? "#1F7A3A" : "#B4232A" }}
+              style={{ color: rising ? color("up") : color("danger") }}
             >
               {rising ? "+" : "−"}
               {formatCount(Math.abs(t.change))}

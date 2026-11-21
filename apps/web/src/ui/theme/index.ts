@@ -1,4 +1,4 @@
-import { colors } from "./colors.ts";
+import { semanticColors } from "./colors.ts";
 import { fonts, textStyles } from "./typography.ts";
 
 export { fontsHref } from "./typography.ts";
@@ -13,8 +13,11 @@ const radii = {
   pill: { value: "999px" },
 };
 
-export const tokens = { colors, fonts, radii };
-export const semanticTokens = {};
+export const tokens = { fonts, radii };
+export const semanticTokens = { colors: semanticColors };
 
 /** Phone-first: below `sm` secondary columns (bars beside lists) are hidden. */
 export const breakpoints = { sm: "640px", md: "768px", lg: "1024px" };
+
+export type ColorName = keyof typeof semanticColors;
+export { color } from "./vars.ts";

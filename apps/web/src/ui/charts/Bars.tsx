@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
 import { barWidth } from "../../lib/format/index.ts";
+import { color } from "../../ui/theme/index.ts";
 
 export interface Bar {
   value: number;
@@ -22,7 +23,7 @@ export function Bars({
   bars,
   height,
   gap = 3,
-  baseline = "1px dashed #DADADA",
+  baseline = "1px dashed var(--colors-dashed)",
   label,
   topPadding = 0,
 }: {
@@ -84,8 +85,8 @@ export function Bars({
               boxSizing: "border-box",
               height: b.pending ? "6%" : barWidth(b.value, max),
               minHeight: b.value > 0 ? 1 : 0,
-              background: b.pending ? "transparent" : (b.color ?? "#F7B52C"),
-              border: b.pending ? "1px dashed #DADADA" : 0,
+              background: b.pending ? "transparent" : (b.color ?? color("yellow")),
+              border: b.pending ? "1px dashed var(--colors-dashed)" : 0,
             }}
           />
         </div>

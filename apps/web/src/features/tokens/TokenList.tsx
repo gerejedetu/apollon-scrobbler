@@ -4,6 +4,7 @@ import type { ApiKey } from "../../api/index.ts";
 import { formatAgo, formatDate } from "../../lib/format/index.ts";
 import { Button, capsLabel, CountBadge, NewTag, Notice } from "../../ui/primitives/index.ts";
 import { keyName, keyPreview } from "./model.ts";
+import { color } from "../../ui/theme/index.ts";
 
 const head = css({
   display: "flex",
@@ -97,7 +98,7 @@ export function TokenList({
                     flexWrap: "wrap",
                     gap: "12px 16px",
                     padding: "14px 8px",
-                    background: "#FDECEC",
+                    background: color("dangerBg"),
                   }}
                 >
                   <span
@@ -132,7 +133,7 @@ export function TokenList({
                 <div
                   key={key.id}
                   className={row}
-                  style={key.id === freshId ? { background: "#F6F3FF" } : undefined}
+                  style={key.id === freshId ? { background: color("violetSoft") } : undefined}
                 >
                   <span
                     className={css({ flex: 1, fontWeight: "500" })}

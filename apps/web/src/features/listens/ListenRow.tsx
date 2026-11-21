@@ -4,6 +4,7 @@ import type { Listen, Track } from "../../api/index.ts";
 import { formatListenedAt } from "../../lib/format/index.ts";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { AlbumCover } from "../../ui/cover/index.ts";
+import { color } from "../../ui/theme/index.ts";
 
 const row = css({
   display: "flex",
@@ -64,7 +65,7 @@ export function ListenRow({
       </div>
       <span
         className={css({ fontSize: "12px", whiteSpace: "nowrap" })}
-        style={{ color: playing ? "#6E44FF" : "#6F6F6F" }}
+        style={{ color: playing ? color("violet") : color("muted") }}
       >
         {when}
       </span>

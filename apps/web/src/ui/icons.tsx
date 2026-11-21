@@ -132,3 +132,41 @@ export const CloseIcon = (p: P) => (
     <path d="M6 6l12 12M18 6L6 18" />
   </Icon>
 );
+export const UserIcon = (p: P) => (
+  <Icon size={16} width={2} {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+  </Icon>
+);
+export const KeyIcon = (p: P) => (
+  <Icon size={16} width={2} {...p}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="M11 12l9-9M17 6l3 3M15 8l2 2" />
+  </Icon>
+);
+export const DownloadIcon = (p: P) => (
+  <Icon size={16} width={2} {...p}>
+    <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />
+  </Icon>
+);
+export const HomeIcon = (p: P) => (
+  <Icon size={24} width={1.8} {...p}>
+    <path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" />
+  </Icon>
+);
+export const PulseIcon = (p: P) => (
+  <Icon size={24} width={1.8} {...p}>
+    <path d="M3 12h4l2-5 4 10 2-5h6" />
+  </Icon>
+);
+export const BarsIcon = (p: P) => (
+  <Icon size={24} width={1.8} {...p}>
+    <path d="M5 20V10M12 20V4M19 20v-7" />
+  </Icon>
+);
+export const CalendarIcon = (p: P) => (
+  <Icon size={14} width={2} {...p}>
+    <rect x="4" y="5" width="16" height="15" rx="2" />
+    <path d="M4 10h16M9 3v4M15 3v4" />
+  </Icon>
+);

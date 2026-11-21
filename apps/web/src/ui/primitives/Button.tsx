@@ -18,7 +18,7 @@ export const button = cva({
   },
   variants: {
     tone: {
-      primary: { bg: "ink", color: "page", _hover: { color: "page", bg: "#2A2A2A" } },
+      primary: { bg: "ink", color: "onInk", _hover: { color: "onInk", bg: "inkHover" } },
       accent: { bg: "violet", color: "page", _hover: { color: "page", bg: "violetHover" } },
       outline: {
         bg: "page",

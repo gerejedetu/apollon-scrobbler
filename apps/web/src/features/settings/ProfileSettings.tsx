@@ -54,7 +54,7 @@ export function ProfileSettings({ me }: { me: Me }) {
           <span className={css({ color: "muted" })}>Membre depuis</span>
           <span className={css({ fontWeight: "500" })}>{formatDate(me.createdAt)}</span>
         </div>
-        <div className={row} style={{ borderBottom: "1px solid #EBEBEB" }}>
+        <div className={row} style={{ borderBottom: "1px solid var(--colors-rule)" }}>
           <span className={css({ color: "muted" })}>Écoutes enregistrées</span>
           <span className={css({ fontWeight: "500" })}>{formatCount(me.listenCount)}</span>
         </div>

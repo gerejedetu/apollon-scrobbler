@@ -3,6 +3,7 @@ import type { Listen } from "../../api/index.ts";
 import { FlameIcon, HeartIcon, TrashIcon } from "../../ui/icons.tsx";
 import { ActionMenu } from "../../ui/zag/index.ts";
 import { useFavourites } from "./context.tsx";
+import { color } from "../../ui/theme/index.ts";
 
 /** The "⋯" of a listen, for its owner: love, obsession, delete. */
 export function ListenActions({ listen, onDelete }: { listen: Listen; onDelete: () => void }) {
@@ -17,12 +18,12 @@ export function ListenActions({ listen, onDelete }: { listen: Listen; onDelete: 
         {
           value: "love",
           label: loved ? "Retirer des coups de cœur" : "Coup de cœur",
-          icon: <HeartIcon color="#B4232A" filled={loved} />,
+          icon: <HeartIcon color={color("danger")} filled={loved} />,
         },
         {
           value: "obsession",
           label: obsession ? "Ce n'est plus mon obsession" : "Mon obsession du moment",
-          icon: <FlameIcon color="#6E44FF" />,
+          icon: <FlameIcon color={color("violet")} />,
         },
         {
           value: "delete",

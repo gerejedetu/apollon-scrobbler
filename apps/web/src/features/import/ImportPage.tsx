@@ -8,6 +8,7 @@ import { CheckIcon } from "../../ui/icons.tsx";
 import { Button, capsLabel } from "../../ui/primitives/index.ts";
 import { settingsTitle } from "../settings/index.ts";
 import { batches, NotALastFmExport, parseLastFmExport } from "./lastfm.ts";
+import { color } from "../../ui/theme/index.ts";
 
 interface Sending {
   file: string;
@@ -133,9 +134,9 @@ export function ImportPage() {
               gap: "12px",
               px: "24px",
               py: "40px",
-              border: "1.5px dashed #CFCFCF",
+              border: "1.5px dashed var(--colors-dropzone-line)",
               borderRadius: "card",
-              bg: "#FAFAFA",
+              bg: "dropzone",
               textAlign: "center",
               cursor: "pointer",
               "&[data-dragging=true]": { borderColor: "violet", bg: "violetSoft" },
@@ -159,7 +160,7 @@ export function ImportPage() {
                 width: "44px",
                 height: "44px",
                 borderRadius: "22px",
-                bg: "#EFEAFF",
+                bg: "violetTint",
                 color: "violet",
                 display: "inline-flex",
                 alignItems: "center",
@@ -194,7 +195,10 @@ export function ImportPage() {
       ) : null}
 
       {state.step === "sending" ? (
-        <section className={block} style={{ paddingTop: 24, borderTop: "1px solid #EBEBEB" }}>
+        <section
+          className={block}
+          style={{ paddingTop: 24, borderTop: "1px solid var(--colors-rule)" }}
+        >
           <span className={capsLabel}>IMPORT EN COURS</span>
           <div
             className={css({
@@ -224,7 +228,7 @@ export function ImportPage() {
                   height="16"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#111111"
+                  stroke={color("ink")}
                   strokeWidth="2"
                   strokeLinejoin="round"
                   aria-hidden="true"

@@ -3,6 +3,7 @@ import { css } from "styled-system/css";
 import { formatCount, formatPeriodMonth } from "../../lib/format/index.ts";
 import { AxisLabels, Bars } from "../../ui/charts/index.ts";
 import { Caps } from "../../ui/primitives/index.ts";
+import { color } from "../../ui/theme/index.ts";
 
 /** "ARTISTE / Radiohead" title block of the library pages. */
 export function EntityTitle({
@@ -65,7 +66,12 @@ export function PeriodBars({
         label={label}
         bars={periods.map((p) => ({
           value: p.listenCount,
-          color: p.listenCount === 0 ? "#F0F0F0" : p.listenCount === max ? "#111111" : "#F7B52C",
+          color:
+            p.listenCount === 0
+              ? color("chip")
+              : p.listenCount === max
+                ? color("ink")
+                : color("yellow"),
           label: `${format(p.period)} : ${formatCount(p.listenCount)}`,
         }))}
       />

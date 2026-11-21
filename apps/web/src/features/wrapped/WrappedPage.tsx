@@ -16,6 +16,7 @@ import {
 import { Main } from "../../ui/layout/index.ts";
 import { capsLabel, pill } from "../../ui/primitives/index.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
+import { color } from "../../ui/theme/index.ts";
 
 const narrow = css({ textStyle: "narrow" });
 const rankRow = css({
@@ -388,7 +389,7 @@ export function WrappedPage({
                   gap: "10px",
                 })}
               >
-                <span className={capsLabel} style={{ color: "#BDBDBD" }}>
+                <span className={capsLabel} style={{ color: color("nightMuted") }}>
                   NOUVEAUTÉS DE L'ANNÉE
                 </span>
                 <span className={css({ textStyle: "wide", fontSize: "32px", lineHeight: 1.05 })}>

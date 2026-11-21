@@ -90,6 +90,9 @@ importers:
       '@zag-js/menu':
         specifier: 1.48.0
         version: 1.48.0
+      '@zag-js/radio-group':
+        specifier: 1.48.0
+        version: 1.48.0
       '@zag-js/react':
         specifier: 1.48.0
         version: 1.48.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -2119,6 +2122,9 @@ packages:
 
   '@zag-js/popper@1.48.0':
     resolution: {integrity: sha512-tVg2by73Y+P6F5q+sLg6oig6eGj/l+ko/Rs3xC5Y3gwCy0fKp8YJ6dP9+snfSGbxr432a6T5Nlbt7S+pYVD1wA==}
+
+  '@zag-js/radio-group@1.48.0':
+    resolution: {integrity: sha512-4pnOf0+GVJprSEVHYzd9YS2aEnSvEgWy2uxcL4iINJlzROoYi9wEatjdiLBIFA29VG9bwbDrtcCFwCU9S/1oNw==}
 
   '@zag-js/react@1.48.0':
     resolution: {integrity: sha512-tWaAoRGoP0gYIB8HdDk+5qJnkdOIRa8+ygA6xV83M/MUqOrk4oeBqauWYTuNT1+z6x3DO8P0J0hKTjiP2Eu7Fg==}
@@ -4708,6 +4714,15 @@ snapshots:
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@zag-js/dom-query': 1.48.0
+      '@zag-js/utils': 1.48.0
+
+  '@zag-js/radio-group@1.48.0':
+    dependencies:
+      '@zag-js/anatomy': 1.48.0
+      '@zag-js/core': 1.48.0
+      '@zag-js/dom-query': 1.48.0
+      '@zag-js/focus-visible': 1.48.0
+      '@zag-js/types': 1.48.0
       '@zag-js/utils': 1.48.0
 
   '@zag-js/react@1.48.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
