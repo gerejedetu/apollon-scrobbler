@@ -13,7 +13,7 @@ const field = css({
   px: "12px",
   border: 0,
   borderRadius: "field",
-  bg: "page",
+  bg: "raised",
   boxShadow: "inset 0 0 0 1px token(colors.violetLine)",
   font: "inherit",
   fontSize: "13px",
@@ -50,7 +50,6 @@ export function CopyField({
         <button
           {...api.getTriggerProps()}
           className={button({ tone: emphasis ? "accent" : "soft", size: "md" })}
-          style={{ paddingInline: 14 }}
         >
           {api.copied ? <CheckIcon /> : <CopyIcon />}
           {api.copied ? m.copied() : m.copy()}

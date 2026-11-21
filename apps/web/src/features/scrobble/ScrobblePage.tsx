@@ -238,7 +238,7 @@ export function ScrobblePage({ userName }: { userName: string }) {
             mt: "4px",
           })}
         >
-          <Button type="submit" disabled={pending} className={css({ px: "18px" })}>
+          <Button type="submit" disabled={pending}>
             {pending ? m.sending() : m.nav_scrobble()}
           </Button>
           <Link

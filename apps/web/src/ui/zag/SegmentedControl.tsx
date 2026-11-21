@@ -16,7 +16,7 @@ const item = css({
   cursor: "pointer",
   "&[data-state=checked]": {
     bg: "raised",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.12)",
+    boxShadow: "0 1px 2px token(colors.shadow)",
     fontWeight: "500",
   },
   "&[data-focus-visible]": { outline: "2px solid token(colors.violet)" },

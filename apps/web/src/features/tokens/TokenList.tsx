@@ -121,13 +121,13 @@ export function TokenList({
                   <span className={css({ display: "flex", gap: "8px" })}>
                     <Button
                       tone="outline"
-                      size="xs"
+                      size="sm"
                       onClick={() => setConfirming(null)}
                       disabled={busy}
                     >
                       {m.cancel()}
                     </Button>
-                    <Button tone="danger" size="xs" onClick={() => revoke(key)} disabled={busy}>
+                    <Button tone="danger" size="sm" onClick={() => revoke(key)} disabled={busy}>
                       {m.revoke()}
                     </Button>
                   </span>
@@ -148,7 +148,7 @@ export function TokenList({
                   <span className={`${cell} ${hideOnPhone}`}>{keyPreview(key)}</span>
                   <span className={cell}>{createdLabel(key.createdAt)}</span>
                   <span className={actions}>
-                    <Button tone="outline" size="xs" onClick={() => setConfirming(key.id)}>
+                    <Button tone="outline" size="sm" onClick={() => setConfirming(key.id)}>
                       {m.revoke()}
                     </Button>
                   </span>
