@@ -12,6 +12,7 @@ import { Button, Field, Notice } from "../../ui/primitives/index.ts";
 import { formText } from "./form.ts";
 import { authFoot, authForm, authTitle } from "./layout.tsx";
 import { MIN_PASSWORD, validateUserName } from "./validation.ts";
+import { profilePrefix } from "../../lib/origin.ts";
 import { m } from "../../paraglide/messages.js";
 
 /**
@@ -85,7 +86,7 @@ export function SignUpForm() {
           error={nameError ?? fieldError("username")}
           hint={
             <>
-              {m.field_username_hint()}
+              {m.username_help()} {profilePrefix()}
               <b className={css({ color: "ink", fontWeight: "500" })}>{userName || "jules"}</b>
             </>
           }

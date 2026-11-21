@@ -9,7 +9,7 @@ import { Button, Notice } from "../../ui/primitives/index.ts";
 import { Switch } from "../../ui/zag/index.ts";
 import { settingsTitle } from "./SettingsLayout.tsx";
 import { dateFormat } from "../../lib/locale.ts";
-import { APP_NAME } from "../../ui/brand/index.ts";
+import { profilePrefix } from "../../lib/origin.ts";
 import { m } from "../../paraglide/messages.js";
 
 const group = css({ display: "flex", flexDirection: "column", gap: "8px" });
@@ -131,7 +131,7 @@ export function ProfileSettings({ me }: { me: Me }) {
         <span className={fieldLabel}>{m.field_username()}</span>
         <ReadOnly>{me.userName}</ReadOnly>
         <p className={help}>
-          {m.username_help()} {APP_NAME.toLowerCase()}/
+          {m.username_help()} {profilePrefix()}
           <b className={css({ color: "ink", fontWeight: "500" })}>{me.userName}</b>
         </p>
       </div>
