@@ -87,7 +87,8 @@ function Row({
       >
         {formatTrackLength(track.durationMs)}
       </span>
-      {actions ?? <span className={css({ width: "28px", flexShrink: 0 })} />}
+      {/* Same slot on every row, menu or not (visitors, now playing): badges and lengths line up. */}
+      <span className={css({ width: "28px", flexShrink: 0, display: "flex" })}>{actions}</span>
     </div>
   );
 }
