@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { css, cx } from "styled-system/css";
 import { artworkSources, type Lookup } from "./artwork.ts";
-import { coverPattern } from "./pattern.ts";
 
 const frame = css({
   position: "relative",
@@ -11,12 +10,11 @@ const frame = css({
   containerType: "inline-size",
   flexShrink: 0,
 });
-const abs = css({ position: "absolute" });
 
 interface CoverProps {
-  /** What the cover stands for (album or artist + album): picks the pattern. */
+  /** What the cover stands for (album or artist + album). Kept for callers; the placeholder is neutral. */
   seed: string;
-  /** Printed on the cover, like a sleeve. Leave out for thumbnails. */
+  /** Not printed any more (the placeholder is a plain note); kept so callers need not change. */
   title?: string;
   /** Round for artists. */
   round?: boolean;
@@ -31,104 +29,36 @@ interface CoverProps {
   className?: string;
 }
 
-/** A square sleeve (round for artists): no radius, no shadow, a motif in two colours. */
-export function Cover({ seed, title, round, size, mbid, lookup, youtube, className }: CoverProps) {
-  const p = coverPattern(seed);
-  const fg = { background: p.fg };
+/**
+ * A square sleeve (round for artists). Until real artwork loads, or when none exists anywhere, a neutral
+ * tile: grey with a music note, from theme tokens so it fits light and dark mode alike.
+ */
+export function Cover({ round, size, mbid, lookup, youtube, className }: CoverProps) {
   return (
     <div
       aria-hidden="true"
-      className={cx(frame, className)}
-      style={{
-        background: p.bg,
-        borderRadius: round ? "50%" : 0,
-        width: size,
-        height: size,
-      }}
+      className={cx(frame, css({ bg: "chip", color: "placeholder" }), className)}
+      style={{ borderRadius: round ? "50%" : 0, width: size, height: size }}
     >
-      {p.motif === "sun" && (
-        <div
-          className={abs}
-          style={{
-            ...fg,
-            left: "22%",
-            top: "26%",
-            width: "56%",
-            height: "56%",
-            borderRadius: "50%",
-          }}
-        />
-      )}
-      {p.motif === "ring" && (
-        <div
-          className={abs}
-          style={{
-            left: "18%",
-            top: "14%",
-            width: "64%",
-            height: "64%",
-            borderRadius: "50%",
-            boxSizing: "border-box",
-            border: `5cqw solid ${p.fg}`,
-          }}
-        />
-      )}
-      {p.motif === "arch" && (
-        <div
-          className={abs}
-          style={{
-            ...fg,
-            left: "16%",
-            right: "16%",
-            bottom: 0,
-            height: "62%",
-            borderRadius: "999px 999px 0 0",
-          }}
-        />
-      )}
-      {p.motif === "split" && (
-        <div className={abs} style={{ ...fg, left: 0, top: 0, width: "46%", height: "100%" }} />
-      )}
-      {p.motif === "stripes" && (
-        <div
-          className={abs}
-          style={{
-            left: "12%",
-            right: "12%",
-            top: "16%",
-            height: "52%",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} style={{ ...fg, height: "9%" }} />
-          ))}
-        </div>
-      )}
-      {title ? (
-        <span
-          className={cx(
-            abs,
-            css({
-              left: "8%",
-              right: "8%",
-              bottom: "7%",
-              fontFamily: "display",
-              fontStretch: "62%",
-              fontSize: "13cqw",
-              fontWeight: "900",
-              lineHeight: 0.95,
-              textTransform: "uppercase",
-              overflowWrap: "anywhere",
-            }),
-          )}
-          style={{ color: p.ink }}
-        >
-          {title}
-        </span>
-      ) : null}
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={css({
+          position: "absolute",
+          left: "32%",
+          top: "32%",
+          width: "36%",
+          height: "36%",
+        })}
+      >
+        <path d="M9 18V5l12-2v13" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
+      </svg>
       <Artwork
         sources={artworkSources(
           mbid,
@@ -142,7 +72,7 @@ export function Cover({ seed, title, round, size, mbid, lookup, youtube, classNa
 }
 
 /**
- * The real sleeve over the pattern: tries each source in turn (also failures before hydration), else nothing.
+ * The real sleeve over the placeholder: tries each source in turn (also failures before hydration), else nothing.
  * A name lookup (/covers) that fails is retried once a few seconds later: on a first visit a page asks for many
  * new covers at once and the artwork provider may be briefly over quota.
  */

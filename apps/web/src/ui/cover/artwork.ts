@@ -22,7 +22,7 @@ export type Lookup =
   | { kind: "artist"; artist: string }
   | { kind: "album"; artist: string; album?: string | null; track?: string | null };
 
-export const LOOKUP_VERSION = "6";
+export const LOOKUP_VERSION = "7";
 
 export function lookupUrl(
   lookup: Lookup | undefined,
@@ -39,8 +39,10 @@ export function lookupUrl(
   if (lookup.kind === "artist") params.set("kind", "artist");
   else {
     if (!lookup.album && !lookup.track) return null;
+    // The track rides along even when the album is known: if the album cannot be found (or is a
+    // compilation missing from the catalogue), the track's own sleeve stands in.
     if (lookup.album) params.set("album", lookup.album);
-    else if (lookup.track) params.set("track", lookup.track);
+    if (lookup.track) params.set("track", lookup.track);
     // The video the listen came from: if the name finds nothing, its thumbnail becomes this name's cover,
     // so pages that only know the name (track page, tops, year in review) show the same image.
     if (videoId) params.set("yt", videoId);
