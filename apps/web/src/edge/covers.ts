@@ -498,6 +498,30 @@ function imageResponse(body: BodyInit | null, contentType: string): Response {
 const missResponse = () =>
   new Response(null, { status: 404, headers: { "cache-control": "public, max-age=300" } });
 
+/**
+ * An album with no artwork of its own takes the stored cover of its track: a single is usually named like
+ * its track ("Lemon" by 엄지 (UMJI)), and that track may already have an image (for example its video's
+ * thumbnail, learned from a listen). The image is copied under the album's key for next time.
+ */
+async function borrowTrackCover(
+  q: ArtworkQuery,
+  bucket: ArtworkBucket | undefined,
+  albumKey: string,
+): Promise<Response | null> {
+  if (!bucket || q.kind !== "album" || !q.album) return null;
+  for (const track of new Set([q.track, q.album].filter((t): t is string => Boolean(t)))) {
+    const object = await bucket.get(
+      await storageKey({ kind: "album", artist: q.artist, track, size: q.size }),
+    );
+    if (!object || Number(object.customMetadata?.missUntil ?? 0)) continue;
+    const bytes = await object.arrayBuffer();
+    const contentType = object.httpMetadata?.contentType ?? "image/jpeg";
+    await bucket.put(albumKey, bytes.slice(0), { httpMetadata: { contentType } });
+    return imageResponse(bytes, contentType);
+  }
+  return null;
+}
+
 export async function handleCovers(
   request: Request,
   deps: {
@@ -539,7 +563,10 @@ export async function handleCovers(
     // A stored miss still answers 404, unless this request brings a video thumbnail to stand in.
     const canFill = q.kind !== "release" && q.kind !== "youtube" && Boolean(q.videoId);
     if (missUntil > now && stored.customMetadata?.resolver === RESOLVER) {
-      if (!canFill) return missResponse();
+      if (!canFill) {
+        const borrowed = await borrowTrackCover(q, deps.bucket, key);
+        return borrowed ?? missResponse();
+      }
       // The name is known to have no artwork: go straight to the thumbnail.
       skipSearch = true;
     }
@@ -563,6 +590,8 @@ export async function handleCovers(
     });
   }
   if (image === null) {
+    const borrowed = await borrowTrackCover(q, deps.bucket, key);
+    if (borrowed) return borrowed;
     await later(
       deps.bucket?.put(key, "", {
         customMetadata: { missUntil: String(now + MISS_TTL * 1000), resolver: RESOLVER },

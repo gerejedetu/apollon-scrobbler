@@ -445,3 +445,24 @@ test("compilations credited to Various Artists, and a track's sleeve from anothe
   expect(cleanTitle("Song feat. Somebody")).toBe("Song");
   expect(cleanTitle("Song (feat. Earl Lewis)")).toBe("Song");
 });
+
+test("an album with no artwork of its own borrows the stored cover of its same-named track (singles)", async () => {
+  const bucket = memoryBucket();
+  const fetcher = vi.fn(async (input: string) =>
+    input.startsWith("https://api.deezer.com")
+      ? Response.json({ data: [] })
+      : new Response(JPEG, { headers: { "content-type": "image/jpeg" } }),
+  );
+  const deps = { bucket, fetcher: fetcher as unknown as typeof fetch };
+  const base = "https://apollon.example/covers?artist=%EC%97%84%EC%A7%80%20(UMJI)";
+  // The album page first: nothing anywhere yet.
+  expect((await handleCovers(new Request(`${base}&album=Lemon`), deps)).status).toBe(404);
+  // A listen of the track brings its video thumbnail under the track.
+  expect((await handleCovers(new Request(`${base}&track=Lemon&yt=XGIAMH69y4M`), deps)).status).toBe(
+    200,
+  );
+  // The album now shows that image, even with its miss remembered.
+  const album = await handleCovers(new Request(`${base}&album=Lemon`), deps);
+  expect(album.status).toBe(200);
+  expect((await album.arrayBuffer()).byteLength).toBe(JPEG.byteLength);
+});
