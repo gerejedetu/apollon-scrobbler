@@ -11,6 +11,8 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
   const users: (User & { authUserId: string })[] = [];
   const settings = new Map<string, string>();
   const aliases = new Map<string, string>();
+  /** Bumped by every listen change, like users.data_version. */
+  const version = { n: 0 };
   const listens: StoredListen[] = [];
   const playing = new Map<number, PlayingNow>();
   const imports = new Map<string, number>();
@@ -53,6 +55,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
               createdAt: u.createdAt,
               listenCount: listens.filter((l) => l.userId === u.id).length,
               isPrivate: u.isPrivate,
+              dataVersion: version.n,
             }
           : null;
       },
@@ -65,6 +68,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
               createdAt: u.createdAt,
               listenCount: u.listenCount,
               isPrivate: u.isPrivate,
+              dataVersion: version.n,
             }
           : null;
       },
@@ -75,7 +79,14 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           )
         )
           return null;
-        const user = { id: users.length + 1, name, createdAt, listenCount: 0, isPrivate: false };
+        const user = {
+          id: users.length + 1,
+          name,
+          createdAt,
+          listenCount: 0,
+          isPrivate: false,
+          dataVersion: version.n,
+        };
         users.push({ ...user, authUserId });
         return user;
       },
@@ -100,6 +111,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
             continue;
           listens.push({ ...r, userId, insertedAt });
           n++;
+          version.n++;
         }
         return n;
       },
@@ -125,6 +137,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
         );
         if (i < 0) return false;
         listens.splice(i, 1);
+        version.n++;
         return true;
       },
     },

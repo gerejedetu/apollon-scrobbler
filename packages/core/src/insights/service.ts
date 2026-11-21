@@ -70,8 +70,8 @@ export class InsightsService {
     // Small histories are cheaper to recompute than to cache (see cache/policy.ts).
     const cache = user.listenCount >= this.cacheMinListens ? this.cache : this.localCache;
     if (!cache) return compute();
-    const version = byListenCount ? user.listenCount : "any";
-    const key = `insights:v2:${user.id}:${version}:${name}:${JSON.stringify(params)}`;
+    const version = byListenCount ? user.dataVersion : "any";
+    const key = `insights:v3:${user.id}:${version}:${name}:${JSON.stringify(params)}`;
     const hit = await cache.get<T>(key);
     if (hit !== null && hit !== undefined) return hit;
     const value = await compute();

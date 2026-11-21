@@ -163,7 +163,15 @@ describe("users, imports, stats", () => {
     repos._listens.length = 0;
     expect(await s.stats.top(fresh, "artists", {})).toEqual(first);
     // New listen count -> recomputed.
-    expect((await s.stats.top({ ...fresh, listenCount: 0 }, "artists", {})).total).toBe(0);
+    expect(
+      (
+        await s.stats.top(
+          { ...fresh, dataVersion: fresh.dataVersion + 1, listenCount: 0 },
+          "artists",
+          {},
+        )
+      ).total,
+    ).toBe(0);
     await rejects(s.stats.top(fresh, "artists", { range: "decade" }), 400);
   });
 });

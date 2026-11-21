@@ -24,7 +24,7 @@ FROM json_each(?3) AS j`;
 /** Runs right after an INSERT/DELETE in the same batch: changes() is the row count of that statement.
  * Bound JS numbers may arrive as REAL, hence the CASTs wherever they take part in arithmetic. */
 const BUMP_COUNT_SQL =
-  "UPDATE users SET listen_count = max(listen_count + CAST(?2 AS INTEGER) * changes(), 0) WHERE id = ?1";
+  "UPDATE users SET listen_count = max(listen_count + CAST(?2 AS INTEGER) * changes(), 0), data_version = data_version + (changes() > 0) WHERE id = ?1";
 
 function toTuple(l: NewListen): unknown[] {
   return [

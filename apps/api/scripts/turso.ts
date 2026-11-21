@@ -181,6 +181,7 @@ async function mergeAlbum(artist: string, from: string, to: string) {
         sql: "UPDATE loved_tracks SET release_name = ?3 WHERE artist_name = ?1 AND release_name = ?2",
         args: [artist, from, to],
       },
+      { sql: "UPDATE users SET data_version = data_version + 1", args: [] },
     ],
     "write",
   );

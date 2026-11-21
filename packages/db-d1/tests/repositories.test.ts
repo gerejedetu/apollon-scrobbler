@@ -450,3 +450,15 @@ describe("favourites", () => {
     expect(await repos.favourites.obsession(userId)).toBeNull();
   });
 });
+
+test("data_version moves with every real change to a user's listens", async () => {
+  const v = async () => (await repos.users.findByName("alice"))!.dataVersion;
+  const start = await v();
+  await repos.listens.insertMany(userId, [listen(1), listen(2)], T0);
+  const afterInsert = await v();
+  expect(afterInsert).toBeGreaterThan(start);
+  await repos.listens.insertMany(userId, [listen(1)], T0); // duplicate: nothing changes
+  expect(await v()).toBe(afterInsert);
+  await repos.listens.delete(userId, T0 + 1, "msid-1");
+  expect(await v()).toBeGreaterThan(afterInsert);
+});

@@ -12,10 +12,6 @@ const frame = css({
 });
 
 interface CoverProps {
-  /** What the cover stands for (album or artist + album). Kept for callers; the placeholder is neutral. */
-  seed: string;
-  /** Not printed any more (the placeholder is a plain note); kept so callers need not change. */
-  title?: string;
   /** Round for artists. */
   round?: boolean;
   /** Fixed side in px; fluid (fills the column) when left out. */
