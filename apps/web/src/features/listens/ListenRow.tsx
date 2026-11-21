@@ -29,6 +29,7 @@ export function ListenRow({
   playing?: boolean;
   actions?: ReactNode;
 }) {
+  const fav = useFavourites();
   return (
     <div className={row}>
       <CoverLink userName={userName} track={track} size={40} />
@@ -58,7 +59,9 @@ export function ListenRow({
           {when}
         </span>
       )}
-      <span className={css({ width: "28px", flexShrink: 0, display: "flex" })}>{actions}</span>
+      {fav.owner ? (
+        <span className={css({ width: "28px", flexShrink: 0, display: "flex" })}>{actions}</span>
+      ) : null}
     </div>
   );
 }
