@@ -31,6 +31,7 @@ function Row({
   actions?: React.ReactNode;
 }) {
   const source = listenSource(track);
+  const fav = useFavourites();
   return (
     <div className={row} style={playing ? { background: "var(--colors-violet-soft)" } : undefined}>
       <span
@@ -65,30 +66,42 @@ function Row({
         </span>
         <CreditLine userName={userName} track={track} />
       </span>
-      {source ? (
-        <span
-          className={css({
-            display: { base: "none", sm: "inline-flex" },
-            height: "22px",
-            px: "8px",
-            alignItems: "center",
-            borderRadius: "11px",
-            bg: "field",
-            fontSize: "11px",
-            color: "muted",
-            whiteSpace: "nowrap",
-          })}
-        >
-          {source}
-        </span>
-      ) : null}
       <span
         className={css({ width: "40px", textAlign: "right", fontSize: "12px", color: "muted" })}
       >
         {formatTrackLength(track.durationMs)}
       </span>
-      {/* Same slot on every row, menu or not (visitors, now playing): badges and lengths line up. */}
-      <span className={css({ width: "28px", flexShrink: 0, display: "flex" })}>{actions}</span>
+      {/* Fixed column, badge flush right: badges end at the row's edge (or the menu) on every row. */}
+      <span
+        className={css({
+          display: { base: "none", sm: "flex" },
+          width: "132px",
+          flexShrink: 0,
+          justifyContent: "flex-end",
+        })}
+      >
+        {source ? (
+          <span
+            className={css({
+              display: "inline-flex",
+              height: "22px",
+              px: "8px",
+              alignItems: "center",
+              borderRadius: "11px",
+              bg: "field",
+              fontSize: "11px",
+              color: "muted",
+              whiteSpace: "nowrap",
+            })}
+          >
+            {source}
+          </span>
+        ) : null}
+      </span>
+      {/* The owner gets a menu on stored listens: keep its slot on the now-playing row too. */}
+      {fav.owner ? (
+        <span className={css({ width: "28px", flexShrink: 0, display: "flex" })}>{actions}</span>
+      ) : null}
     </div>
   );
 }
