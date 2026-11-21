@@ -9,6 +9,8 @@ import { Button, capsLabel } from "../../ui/primitives/index.ts";
 import { settingsTitle } from "../settings/index.ts";
 import { batches, NotALastFmExport, parseLastFmExport } from "./lastfm.ts";
 import { color } from "../../ui/theme/index.ts";
+import { intlLocale } from "../../lib/locale.ts";
+import { m } from "../../paraglide/messages.js";
 
 interface Sending {
   file: string;
@@ -23,13 +25,10 @@ type State =
   | { step: "done"; inserted: number; ignored: number; cancelled: boolean }
   | { step: "failed"; message: string };
 
-const NOT_LASTFM =
-  "Ce fichier ne ressemble pas à un export Last.fm. Il doit contenir les colonnes artiste, album, titre et date.";
-
 const sizeLabel = (bytes: number) =>
   bytes >= 1_000_000
-    ? `${(bytes / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Mo`
-    : `${Math.max(1, Math.round(bytes / 1000))} ko`;
+    ? `${(bytes / 1_000_000).toLocaleString(intlLocale(), { maximumFractionDigits: 1 })} ${m.unit_mb()}`
+    : `${Math.max(1, Math.round(bytes / 1000))} ${m.unit_kb()}`;
 
 // Literal objects: Panda extracts styles at build time.
 const intro = css({ display: "flex", flexDirection: "column", gap: "12px" });
@@ -54,12 +53,12 @@ export function ImportPage() {
     } catch (e) {
       setState({
         step: "failed",
-        message: e instanceof NotALastFmExport ? NOT_LASTFM : "Ce fichier est illisible.",
+        message: e instanceof NotALastFmExport ? m.import_not_lastfm() : m.import_unreadable(),
       });
       return;
     }
     if (parsed.listens.length === 0) {
-      setState({ step: "failed", message: "Aucune écoute à importer dans ce fichier." });
+      setState({ step: "failed", message: m.import_nothing() });
       return;
     }
     cancelled.current = false;
@@ -81,7 +80,10 @@ export function ImportPage() {
     } catch (e) {
       setState({
         step: "failed",
-        message: `Import interrompu après ${formatCount(sent)} écoutes (${e instanceof Error ? e.message : "erreur inconnue"}). Relance-le : les écoutes déjà importées ne seront pas doublées.`,
+        message: m.import_interrupted({
+          count: formatCount(sent),
+          reason: e instanceof Error ? e.message : m.unknown_error(),
+        }),
       });
     }
   }
@@ -100,7 +102,7 @@ export function ImportPage() {
   return (
     <>
       <div className={intro}>
-        <h1 className={settingsTitle}>Importer</h1>
+        <h1 className={settingsTitle}>{m.settings_import()}</h1>
         <p
           className={css({
             m: 0,
@@ -110,15 +112,13 @@ export function ImportPage() {
             color: "muted",
           })}
         >
-          Récupère ton historique Last.fm : exporte tes scrobbles en CSV, puis choisis le fichier
-          ici. Il est lu dans ton navigateur et tes écoutes sont ajoutées à ton compte. Tu peux
-          réimporter sans risque, les doublons sont ignorés.
+          {m.import_intro()}
         </p>
       </div>
 
       {state.step !== "sending" ? (
         <section className={field}>
-          <span className={css({ fontSize: "13px", fontWeight: "500" })}>Fichier CSV Last.fm</span>
+          <span className={css({ fontSize: "13px", fontWeight: "500" })}>{m.import_file()}</span>
           <label
             onDragOver={(e) => {
               e.preventDefault();
@@ -147,7 +147,7 @@ export function ImportPage() {
             <input
               type="file"
               accept=".csv,text/csv"
-              aria-label="Fichier CSV Last.fm"
+              aria-label={m.import_file()}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";
@@ -182,14 +182,12 @@ export function ImportPage() {
               </svg>
             </span>
             <span className={css({ fontSize: "14px", fontWeight: "500" })}>
-              Glisse ton fichier ici ou{" "}
+              {m.import_drop()}{" "}
               <span className={css({ color: "violet", textDecoration: "underline" })}>
-                choisis-le
+                {m.import_pick()}
               </span>
             </span>
-            <span className={css({ fontSize: "12px", color: "muted" })}>
-              Un fichier .csv avec artiste, album, titre et date
-            </span>
+            <span className={css({ fontSize: "12px", color: "muted" })}>{m.import_hint()}</span>
           </label>
         </section>
       ) : null}
@@ -258,7 +256,7 @@ export function ImportPage() {
                   {state.file}
                 </span>
                 <span className={css({ fontSize: "12px", color: "muted" })}>
-                  {sizeLabel(state.size)} · {formatCount(state.total)} écoutes trouvées
+                  {sizeLabel(state.size)} · {m.import_found({ count: formatCount(state.total) })}
                 </span>
               </span>
               <Button
@@ -269,12 +267,12 @@ export function ImportPage() {
                   cancelled.current = true;
                 }}
               >
-                Annuler
+                {m.cancel()}
               </Button>
             </div>
             <div
               role="progressbar"
-              aria-label="Progression de l'import"
+              aria-label={m.import_progress()}
               aria-valuenow={Math.round((state.sent / state.total) * 100)}
               aria-valuemin={0}
               aria-valuemax={100}
@@ -304,9 +302,9 @@ export function ImportPage() {
                 <b className={css({ color: "ink", fontWeight: "600" })}>
                   {formatCount(state.sent)}
                 </b>{" "}
-                sur {formatCount(state.total)} écoutes envoyées
+                {m.import_sent_of({ count: formatCount(state.total) })}
               </span>
-              <span>Garde cet onglet ouvert jusqu'à la fin</span>
+              <span>{m.import_keep_open()}</span>
             </div>
           </div>
         </section>
@@ -333,13 +331,14 @@ export function ImportPage() {
             <CheckIcon size={14} />
             <span>
               <b className={css({ fontWeight: "600" })}>
-                {formatCount(state.inserted)} écoute{state.inserted > 1 ? "s" : ""} ajoutée
-                {state.inserted > 1 ? "s" : ""}.
+                {(state.inserted > 1 ? m.import_added_many : m.import_added_one)({
+                  count: formatCount(state.inserted),
+                })}
               </b>
               {state.ignored > 0
-                ? ` ${formatCount(state.ignored)} étai${state.ignored > 1 ? "ent" : "t"} déjà là et ${state.ignored > 1 ? "ont" : "a"} été ignorée${state.ignored > 1 ? "s" : ""}.`
+                ? ` ${(state.ignored > 1 ? m.import_ignored_many : m.import_ignored_one)({ count: formatCount(state.ignored) })}`
                 : ""}
-              {state.cancelled ? " Import annulé avant la fin." : ""}
+              {state.cancelled ? ` ${m.import_cancelled()}` : ""}
             </span>
           </span>
           {me?.me ? (
@@ -352,7 +351,7 @@ export function ImportPage() {
                 _hover: { color: "successInk" },
               })}
             >
-              Voir mon historique
+              {m.see_my_history()}
             </Link>
           ) : null}
         </div>

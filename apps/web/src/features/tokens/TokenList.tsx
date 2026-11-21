@@ -5,6 +5,7 @@ import { formatAgo, formatDate } from "../../lib/format/index.ts";
 import { Button, capsLabel, CountBadge, NewTag, Notice } from "../../ui/primitives/index.ts";
 import { keyName, keyPreview } from "./model.ts";
 import { color } from "../../ui/theme/index.ts";
+import { m } from "../../paraglide/messages.js";
 
 const head = css({
   display: "flex",
@@ -51,7 +52,7 @@ export function TokenList({
       await onRevoke(key);
       setConfirming(null);
     } catch {
-      setFailed(`« ${keyName(key)} » n'a pas été révoqué. Réessaie.`);
+      setFailed(m.token_revoke_failed({ name: keyName(key) }));
     } finally {
       setBusy(false);
     }
@@ -68,25 +69,25 @@ export function TokenList({
           textStyle: "block",
         })}
       >
-        Tes tokens <CountBadge>{keys.length}</CountBadge>
+        {m.your_tokens()} <CountBadge>{keys.length}</CountBadge>
       </h2>
       {failed ? <Notice tone="error">{failed}</Notice> : null}
       {keys.length === 0 ? (
         <p className={css({ m: 0, py: "14px", fontSize: "13px", color: "muted" })}>
-          Aucun token pour l'instant. Crée-en un pour ta première appli.
+          {m.tokens_empty()}
         </p>
       ) : (
         <div className={css({ overflowX: "auto" })}>
           <div className={css({ minWidth: "560px" })}>
             <div className={head}>
               <span className={capsLabel} style={{ flex: 1 }}>
-                NOM
+                {m.caps_name()}
               </span>
               <span className={`${capsLabel} ${hideOnPhone}`} style={{ width: 120 }}>
-                DÉBUT
+                {m.caps_start()}
               </span>
               <span className={capsLabel} style={{ width: 120 }}>
-                CRÉÉ LE
+                {m.caps_created()}
               </span>
               <span style={{ width: 160 }} />
             </div>
@@ -110,10 +111,11 @@ export function TokenList({
                       gap: "2px",
                     })}
                   >
-                    <b className={css({ fontWeight: "600" })}>Révoquer « {keyName(key)} » ?</b>
+                    <b className={css({ fontWeight: "600" })}>
+                      {m.token_revoke_confirm({ name: keyName(key) })}
+                    </b>
                     <span className={css({ fontSize: "12px", color: "dangerInk" })}>
-                      L'appli qui l'utilise ne pourra plus envoyer d'écoutes. Tes écoutes déjà
-                      enregistrées restent.
+                      {m.token_revoke_help()}
                     </span>
                   </span>
                   <span className={css({ display: "flex", gap: "8px" })}>
@@ -123,10 +125,10 @@ export function TokenList({
                       onClick={() => setConfirming(null)}
                       disabled={busy}
                     >
-                      Annuler
+                      {m.cancel()}
                     </Button>
                     <Button tone="danger" size="xs" onClick={() => revoke(key)} disabled={busy}>
-                      Révoquer
+                      {m.revoke()}
                     </Button>
                   </span>
                 </div>
@@ -147,7 +149,7 @@ export function TokenList({
                   <span className={cell}>{createdLabel(key.createdAt)}</span>
                   <span className={actions}>
                     <Button tone="outline" size="xs" onClick={() => setConfirming(key.id)}>
-                      Révoquer
+                      {m.revoke()}
                     </Button>
                   </span>
                 </div>

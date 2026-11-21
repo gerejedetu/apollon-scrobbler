@@ -7,6 +7,7 @@ import { settingsTitle } from "../settings/index.ts";
 import { CreatedToken } from "./CreatedToken.tsx";
 import { TOKEN_NAME_MAX } from "./model.ts";
 import { TokenList } from "./TokenList.tsx";
+import { m } from "../../paraglide/messages.js";
 
 interface Created {
   id: string;
@@ -37,7 +38,7 @@ export function TokensPage({ keys }: { keys: ApiKey[] }) {
       setName("");
       await router.invalidate();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Le token n'a pas été créé.");
+      setError(e instanceof Error ? e.message : m.token_create_failed());
     } finally {
       setPending(false);
     }
@@ -52,7 +53,7 @@ export function TokensPage({ keys }: { keys: ApiKey[] }) {
   return (
     <>
       <div className={css({ display: "flex", flexDirection: "column", gap: "8px" })}>
-        <h1 className={settingsTitle}>Tokens d'API</h1>
+        <h1 className={settingsTitle}>{m.settings_tokens()}</h1>
         <p
           className={css({
             m: 0,
@@ -62,8 +63,7 @@ export function TokensPage({ keys }: { keys: ApiKey[] }) {
             color: "muted",
           })}
         >
-          Un token par appli qui envoie tes écoutes (lecteur, serveur, extension). Si une appli
-          n'est plus utilisée, révoque son token.
+          {m.tokens_intro()}
         </p>
       </div>
 
@@ -72,9 +72,9 @@ export function TokensPage({ keys }: { keys: ApiKey[] }) {
         className={css({ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: "12px" })}
       >
         <Field
-          label="Nom du token"
+          label={m.token_name()}
           name="name"
-          placeholder="ex. Navidrome du salon"
+          placeholder={m.token_name_placeholder()}
           maxLength={TOKEN_NAME_MAX}
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -82,7 +82,7 @@ export function TokensPage({ keys }: { keys: ApiKey[] }) {
           className={css({ flex: "1 1 280px" })}
         />
         <Button type="submit" disabled={pending || !name.trim()}>
-          {pending ? "Création…" : "Créer le token"}
+          {pending ? m.token_creating() : m.token_create()}
         </Button>
       </form>
       {error ? <Notice tone="error">{error}</Notice> : null}
