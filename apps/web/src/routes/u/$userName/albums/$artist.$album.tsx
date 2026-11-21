@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { api, type Range } from "../../../../api/index.ts";
 import { AlbumPage } from "../../../../features/library/index.ts";
 import { isRange, textParam } from "../../../../lib/ranges.ts";
+import { pageTitle } from "../../../../ui/brand/index.ts";
 
 export const Route = createFileRoute("/u/$userName/albums/$artist/$album")({
   validateSearch: (search: Record<string, unknown>): { mbid?: string; periode?: Range } => ({
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/u/$userName/albums/$artist/$album")({
   loaderDeps: ({ search }) => ({ range: search.periode ?? "all_time" }),
   loader: ({ params, deps }) =>
     api.library.album(params.userName, params.artist, params.album, { range: deps.range }),
-  head: ({ params }) => ({ meta: [{ title: `${params.album} · ${params.artist} · Needle` }] }),
+  head: ({ params }) => ({ meta: [{ title: pageTitle(params.album, params.artist) }] }),
   component: () => (
     <AlbumPage
       userName={Route.useParams().userName}

@@ -3,6 +3,7 @@ import { api, type Range } from "../../../../api/index.ts";
 import { ArtistPage } from "../../../../features/library/index.ts";
 import { isRange } from "../../../../lib/ranges.ts";
 import { utcOffset } from "../../../../lib/timezone.ts";
+import { pageTitle } from "../../../../ui/brand/index.ts";
 
 export const Route = createFileRoute("/u/$userName/artistes/$artist")({
   validateSearch: (search: Record<string, unknown>): { periode?: Range } => ({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/u/$userName/artistes/$artist")({
     ]);
     return { artist, timelines: { month, week, year }, summary };
   },
-  head: ({ params }) => ({ meta: [{ title: `${params.artist} · Needle` }] }),
+  head: ({ params }) => ({ meta: [{ title: pageTitle(params.artist) }] }),
   component: () => {
     const { userName } = Route.useParams();
     const { range } = Route.useLoaderDeps();

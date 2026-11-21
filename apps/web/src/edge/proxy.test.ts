@@ -16,10 +16,10 @@ describe("isApiPath", () => {
 describe("forwardToApi", () => {
   test("through the binding, the request keeps the browser's origin", async () => {
     const fetch = vi.fn(async (r: Request) => new Response(r.url));
-    const res = await forwardToApi(new Request("https://needle.example/v1/me?x=1"), {
+    const res = await forwardToApi(new Request("https://apollon.example/v1/me?x=1"), {
       binding: { fetch },
     });
-    expect(await res.text()).toBe("https://needle.example/v1/me?x=1");
+    expect(await res.text()).toBe("https://apollon.example/v1/me?x=1");
   });
 
   test("with an origin, path and query move to that origin", async () => {
@@ -37,7 +37,7 @@ describe("forwardToApi", () => {
   });
 
   test("without a target, a 503 in the API's error shape", async () => {
-    const res = await forwardToApi(new Request("https://needle.example/v1/me"), {});
+    const res = await forwardToApi(new Request("https://apollon.example/v1/me"), {});
     expect(res.status).toBe(503);
     expect(await res.json()).toMatchObject({ code: 503 });
   });

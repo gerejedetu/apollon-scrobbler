@@ -1,5 +1,5 @@
 /**
- * Needle palette: white, black, square covers, one violet for everything clickable, yellow for charts.
+ * Apollon palette: white, black, square covers, one violet for everything clickable, yellow for charts.
  * Every colour has a light and a dark value (boards "Fondations" and "Profil · thème sombre"); components
  * only use these names, so the theme switch is a single attribute on <html> (see lib/theme.ts).
  */

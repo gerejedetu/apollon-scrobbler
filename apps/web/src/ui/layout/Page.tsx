@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { css, cx } from "styled-system/css";
+import { APP_NAME } from "../brand/index.ts";
 
 const shell = css({
   minHeight: "100vh",
@@ -21,7 +22,7 @@ export function Footer() {
         fontSize: "12px",
       })}
     >
-      NEEDLE
+      {APP_NAME.toUpperCase()}
     </footer>
   );
 }

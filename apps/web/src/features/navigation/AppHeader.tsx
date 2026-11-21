@@ -3,6 +3,7 @@ import { css } from "styled-system/css";
 import { PlusIcon } from "../../ui/icons.tsx";
 import { button } from "../../ui/primitives/index.ts";
 import { headerBar, headerSide, logo } from "../../ui/layout/index.ts";
+import { Wordmark } from "../../ui/brand/index.ts";
 import { AccountMenu } from "./AccountMenu.tsx";
 import { m } from "../../paraglide/messages.js";
 
@@ -13,7 +14,7 @@ const navLink = css({
 });
 
 /**
- * Top bar: sections (hidden on phones, where the tab bar takes over), the NEEDLE mark, "Scrobbler" (add a
+ * Top bar: sections (hidden on phones, where the tab bar takes over), the Apollon wordmark, "Scrobbler" (add a
  * listen) and the account menu. Signed out: just "Se connecter".
  */
 export function AppHeader({
@@ -52,7 +53,7 @@ export function AppHeader({
           ) : null}
         </nav>
         <Link to="/" className={logo}>
-          NEEDLE
+          <Wordmark />
         </Link>
         <div className={headerSide} style={{ justifyContent: "flex-end" }}>
           {userName ? (

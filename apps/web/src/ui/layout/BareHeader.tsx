@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
+import { Wordmark } from "../brand/index.ts";
 
 export const headerBar = css({
   maxWidth: "1000px",
@@ -29,7 +30,7 @@ export function BareHeader({ right }: { right?: ReactNode }) {
       <div className={headerBar}>
         <span className={headerSide} />
         <Link to="/" className={logo}>
-          NEEDLE
+          <Wordmark />
         </Link>
         <span className={headerSide} style={{ justifyContent: "flex-end" }}>
           {right}
