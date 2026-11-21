@@ -401,3 +401,47 @@ test("an artist picture needs the exact name; among homonyms the most followed w
   }));
   expect(await findCover(q, none as unknown as typeof fetch)).toBeNull();
 });
+
+test("compilations credited to Various Artists, and a track's sleeve from another album", () => {
+  const onCompilation = {
+    kind: "album" as const,
+    artist: "The Channels",
+    album: "These Great Stars Are On Fire & Fury",
+    track: "My Love Will Never Die (feat. Earl Lewis)",
+    size: "big" as const,
+  };
+  // The album itself, credited to "Various Artists".
+  expect(
+    matches(
+      { title: "These Great Stars Are On Fire & Fury", artist: { name: "Various Artists" } },
+      onCompilation,
+    ),
+  ).toBe(true);
+  // Or the same recording on another of the artist's records.
+  expect(
+    matches(
+      {
+        title: "My Love Will Never Die",
+        artist: { name: "The Channels" },
+        album: { title: "Bye Bye Baby" },
+      },
+      onCompilation,
+    ),
+  ).toBe(true);
+  // But not the same title by someone else, nor another album credited to Various Artists.
+  expect(
+    matches(
+      {
+        title: "My Love Will Never Die",
+        artist: { name: "Earl Lewis" },
+        album: { title: "New York's Finest" },
+      },
+      onCompilation,
+    ),
+  ).toBe(false);
+  expect(
+    matches({ title: "Doo Wop Gold", artist: { name: "Various Artists" } }, onCompilation),
+  ).toBe(false);
+  expect(cleanTitle("Song feat. Somebody")).toBe("Song");
+  expect(cleanTitle("Song (feat. Earl Lewis)")).toBe("Song");
+});

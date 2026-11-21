@@ -21,7 +21,7 @@ const MISS_TTL = 7 * 86_400;
  * Bumped when the name search gets smarter: misses stored by an older resolver are looked up again
  * (images already found are kept).
  */
-const RESOLVER = "4";
+const RESOLVER = "5";
 /** Refuse anything bigger: a 500 px sleeve is ~30-80 KB. */
 const MAX_IMAGE_BYTES = 2_000_000;
 /**
@@ -81,13 +81,17 @@ export function readCoverQuery(url: URL): CoverQuery | null {
 
 /** "Ruby (Deluxe Edition) - EP" → "Ruby": decorations that make search miss. */
 export function cleanTitle(title: string): string {
-  return title
-    .replace(/\s+-\s+(single|ep)$/i, "")
-    .replace(
-      /\s*[([][^)\]]*(deluxe|edition|remaster|version|bonus|expanded|anniversary|feat\.?|with )[^)\]]*[)\]]/gi,
-      "",
-    )
-    .trim();
+  return (
+    title
+      .replace(/\s+-\s+(single|ep)$/i, "")
+      // "Song feat. X" / "Song ft X" without brackets.
+      .replace(/\s+(feat\.?|ft\.?|featuring)\s.*$/i, "")
+      .replace(
+        /\s*[([][^)\]]*(deluxe|edition|remaster|version|bonus|expanded|anniversary|feat\.?|with )[^)\]]*[)\]]/gi,
+        "",
+      )
+      .trim()
+  );
 }
 
 /**
@@ -163,20 +167,36 @@ function close(a: string, b: string): boolean {
  * Whether a search result really is the asked artist / album / track. Loose searches ("artist title")
  * return *something* for almost any text, so a result is only used when its names match.
  */
+/** Compilation albums credit "Various Artists" (or a translation) instead of each track's artist. */
+const VARIOUS =
+  /^(various( artists)?|va|artistes? divers|verschiedene interpreten|varios artistas|artisti vari)$/i;
+
 export function matches(item: DeezerItem, q: CoverQuery, aliases: string[] = []): boolean {
   const artist = item.artist as { name?: unknown } | undefined;
   const artistName = typeof artist?.name === "string" ? artist.name : item.name;
   if (typeof artistName !== "string") return false;
-  if (![...artistVariants(q.artist), ...aliases].some((v) => close(v, artistName))) return false;
-  if (q.kind === "artist") return true;
   const album = item.album as { title?: unknown } | undefined;
   const isTrack = typeof album?.title === "string";
   const title = typeof item.title === "string" ? item.title : "";
-  if (q.album) {
-    const wanted = cleanTitle(q.album) || q.album;
-    return close(wanted, isTrack ? String(album?.title) : title);
+  const sameArtist = [...artistVariants(q.artist), ...aliases].some((v) => close(v, artistName));
+  if (q.kind === "artist") return sameArtist;
+  const wantedAlbum = q.album ? cleanTitle(q.album) || q.album : null;
+  const wantedTrack = q.track ? cleanTitle(q.track) || q.track : null;
+  if (!isTrack) {
+    // An album result: its title must match; a compilation may credit "Various Artists".
+    return (
+      wantedAlbum !== null &&
+      close(wantedAlbum, title) &&
+      (sameArtist || VARIOUS.test(fold(artistName)))
+    );
   }
-  return q.track ? close(cleanTitle(q.track) || q.track, title) : false;
+  // A track result: the same artist, and the same track (its cover is that recording's sleeve, even from
+  // another album or compilation) or the same album.
+  if (!sameArtist) return false;
+  return (
+    (wantedTrack !== null && close(wantedTrack, cleanTitle(title) || title)) ||
+    (wantedAlbum !== null && close(wantedAlbum, String(album?.title)))
+  );
 }
 
 export function pickImage(
@@ -412,7 +432,8 @@ export async function storageKey(q: ArtworkQuery): Promise<string> {
   const name =
     q.kind === "artist"
       ? norm(q.artist)
-      : `${norm(q.artist)}\u0000${norm(q.album)}\u0000${norm(q.track)}`;
+      : // An album is one sleeve whichever of its tracks asks; the track only counts when there is no album.
+        `${norm(q.artist)}\u0000${norm(q.album)}\u0000${q.album ? "" : norm(q.track)}`;
   const digest = new Uint8Array(
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(name)),
   );
