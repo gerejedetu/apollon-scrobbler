@@ -18,6 +18,11 @@ export function createEndpoints(http: Http) {
       delete: (keyId: string) =>
         http.post<{ success: boolean }>(`${auth}/api-key/delete`, { keyId }),
     },
+    /** OAuth clients (MCP assistants) asking for access, as shown on the consent page. */
+    oauth: {
+      publicClient: (clientId: string) =>
+        http.get<T.OAuthClientPublic>(`${auth}/oauth2/public-client`, { client_id: clientId }),
+    },
     favourites: {
       loved: (name: string, q: { limit?: number; offset?: number } = {}) =>
         http.get<T.LovedPage>(`${user(name)}/loved`, q),

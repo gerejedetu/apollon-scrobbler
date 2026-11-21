@@ -2,7 +2,15 @@
  * The web Worker answers on the same origin as the API, so Better Auth's session cookie is first-party:
  * these paths go to the API Worker untouched (service binding in production, API_ORIGIN in local dev).
  */
-const API_PREFIXES = ["/api/auth/", "/v1/", "/1/"] as const;
+const API_PREFIXES = [
+  "/api/auth/",
+  "/v1/",
+  "/1/",
+  // OAuth discovery for MCP clients (the API hands them to Better Auth).
+  "/.well-known/oauth-authorization-server",
+  "/.well-known/oauth-protected-resource",
+  "/.well-known/openid-configuration",
+] as const;
 const API_EXACT = new Set(["/v1", "/1"]);
 
 export function isApiPath(pathname: string): boolean {

@@ -1,7 +1,13 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import { css } from "styled-system/css";
-import { authClient, describeAuthError, forgetViewer, safeRedirect } from "../../auth/index.ts";
+import {
+  authClient,
+  describeAuthError,
+  forgetViewer,
+  oauthRedirect,
+  safeRedirect,
+} from "../../auth/index.ts";
 import { Button, Field, Notice } from "../../ui/primitives/index.ts";
 import { formText } from "./form.ts";
 import { authFoot, authForm, authTitle } from "./layout.tsx";
@@ -35,6 +41,12 @@ export function SignInForm({
     setPending(false);
     if (error || !session) {
       setError(describeAuthError(error).message);
+      return;
+    }
+    // Signing in for an MCP client (claude.ai…): the server answers with the next step of its authorization.
+    const resume = oauthRedirect(session);
+    if (resume) {
+      window.location.assign(resume);
       return;
     }
     forgetViewer();

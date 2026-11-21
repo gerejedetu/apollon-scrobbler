@@ -323,3 +323,10 @@ export interface TrackRef {
   album?: string | null;
   mbids?: { recording?: string | null; release?: string | null };
 }
+
+/** What an OAuth client (e.g. an AI assistant) says about itself. Client-supplied: never proof of identity. */
+export interface OAuthClientPublic {
+  client_id: string;
+  client_name?: string | null;
+  client_uri?: string | null;
+}
