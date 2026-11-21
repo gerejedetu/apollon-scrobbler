@@ -195,6 +195,12 @@ describe("stored artwork", () => {
     now += 8 * 86_400_000;
     await handleCovers(req(), deps);
     expect(fetcher.mock.calls.length).toBeGreaterThan(calls);
+    // A miss stored by an older resolver is looked up again with the current one.
+    const key = [...bucket.objects.keys()][0]!;
+    bucket.objects.get(key)!.meta = { missUntil: String(now + 86_400_000) };
+    const before = fetcher.mock.calls.length;
+    await handleCovers(req(), deps);
+    expect(fetcher.mock.calls.length).toBeGreaterThan(before);
   });
 
   test("a failed lookup is not stored (503), so the next view retries", async () => {
