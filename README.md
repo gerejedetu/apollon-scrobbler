@@ -1,11 +1,5 @@
 <a id="readme-top"></a>
 
-[![License: AGPL-3.0][license-shield]][license-url]
-[![Stars][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![Last commit][commit-shield]][commit-url]
-[![Live demo][demo-shield]][demo-url]
-
 <br />
 <div align="center">
   <a href="https://github.com/powpowchuuuu/stunning-winner">
@@ -367,16 +361,6 @@ Live instance: [apollon.dereje.cc](https://apollon.dereje.cc/u/dereje)
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
-[license-shield]: https://img.shields.io/github/license/powpowchuuuu/stunning-winner.svg?style=for-the-badge
-[license-url]: https://github.com/powpowchuuuu/stunning-winner/blob/main/LICENSE
-[stars-shield]: https://img.shields.io/github/stars/powpowchuuuu/stunning-winner.svg?style=for-the-badge
-[stars-url]: https://github.com/powpowchuuuu/stunning-winner/stargazers
-[issues-shield]: https://img.shields.io/github/issues/powpowchuuuu/stunning-winner.svg?style=for-the-badge
-[issues-url]: https://github.com/powpowchuuuu/stunning-winner/issues
-[commit-shield]: https://img.shields.io/github/last-commit/powpowchuuuu/stunning-winner.svg?style=for-the-badge
-[commit-url]: https://github.com/powpowchuuuu/stunning-winner/commits/main
-[demo-shield]: https://img.shields.io/badge/live-demo-6E44FF?style=for-the-badge
-[demo-url]: https://apollon.dereje.cc/u/dereje
 [product-screenshot]: docs/screenshots/profile.png
 [Workers]: https://img.shields.io/badge/Cloudflare_Workers-F38020?style=for-the-badge&logo=cloudflareworkers&logoColor=white
 [Workers-url]: https://workers.cloudflare.com/
