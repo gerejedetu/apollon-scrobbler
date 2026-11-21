@@ -67,7 +67,10 @@ export function createAuth(config: AuthConfig) {
         create: {
           before: async (user) => {
             if (config.canSignUp && !(await config.canSignUp()))
-              throw new APIError("FORBIDDEN", { message: "Sign-up is closed on this instance." });
+              throw new APIError("FORBIDDEN", {
+                message: "Sign-up is closed on this instance.",
+                code: "SIGNUP_CLOSED",
+              });
             if (!userNameOf(user))
               throw new APIError("BAD_REQUEST", {
                 message: "A username is required to create an account.",

@@ -331,5 +331,10 @@
   "yesterday_title": "Yesterday",
   "you_listened": "{when}, you played",
   "your_tokens": "Your tokens",
-  "your_year": "Your {year}"
+  "your_year": "Your {year}",
+  "signup_setting_title": "Sign-ups",
+  "signup_setting_help": "When off, nobody else can create an account on this server: it is your personal instance. Turn it on to let someone sign up, then turn it off again.",
+  "signup_allow": "Allow sign-ups",
+  "signup_closed_title": "Sign-ups closed",
+  "signup_closed_body": "This server is private: its owner isn't accepting new accounts right now."
 }
