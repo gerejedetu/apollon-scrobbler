@@ -22,6 +22,7 @@ const row = css({
   fontSize: "13px",
 });
 const cell = css({ width: "120px", color: "muted" });
+const hideOnPhone = css({ display: { base: "none", sm: "inline" } });
 const actions = css({ width: "160px", display: "flex", justifyContent: "flex-end" });
 
 function createdLabel(createdAt: string): string {
@@ -81,7 +82,7 @@ export function TokenList({
               <span className={capsLabel} style={{ flex: 1 }}>
                 NOM
               </span>
-              <span className={capsLabel} style={{ width: 120 }}>
+              <span className={`${capsLabel} ${hideOnPhone}`} style={{ width: 120 }}>
                 DÉBUT
               </span>
               <span className={capsLabel} style={{ width: 120 }}>
@@ -142,7 +143,7 @@ export function TokenList({
                     {keyName(key)}
                     {key.id === freshId ? <NewTag className={css({ ml: "6px" })} /> : null}
                   </span>
-                  <span className={cell}>{keyPreview(key)}</span>
+                  <span className={`${cell} ${hideOnPhone}`}>{keyPreview(key)}</span>
                   <span className={cell}>{createdLabel(key.createdAt)}</span>
                   <span className={actions}>
                     <Button tone="outline" size="xs" onClick={() => setConfirming(key.id)}>

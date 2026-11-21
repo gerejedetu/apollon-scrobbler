@@ -1,18 +1,8 @@
 import * as zagSwitch from "@zag-js/switch";
 import { normalizeProps, useMachine } from "@zag-js/react";
-import { useId, type ReactNode } from "react";
+import { useId } from "react";
 import { css } from "styled-system/css";
 
-const root = css({
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: "24px",
-  p: "18px",
-  bg: "panel",
-  borderRadius: "card",
-  cursor: "pointer",
-});
 const control = css({
   position: "relative",
   flexShrink: 0,
@@ -37,22 +27,18 @@ const thumb = css({
   "&[data-state=checked]": { left: "21px" },
 });
 
-interface SwitchProps {
-  label: string;
-  description?: ReactNode;
-  checked: boolean;
-  disabled?: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}
-
-/** The settings toggle: a grey card with a title, an explanation and a switch (Zag machine). */
-export function SwitchCard({
+/** A switch and its label on one line (Zag machine), as in the settings board. */
+export function Switch({
   label,
-  description,
   checked,
   disabled,
   onCheckedChange,
-}: SwitchProps) {
+}: {
+  label: string;
+  checked: boolean;
+  disabled?: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
   const service = useMachine(zagSwitch.machine, {
     id: useId(),
     checked,
@@ -62,20 +48,22 @@ export function SwitchCard({
   });
   const api = zagSwitch.connect(service, normalizeProps);
   return (
-    <label {...api.getRootProps()} className={root}>
-      <span className={css({ display: "flex", flexDirection: "column", gap: "4px" })}>
-        <span {...api.getLabelProps()} className={css({ fontSize: "14px", fontWeight: "500" })}>
-          {label}
-        </span>
-        {description ? (
-          <span className={css({ fontSize: "12px", lineHeight: "18px", color: "muted" })}>
-            {description}
-          </span>
-        ) : null}
-      </span>
+    <label
+      {...api.getRootProps()}
+      className={css({
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        cursor: "pointer",
+        alignSelf: "flex-start",
+      })}
+    >
       <input {...api.getHiddenInputProps()} />
       <span {...api.getControlProps()} className={control}>
         <span {...api.getThumbProps()} className={thumb} />
+      </span>
+      <span {...api.getLabelProps()} className={css({ fontSize: "15px" })}>
+        {label}
       </span>
     </label>
   );

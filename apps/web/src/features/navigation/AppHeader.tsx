@@ -15,9 +15,15 @@ const navLink = css({
  * Top bar: sections (hidden on phones, where the tab bar takes over), the NEEDLE mark, "Scrobbler" (add a
  * listen) and the account menu. Signed out: just "Se connecter".
  */
-export function AppHeader({ userName }: { userName: string | null }) {
+export function AppHeader({
+  userName,
+  hideOnPhone,
+}: {
+  userName: string | null;
+  hideOnPhone?: boolean;
+}) {
   return (
-    <header>
+    <header className={hideOnPhone ? css({ display: { base: "none", sm: "block" } }) : undefined}>
       <div className={headerBar}>
         <nav
           aria-label="Principale"

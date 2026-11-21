@@ -1,23 +1,80 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { css } from "styled-system/css";
-import { Page } from "../../ui/layout/index.ts";
+import { ChevronLeft, DownloadIcon, KeyIcon, UserIcon } from "../../ui/icons.tsx";
+import { Breadcrumbs, Page } from "../../ui/layout/index.ts";
 import { AppHeader, MobileTabBar } from "../navigation/index.ts";
-import { capsLabel } from "../../ui/primitives/index.ts";
 
-const item = css({
-  px: "10px",
-  py: "8px",
-  borderRadius: "field",
+const sideLink = css({
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  height: "40px",
+  px: "12px",
+  borderRadius: "card",
   textDecoration: "none",
-  color: "ink",
-  "&[data-status=active]": { bg: "field", fontWeight: "500" },
+  fontSize: "15px",
+  color: "muted",
+  _hover: { color: "ink" },
+  "&[data-status=active]": { color: "ink", bg: "chip" },
+});
+const tabLink = css({
+  flexShrink: 0,
+  pb: "12px",
+  mb: "-1px",
+  textDecoration: "none",
+  fontSize: "15px",
+  color: "muted",
+  borderBottom: "2px solid transparent",
+  "&[data-status=active]": { color: "ink", fontWeight: "500", borderBottomColor: "ink" },
 });
 
-/** Settings: a side menu (Profil, Tokens d'API) and the page. */
+const PAGES = [
+  { to: "/reglages", label: "Profil", icon: <UserIcon size={18} />, exact: true },
+  { to: "/reglages/tokens", label: "Tokens d'API", icon: <KeyIcon size={18} />, exact: false },
+  { to: "/reglages/import", label: "Importer", icon: <DownloadIcon size={18} />, exact: false },
+] as const;
+
+/**
+ * Settings (boards "Réglages", "Tokens d'API", "Importer"): a side menu on large screens; on phones a
+ * back bar titled "Réglages" and tabs instead of the app header.
+ */
 export function SettingsLayout({ userName, children }: { userName: string; children: ReactNode }) {
   return (
-    <Page header={<AppHeader userName={userName} />} tabBar={<MobileTabBar userName={userName} />}>
+    <Page
+      header={<AppHeader userName={userName} hideOnPhone />}
+      tabBar={<MobileTabBar userName={userName} />}
+    >
+      <div
+        className={css({
+          display: { base: "flex", sm: "none" },
+          position: "relative",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "52px",
+          px: "16px",
+        })}
+      >
+        <Link
+          to="/u/$userName"
+          params={{ userName }}
+          aria-label="Retour"
+          className={css({
+            position: "absolute",
+            left: "12px",
+            top: "10px",
+            width: "32px",
+            height: "32px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "ink",
+          })}
+        >
+          <ChevronLeft size={22} />
+        </Link>
+        <span className={css({ fontSize: "17px", fontWeight: "500" })}>Réglages</span>
+      </div>
       <div
         className={css({
           flex: 1,
@@ -25,51 +82,105 @@ export function SettingsLayout({ userName, children }: { userName: string; child
           maxWidth: "1000px",
           boxSizing: "border-box",
           mx: "auto",
-          p: "24px 24px 72px",
+          pt: "8px",
+          pb: "96px",
+          px: { base: "16px", sm: "24px" },
           display: "flex",
-          flexWrap: "wrap",
-          gap: "40px",
-          alignItems: "flex-start",
+          flexDirection: "column",
         })}
       >
+        <div className={css({ display: { base: "none", sm: "block" } })}>
+          <Breadcrumbs
+            items={[
+              <Link key="h" to="/u/$userName" params={{ userName }}>
+                Accueil
+              </Link>,
+              "Réglages",
+            ]}
+          />
+        </div>
         <nav
           aria-label="Réglages"
           className={css({
-            flex: "1 1 180px",
-            maxWidth: "200px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-            fontSize: "13px",
+            display: { base: "flex", sm: "none" },
+            gap: "24px",
+            overflowX: "auto",
+            borderBottom: "1px solid token(colors.rule)",
+            mx: "-16px",
+            px: "16px",
           })}
         >
-          <span className={capsLabel} style={{ padding: "0 10px 10px" }}>
-            RÉGLAGES
-          </span>
-          <Link to="/reglages" activeOptions={{ exact: true }} className={item}>
-            Profil
-          </Link>
-          <Link to="/reglages/tokens" className={item}>
-            Tokens d'API
-          </Link>
-          <Link to="/reglages/import" className={item}>
-            Importer
-          </Link>
+          {PAGES.map((p) => (
+            <Link key={p.to} to={p.to} activeOptions={{ exact: p.exact }} className={tabLink}>
+              {p.label}
+            </Link>
+          ))}
         </nav>
-        <main
+        <div
           className={css({
-            flex: "999 1 560px",
-            minWidth: 0,
             display: "flex",
-            flexDirection: "column",
-            gap: "36px",
+            gap: "56px",
+            alignItems: "flex-start",
+            pt: { base: "24px", sm: "56px" },
           })}
         >
-          {children}
-        </main>
+          <aside
+            className={css({
+              display: { base: "none", sm: "flex" },
+              width: "240px",
+              flexShrink: 0,
+              flexDirection: "column",
+              gap: "4px",
+            })}
+          >
+            <span
+              className={css({
+                px: "12px",
+                pb: "10px",
+                fontSize: "12px",
+                fontWeight: "500",
+                letterSpacing: "0.08em",
+                color: "muted",
+              })}
+            >
+              RÉGLAGES
+            </span>
+            <nav
+              aria-label="Réglages"
+              className={css({ display: "flex", flexDirection: "column", gap: "4px" })}
+            >
+              {PAGES.map((p) => (
+                <Link key={p.to} to={p.to} activeOptions={{ exact: p.exact }} className={sideLink}>
+                  {p.icon}
+                  {p.label}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+          <main
+            className={css({
+              flex: 1,
+              minWidth: 0,
+              maxWidth: "680px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "36px",
+            })}
+          >
+            {children}
+          </main>
+        </div>
       </div>
     </Page>
   );
 }
 
-export const settingsTitle = css({ m: 0, textStyle: "pageTitle" });
+/** Page titles of the settings: large on screens, hidden on phones (the back bar says "Réglages"). */
+export const settingsTitle = css({
+  m: 0,
+  display: { base: "none", sm: "block" },
+  textStyle: "wide",
+  fontSize: "44px",
+  letterSpacing: "-0.02em",
+  lineHeight: 1.05,
+});
