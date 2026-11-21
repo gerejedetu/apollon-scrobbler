@@ -48,6 +48,10 @@ packages/
 
 ## MCP server (apps/mcp)
 
+- Auth: Better Auth's `mcp` plugin (packages/auth) makes the API an OAuth 2.1 server (dynamic client registration, PKCE,
+  JWT access tokens audience-bound to `<origin>/mcp`); the web front hosts its login (`/connexion`) and consent
+  (`/autoriser`) pages and relays `/.well-known/oauth-*` to the API. The API accepts those JWTs like API keys
+  (`tokenVerifier`), so the MCP Worker just forwards the header, keeping the public origin for the audience check.
 - `src/http/handler.ts` serves `/mcp`: checks `Authorization: Bearer|Token <token>`, resolves the caller once (GET /v1/me,
   cached per isolate for 60 s like the API's own token cache), then builds a fresh `McpServer` + stateless transport per request.
 - `src/tools/<area>.ts` registers tools for one area (listens, stats, library, search, favourites) on `ToolContext`
@@ -93,7 +97,8 @@ the container. Better Auth needs its own adapter for that database too.
 
 ## Auth
 
-- Accounts, sessions and API keys are Better Auth's (`user`, `session`, `account`, `verification`, `apikey`).
+- Accounts, sessions and API keys are Better Auth's (`user`, `session`, `account`, `verification`, `apikey`), plus the OAuth
+  provider's tables for MCP clients (`oauth*`, `jwks`, migration 0008).
 - A ListenBrainz user token is a Better Auth API key, sent as `Authorization: Token <key>`.
 - The scrobbler profile (`users` row) is created by the `user.create.after` hook; its `name` is the username.
 - Private profiles (`users.is_private`): every read of a user's data goes through `readableUser()` (apps/api/src/http/require-user.ts), which 404s for anyone but the owner. New read routes must use it.
