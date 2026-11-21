@@ -313,6 +313,18 @@ test("a loose search result is only used when its names match", () => {
   expect(matches({ name: "Air" }, { kind: "artist", artist: "air", size: "big" })).toBe(true);
 });
 
+test("misses stay only briefly in browsers (a later listen may bring a thumbnail)", async () => {
+  const res = await handleCovers(
+    new Request("https://apollon.example/covers?artist=Nobody&album=None"),
+    {
+      bucket: memoryBucket(),
+      fetcher: vi.fn(async () => Response.json({ data: [] })) as unknown as typeof fetch,
+    },
+  );
+  expect(res.status).toBe(404);
+  expect(res.headers.get("cache-control")).toBe("public, max-age=300");
+});
+
 test("a name without artwork takes the listen's video thumbnail, and keeps it for pages that only know the name", async () => {
   const bucket = memoryBucket();
   const fetcher = vi.fn(async (input: string) =>

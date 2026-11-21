@@ -339,8 +339,12 @@ function imageResponse(body: BodyInit | null, contentType: string): Response {
   });
 }
 
+/**
+ * Misses are short-lived in browsers: a name with no artwork today can get one later (another listen brings
+ * its video thumbnail), and a long-cached 404 would hide it. The real memory of misses is in R2.
+ */
 const missResponse = () =>
-  new Response(null, { status: 404, headers: { "cache-control": "public, max-age=86400" } });
+  new Response(null, { status: 404, headers: { "cache-control": "public, max-age=300" } });
 
 export async function handleCovers(
   request: Request,
