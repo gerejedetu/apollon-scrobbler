@@ -197,7 +197,7 @@ export function ImportPage() {
           className={block}
           style={{ paddingTop: 24, borderTop: "1px solid var(--colors-rule)" }}
         >
-          <span className={capsLabel}>IMPORT EN COURS</span>
+          <span className={capsLabel}>{m.import_running_caps()}</span>
           <div
             className={css({
               display: "flex",
