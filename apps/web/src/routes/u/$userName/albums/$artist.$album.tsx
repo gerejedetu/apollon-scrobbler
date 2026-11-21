@@ -2,6 +2,7 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { api, isNotFound, type Range } from "../../../../api/index.ts";
 import { AlbumPage, emptyAlbum, orEmpty } from "../../../../features/library/index.ts";
 import { isRange, textParam } from "../../../../lib/ranges.ts";
+import { NotFound } from "../../../../features/errors/index.ts";
 import { pageTitle } from "../../../../ui/brand/index.ts";
 
 export const Route = createFileRoute("/u/$userName/albums/$artist/$album")({
@@ -40,6 +41,8 @@ export const Route = createFileRoute("/u/$userName/albums/$artist/$album")({
     }
     throw notFound();
   },
+  // An unknown album is a plain "not found", not the profile's "private or unknown user" screen.
+  notFoundComponent: NotFound,
   head: ({ params }) => ({ meta: [{ title: pageTitle(params.album, params.artist) }] }),
   component: () => (
     <AlbumPage
