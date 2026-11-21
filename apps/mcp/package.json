@@ -1,0 +1,26 @@
+{
+  "name": "@scrobbler/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Remote MCP server (Streamable HTTP) on Cloudflare Workers: lets AI assistants read and edit your listens through the native API.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vp test",
+    "deploy": "node scripts/deploy.mjs"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "4.1.6",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@scrobbler/client": "workspace:*",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@scrobbler/api": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:",
+    "wrangler": "4.165.0"
+  }
+}

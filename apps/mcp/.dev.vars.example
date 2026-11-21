@@ -1,0 +1,2 @@
+# Copy to .dev.vars (git-ignored). Local API to call when there is no service binding.
+API_ORIGIN=http://localhost:8787
