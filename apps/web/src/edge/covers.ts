@@ -17,6 +17,11 @@ const CAA = "https://coverartarchive.org";
 const IMMUTABLE = "public, max-age=31536000, immutable";
 /** A stored miss is retried after this long (new releases get artwork later). */
 const MISS_TTL = 7 * 86_400;
+/**
+ * Bumped when the name search gets smarter: misses stored by an older resolver are looked up again
+ * (images already found are kept).
+ */
+const RESOLVER = "2";
 /** Refuse anything bigger: a 500 px sleeve is ~30-80 KB. */
 const MAX_IMAGE_BYTES = 2_000_000;
 /**
@@ -325,7 +330,7 @@ export async function handleCovers(
       await later(deps.cache?.put(cacheRequest, response.clone()));
       return response;
     }
-    if (missUntil > now) return missResponse();
+    if (missUntil > now && stored.customMetadata?.resolver === RESOLVER) return missResponse();
   }
 
   // 3. Resolve once (deduplicated), then store for good.
@@ -343,7 +348,9 @@ export async function handleCovers(
   }
   if (image === null) {
     await later(
-      deps.bucket?.put(key, "", { customMetadata: { missUntil: String(now + MISS_TTL * 1000) } }),
+      deps.bucket?.put(key, "", {
+        customMetadata: { missUntil: String(now + MISS_TTL * 1000), resolver: RESOLVER },
+      }),
     );
     return missResponse();
   }
