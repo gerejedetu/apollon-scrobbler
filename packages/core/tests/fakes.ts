@@ -160,6 +160,15 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
       async learnAliases(pairs) {
         for (const [a, b] of pairs) if (!aliases.has(a)) aliases.set(a, b);
       },
+      async knownAlbums(userId, pairs) {
+        return new Set(
+          pairs
+            .filter(([a, r]) =>
+              listens.some((l) => l.userId === userId && l.artistName === a && l.releaseName === r),
+            )
+            .map(([a, r]) => `${a}\u0000${r}`),
+        );
+      },
     },
     instance: {
       async hasUsersAndSetting(key) {

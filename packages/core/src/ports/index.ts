@@ -179,6 +179,8 @@ export interface ArtistRepository {
   known(userId: UserId, names: string[]): Promise<Set<string>>;
   aliases(names: string[]): Promise<Map<string, string>>;
   learnAliases(pairs: [alias: string, artist: string][]): Promise<void>;
+  /** Which (artist, album) pairs the user already has listens under, as `artist\u0000album` keys. */
+  knownAlbums(userId: UserId, pairs: [artist: string, album: string][]): Promise<Set<string>>;
 }
 
 export interface Repositories {

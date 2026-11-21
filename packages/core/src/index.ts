@@ -37,3 +37,4 @@ export {
   hasNativeScript,
   type BilingualName,
 } from "./artists/names.ts";
+export { canonicalAlbum, editionBase, hasEditionMarker, withoutAdvisory } from "./albums/names.ts";
