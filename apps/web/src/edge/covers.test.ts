@@ -312,3 +312,24 @@ test("a loose search result is only used when its names match", () => {
   expect(matches({ title: "Lemonade", artist: { name: "Beyoncé" } }, album)).toBe(false);
   expect(matches({ name: "Air" }, { kind: "artist", artist: "air", size: "big" })).toBe(true);
 });
+
+test("a name without artwork takes the listen's video thumbnail, and keeps it for pages that only know the name", async () => {
+  const bucket = memoryBucket();
+  const fetcher = vi.fn(async (input: string) =>
+    input.startsWith("https://api.deezer.com")
+      ? Response.json({ data: [] })
+      : new Response(JPEG, { headers: { "content-type": "image/jpeg" } }),
+  );
+  const deps = { bucket, fetcher: fetcher as unknown as typeof fetch };
+  // The track page asks first, by name only: nothing.
+  const name = "https://apollon.example/covers?artist=%EC%97%84%EC%A7%80%20(UMJI)&track=Lemon";
+  expect((await handleCovers(new Request(name), deps)).status).toBe(404);
+  // A history row asks with its video: the thumbnail fills the name, without searching again.
+  const searchesBefore = fetcher.mock.calls.filter(([u]) => String(u).includes("deezer")).length;
+  expect((await handleCovers(new Request(`${name}&yt=XGIAMH69y4M`), deps)).status).toBe(200);
+  expect(fetcher.mock.calls.filter(([u]) => String(u).includes("deezer")).length).toBe(
+    searchesBefore,
+  );
+  // Now the name alone has the image.
+  expect((await handleCovers(new Request(name), deps)).status).toBe(200);
+});
