@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /**
  * Warms the artwork store: asks the deployed /covers for every artist, album and track a user has, so that
  * each image is resolved and stored in R2 once, slowly, instead of during page views.
