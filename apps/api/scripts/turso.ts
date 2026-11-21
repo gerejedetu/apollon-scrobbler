@@ -6,6 +6,8 @@
  *   vpx scripts/turso.ts status               applied / pending migrations and row counts
  *   vpx scripts/turso.ts import <dump.sql>    run a data-only SQL dump (e.g. from `wrangler d1 export --no-schema`)
  *   vpx scripts/turso.ts backfill-credits     fill artist_credits from the listens already stored
+ *   vpx scripts/turso.ts merge-artist <from> <to>          rename an artist everywhere (and remember the alias)
+ *   vpx scripts/turso.ts merge-album <artist> <from> <to>  rename one artist's album everywhere
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -139,6 +141,52 @@ async function backfillCredits() {
   console.log("Done.");
 }
 
+/** Renames, never deletes: a listen that would collide with one already under the new name is reported. */
+async function mergeArtist(from: string, to: string) {
+  const rs = await db.batch(
+    [
+      {
+        sql: "UPDATE OR IGNORE listens SET artist_name = ?2 WHERE artist_name = ?1",
+        args: [from, to],
+      },
+      {
+        sql: "UPDATE OR IGNORE loved_tracks SET artist_name = ?2 WHERE artist_name = ?1",
+        args: [from, to],
+      },
+      { sql: "UPDATE obsessions SET artist_name = ?2 WHERE artist_name = ?1", args: [from, to] },
+      {
+        sql: "INSERT OR IGNORE INTO artist_aliases (alias, artist) VALUES (?1, ?2)",
+        args: [from, to],
+      },
+      { sql: "SELECT count(*) AS n FROM listens WHERE artist_name = ?1", args: [from] },
+    ],
+    "write",
+  );
+  console.log(
+    `listens moved: ${rs[0]?.rowsAffected}, loved: ${rs[1]?.rowsAffected}, obsessions: ${rs[2]?.rowsAffected}`,
+  );
+  console.log(
+    `left under "${from}" (duplicates of a listen already under "${to}"): ${rs[4]?.rows[0]?.n as number}`,
+  );
+}
+
+async function mergeAlbum(artist: string, from: string, to: string) {
+  const rs = await db.batch(
+    [
+      {
+        sql: "UPDATE OR IGNORE listens SET release_name = ?3 WHERE artist_name = ?1 AND release_name = ?2",
+        args: [artist, from, to],
+      },
+      {
+        sql: "UPDATE loved_tracks SET release_name = ?3 WHERE artist_name = ?1 AND release_name = ?2",
+        args: [artist, from, to],
+      },
+    ],
+    "write",
+  );
+  console.log(`listens moved: ${rs[0]?.rowsAffected}, loved: ${rs[1]?.rowsAffected}`);
+}
+
 const [command, arg] = process.argv.slice(2);
 switch (command) {
   case "migrate":
@@ -154,6 +202,18 @@ switch (command) {
   case "backfill-credits":
     await backfillCredits();
     break;
+  case "merge-artist": {
+    const [from, to] = process.argv.slice(3);
+    if (!from || !to) throw new Error("usage: merge-artist <from> <to>");
+    await mergeArtist(from, to);
+    break;
+  }
+  case "merge-album": {
+    const [artist, from, to] = process.argv.slice(3);
+    if (!artist || !from || !to) throw new Error("usage: merge-album <artist> <from> <to>");
+    await mergeAlbum(artist, from, to);
+    break;
+  }
   default:
     console.error(
       "usage: vpx scripts/turso.ts migrate | status | import <dump.sql> | backfill-credits",

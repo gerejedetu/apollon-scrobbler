@@ -1,5 +1,6 @@
 import type { Repositories } from "@scrobbler/core";
 import type { D1Like } from "./d1.ts";
+import { d1Artists } from "./repositories/artists.ts";
 import { d1Favourites } from "./repositories/favourites.ts";
 import { d1Imports } from "./repositories/imports.ts";
 import { d1Insights } from "./repositories/insights.ts";
@@ -22,5 +23,6 @@ export function createD1Repositories(db: D1Like): Repositories {
     stats: d1Stats(db),
     insights: d1Insights(db),
     instance: d1Instance(db),
+    artists: d1Artists(db),
   };
 }

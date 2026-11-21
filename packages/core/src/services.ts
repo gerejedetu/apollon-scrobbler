@@ -52,7 +52,7 @@ export function createServices(
   return {
     auth: new AuthService(repos.users, tokens, options.authCache),
     users: new UserService(repos.users, clock),
-    listens: new ListenService(repos.listens, repos.playingNow, clock),
+    listens: new ListenService(repos.listens, repos.playingNow, clock, repos.artists),
     stats: new StatsService(
       repos.stats,
       clock,

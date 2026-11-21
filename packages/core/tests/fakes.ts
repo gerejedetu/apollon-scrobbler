@@ -10,6 +10,7 @@ export function fakeVerifier(tokens: Map<string, string>): TokenVerifier {
 export function fakeRepositories(): Repositories & { _listens: StoredListen[] } {
   const users: (User & { authUserId: string })[] = [];
   const settings = new Map<string, string>();
+  const aliases = new Map<string, string>();
   const listens: StoredListen[] = [];
   const playing = new Map<number, PlayingNow>();
   const imports = new Map<string, number>();
@@ -145,6 +146,21 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
       },
     },
     // Insights are SQL-heavy: they are tested against the real schema in db-d1 and apps/api, not faked here.
+    artists: {
+      async known(userId, names) {
+        return new Set(
+          names.filter((n) => listens.some((l) => l.userId === userId && l.artistName === n)),
+        );
+      },
+      async aliases(names) {
+        return new Map(
+          names.flatMap((n) => (aliases.has(n) ? [[n, aliases.get(n)!] as [string, string]] : [])),
+        );
+      },
+      async learnAliases(pairs) {
+        for (const [a, b] of pairs) if (!aliases.has(a)) aliases.set(a, b);
+      },
+    },
     instance: {
       async hasUsersAndSetting(key) {
         return [users.length > 0, settings.get(key) ?? null];
