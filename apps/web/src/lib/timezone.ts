@@ -19,7 +19,9 @@ export const utcOffset: () => number = createIsomorphicFn()
   .server(() => offsetFromCookie(getRequest().headers.get("cookie")))
   .client(browserOffset);
 
-/** Remembers the browser's offset for the next server render. */
-export function rememberOffset(): void {
-  document.cookie = `${OFFSET_COOKIE}=${browserOffset()}; path=/; max-age=31536000; samesite=lax`;
-}
+/**
+ * Runs first in <head>: when the cookie is missing or stale (first visit, travel, DST change), it stores the
+ * browser's offset and reloads before anything is painted, so the server renders the same local times the
+ * browser would and hydration matches. Reloads once at most per tab session (cookies blocked: no loop).
+ */
+export const OFFSET_SCRIPT = `(function(){try{var o=-new Date().getTimezoneOffset();var r=/(?:^|;\\s*)${OFFSET_COOKIE}=(-?\\d+)/;var m=r.exec(document.cookie);if(m&&Number(m[1])===o)return;document.cookie="${OFFSET_COOKIE}="+o+"; path=/; max-age=31536000; samesite=lax";var n=r.exec(document.cookie);if(!n||Number(n[1])!==o||sessionStorage.getItem("${OFFSET_COOKIE}_reload"))return;sessionStorage.setItem("${OFFSET_COOKIE}_reload","1");location.reload();}catch(e){}})();`;
