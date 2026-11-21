@@ -1,37 +1,108 @@
-# Apollon: a self-hosted, open source music scrobbler for Cloudflare Workers
+<a id="readme-top"></a>
 
-**A ListenBrainz-compatible scrobbler you deploy on your own Cloudflare account.** Track every song you play,
-browse your listening history, and get detailed listening stats and a yearly "Wrapped"-style review, without
-handing your data to a third party. A free, open source alternative to Last.fm and a self-hostable
-ListenBrainz server, built on Cloudflare Workers, Turso and KV with Hono and Better Auth.
+[![License: AGPL-3.0][license-shield]][license-url]
+[![Stars][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![Last commit][commit-shield]][commit-url]
+[![Live demo][demo-shield]][demo-url]
 
-**[See a live instance →](https://apollon.dereje.cc/u/dereje)** A real, public Apollon profile with real listening data.
+<br />
+<div align="center">
+  <a href="https://github.com/powpowchuuuu/stunning-winner">
+    <img src="apps/web/brand/mark.svg" alt="Apollon logo" width="96" height="96">
+  </a>
 
-![Apollon profile page in the dark theme: top albums, on repeat, milestones, listening streak and recent listens](docs/screenshots/profile.png)
+  <h1 align="center">Apollon</h1>
 
-## Why
+  <p align="center">
+    <strong>A self-hosted, open source music scrobbler for Cloudflare Workers.</strong>
+    <br />
+    ListenBrainz-compatible, with listening stats and a yearly "Wrapped"-style review.
+    <br />
+    <br />
+    <a href="https://apollon.dereje.cc/u/dereje"><strong>See a live instance »</strong></a>
+    <br />
+    <br />
+    <a href="#getting-started">Deploy your own</a>
+    &middot;
+    <a href="https://github.com/powpowchuuuu/stunning-winner/issues/new?labels=bug">Report Bug</a>
+    &middot;
+    <a href="https://github.com/powpowchuuuu/stunning-winner/issues/new?labels=enhancement">Request Feature</a>
+  </p>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#deploy-to-cloudflare-with-turso">Deploy to Cloudflare with Turso</a></li>
+        <li><a href="#local-development">Local development</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#connect-a-scrobbling-app">Connect a scrobbling app</a></li>
+        <li><a href="#import-your-lastfm-history">Import your Last.fm history</a></li>
+        <li><a href="#api">API</a></li>
+      </ul>
+    </li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
+## About The Project
+
+[![Apollon profile page in the dark theme: top albums, on repeat, milestones, listening streak and recent listens][product-screenshot]](https://apollon.dereje.cc/u/dereje)
+
+**Apollon is a self-hosted, ListenBrainz-compatible music scrobbler you deploy on your own Cloudflare account.**
+Track every song you play, browse your listening history, and get detailed listening stats and a yearly
+"Wrapped"-style review, without handing your data to a third party. It is a free, open source alternative to
+Last.fm and a self-hostable ListenBrainz server, built on Cloudflare Workers, Turso and Workers KV with Hono and
+Better Auth.
+
+Why another scrobbler?
 
 - **Your data, your account.** Listens live in your own Turso (libSQL) database. Export, query or delete them whenever you like.
 - **Works with the apps you already use.** The server speaks the ListenBrainz API, so any scrobbler that can point at a custom ListenBrainz server can send listens to it.
 - **Cheap to run.** Two Workers, one Turso database and one KV namespace. A personal instance fits comfortably in the free tiers of Cloudflare and Turso.
 - **Open source.** AGPL-3.0, no tracking, no ads.
 
-## Features
+### Features
 
 - **ListenBrainz-compatible API** at `/1`: submit listens, now playing, token validation, listen history, listen count, delete a listen, latest import and top artists / recordings / releases.
 - **Native JSON API** at `/v1` with an OpenAPI 3 document (`/v1/openapi.json`) and interactive docs (`/v1/docs`).
 - **Listening statistics** for any period (this week, this month, this year, last quarter, all time…): top artists, albums and tracks, daily activity, listening clock, streaks, discoveries, forgotten favourites, on repeat, trends, period comparison, one-shots, weekly charts, diversity, listening sessions, repeats, milestones and "on this day".
-- **Year in review**, a Spotify Wrapped-style recap of your year: artist of the year, top albums, totals and more.
+- **Year in review**, a Spotify Wrapped-style recap of your year: artist of the year, top albums, totals and highlights.
 - **Artist, album and track pages** with first and last listen, play counts and a timeline.
-- **Album art** from the Cover Art Archive (by MusicBrainz release ID) with a Deezer fallback by name, cached at the edge.
-- **Last.fm import**: upload a Last.fm CSV export from the settings to bring your scrobble history over.
+- **Album art and artist pictures** from the Cover Art Archive (by MusicBrainz release ID) with a Deezer fallback by name, cached at the edge.
+- **Last.fm import** from a CSV export.
 - **Accounts and API tokens** with Better Auth (username + password, per-app API keys that you can revoke).
+- **Single-user by default**: sign-up closes once the first account exists, and the owner can reopen it from the settings.
 - **Private profiles**: hide your listens and stats from everyone but yourself.
-- **Rate limiting** on the API and auth endpoints, and an optional switch to close sign-ups on a personal instance.
+- **English and French**, light and dark themes.
+- **Rate limiting** on the API and auth endpoints.
 
-## Screenshots
+### Screenshots
 
-The web front is called **Apollon**. It is available in English and French, with light and dark themes. Browse a real profile on the [live instance](https://apollon.dereje.cc/u/dereje).
+Browse a real profile on the [live instance](https://apollon.dereje.cc/u/dereje).
 
 | Listening stats                                                                                                          | Year in review                                                                                                     |
 | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
@@ -45,78 +116,84 @@ The web front is called **Apollon**. It is available in English and French, with
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | ![Listening history grouped by day with album covers](docs/screenshots/history.png) | ![Profile page in the light theme](docs/screenshots/profile-light.png) |
 
-## Compatible scrobbling apps
+### Built With
 
-Because the server implements the ListenBrainz API, you connect apps the same way you would connect them to
-ListenBrainz: pick **ListenBrainz** (or "custom ListenBrainz server") in the app, then paste your server URL
-and an API token. Create the token in the web app under **Réglages → Tokens d'API**; the page shows the server
-URL to use next to it.
+- [![Cloudflare Workers][Workers]][Workers-url]
+- [![Turso][Turso]][Turso-url]
+- [![Hono][Hono]][Hono-url]
+- [![Better Auth][BetterAuth]][BetterAuth-url]
+- [![TanStack Start][TanStack]][TanStack-url]
+- [![React][React]][React-url]
+- [![Panda CSS][Panda]][Panda-url]
+- [![Zag.js][Zag]][Zag-url]
+- [![Vite+][Vite]][Vite-url]
+- [![TypeScript][TypeScript]][TypeScript-url]
 
-Apps that let you set a custom ListenBrainz URL include:
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-| App                                                             | Platform                                                                |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Pano Scrobbler](https://github.com/kawaiiDango/pano-scrobbler) | Android, Windows, Linux                                                 |
-| [Web Scrobbler](https://web-scrobbler.com/)                     | Browser extension (YouTube, Spotify Web, Bandcamp, SoundCloud…)         |
-| [Navidrome](https://www.navidrome.org/)                         | Self-hosted music server                                                |
-| [Jellyfin](https://jellyfin.org/) (ListenBrainz plugin)         | Self-hosted media server                                                |
-| [Multi-Scrobbler](https://github.com/FoxxMD/multi-scrobbler)    | Self-hosted bridge for Spotify, Plex, Jellyfin, Subsonic, MPD, Last.fm… |
+## Getting Started
 
-Anything else that talks to the ListenBrainz API with a configurable root URL should work too. Some apps
-want the root URL (`https://scrobbler.example.com`), others want the API path (`https://scrobbler.example.com/1/`).
+Apollon runs as two Cloudflare Workers (the API and the web front) on top of a Turso database and a Workers KV
+namespace. The steps below deploy a personal instance from your machine.
 
-## Quick start: deploy on Cloudflare
+### Prerequisites
 
-You need a Cloudflare account, a [Turso](https://turso.tech/) account with the `turso` CLI, Node.js 22.18+ and [Vite+](https://viteplus.dev/) (`vp`), which installs the
-pinned pnpm for you.
+- A [Cloudflare](https://dash.cloudflare.com/sign-up) account
+- A [Turso](https://turso.tech/) account and the `turso` CLI
+- Node.js 22.18 or newer
+- [Vite+](https://viteplus.dev/) (`vp`), which installs the pinned pnpm for you
+
+### Installation
 
 ```bash
-git clone https://github.com/powpowchuuuu/stunning-winner.git scrobbler
-cd scrobbler
+git clone https://github.com/powpowchuuuu/stunning-winner.git apollon
+cd apollon
 vp install
 ```
 
-**1. Create the database and the cache.**
+### Deploy to Cloudflare with Turso
 
-```bash
-cd apps/api
-turso db create scrobbler
-npx wrangler kv namespace create CACHE
-```
+1. **Create the database and the cache.**
 
-**2. Store their credentials locally.** Copy `apps/api/.env.turso.example` to `apps/api/.env.turso` and fill in
-`TURSO_DATABASE_URL` (`turso db show scrobbler --url`) and `TURSO_AUTH_TOKEN` (`turso db tokens create scrobbler`).
-Copy `apps/api/.env.cloudflare.example` to `apps/api/.env.cloudflare` and fill in `KV_CACHE_ID`. Both files are
-git-ignored: `wrangler.jsonc` keeps a placeholder ID that the deploy script replaces at deploy time, so your
-account's IDs and tokens never end up in the repository.
+   ```bash
+   cd apps/api
+   turso db create scrobbler
+   npx wrangler kv namespace create CACHE
+   ```
 
-**3. Set the secrets, run the migrations and deploy the API.**
+2. **Store their credentials locally.** Copy `apps/api/.env.turso.example` to `apps/api/.env.turso` and fill in
+   `TURSO_DATABASE_URL` (`turso db show scrobbler --url`) and `TURSO_AUTH_TOKEN` (`turso db tokens create scrobbler`).
+   Copy `apps/api/.env.cloudflare.example` to `apps/api/.env.cloudflare` and fill in `KV_CACHE_ID`. Both files are
+   git-ignored: `wrangler.jsonc` keeps a placeholder ID that the deploy script replaces at deploy time, so your
+   account's IDs and tokens never end up in the repository.
 
-```bash
-openssl rand -base64 32 | npx wrangler secret put BETTER_AUTH_SECRET
-turso db show scrobbler --url | npx wrangler secret put TURSO_DATABASE_URL
-turso db tokens create scrobbler | npx wrangler secret put TURSO_AUTH_TOKEN
-vp run db:migrate
-vp run deploy
-```
+3. **Set the secrets, run the migrations and deploy the API.**
 
-**4. Deploy the web front.** It reaches the API Worker through a service binding, so both share one origin and
-Better Auth cookies stay first-party. To serve it on your own domain, copy `apps/web/.env.cloudflare.example` to
-`apps/web/.env.cloudflare` and set `WEB_DOMAINS` (for example `scrobbler.example.com`, on a zone of your
-Cloudflare account): the deploy attaches it as a custom domain. Without it the front stays on workers.dev.
+   ```bash
+   openssl rand -base64 32 | npx wrangler secret put BETTER_AUTH_SECRET
+   turso db show scrobbler --url | npx wrangler secret put TURSO_DATABASE_URL
+   turso db tokens create scrobbler | npx wrangler secret put TURSO_AUTH_TOKEN
+   vp run db:migrate
+   vp run deploy
+   ```
 
-```bash
-cd ../web
-vp run deploy
-```
+4. **Deploy the web front.** It reaches the API Worker through a service binding, so both share one origin and
+   Better Auth cookies stay first-party. To serve it on your own domain, copy `apps/web/.env.cloudflare.example`
+   to `apps/web/.env.cloudflare` and set `WEB_DOMAINS` (for example `scrobbler.example.com`, on a zone of your
+   Cloudflare account): the deploy attaches it as a custom domain. Without it the front stays on workers.dev.
 
-**5. Trust the web origin.** Set `TRUSTED_ORIGINS` in `apps/api/wrangler.jsonc` to the URL of your web Worker
-(for example `https://scrobbler.example.com`), then redeploy the API. Open the web app, create your account,
-and set `DISABLE_SIGNUP` to `"true"` if the instance is just for you.
+   ```bash
+   cd ../web
+   vp run deploy
+   ```
+
+5. **Trust the web origin and create your account.** Set `TRUSTED_ORIGINS` in `apps/api/wrangler.jsonc` to the
+   URL of your web front (for example `https://scrobbler.example.com`), then redeploy the API. Open the web app and
+   create your account: sign-up closes behind you, and you can reopen it from the settings.
 
 Optional API variable: `BASE_URL`, the public URL used by Better Auth (defaults to the request origin).
 
-## Local development
+### Local development
 
 ```bash
 cp apps/api/.dev.vars.example apps/api/.dev.vars   # set BETTER_AUTH_SECRET
@@ -134,7 +211,37 @@ vp check --fix    # format, lint, type-check
 vp run -r test    # all tests
 ```
 
-## API overview
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Usage
+
+### Connect a scrobbling app
+
+Because the server implements the ListenBrainz API, you connect apps the same way you would connect them to
+ListenBrainz: pick **ListenBrainz** (or "custom ListenBrainz server") in the app, then paste your server URL and
+an API token. Create the token in the web app under **Settings → API tokens**; the page shows the server URL to
+use next to it.
+
+Apps that let you set a custom ListenBrainz URL include:
+
+| App                                                             | Platform                                                                |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [Pano Scrobbler](https://github.com/kawaiiDango/pano-scrobbler) | Android, Windows, Linux                                                 |
+| [Web Scrobbler](https://web-scrobbler.com/)                     | Browser extension (YouTube, Spotify Web, Bandcamp, SoundCloud…)         |
+| [Navidrome](https://www.navidrome.org/)                         | Self-hosted music server                                                |
+| [Jellyfin](https://jellyfin.org/) (ListenBrainz plugin)         | Self-hosted media server                                                |
+| [Multi-Scrobbler](https://github.com/FoxxMD/multi-scrobbler)    | Self-hosted bridge for Spotify, Plex, Jellyfin, Subsonic, MPD, Last.fm… |
+
+Anything else that talks to the ListenBrainz API with a configurable root URL should work too. Some apps want
+the root URL (`https://scrobbler.example.com`), others want the API path (`https://scrobbler.example.com/1/`).
+
+### Import your Last.fm history
+
+Export your scrobbles from Last.fm as CSV, then drop the file under **Settings → Import**. It is read in your
+browser and sent in batches of 1,000 listens; re-importing the same file is harmless because duplicates are
+ignored.
+
+### API
 
 | Path               | What it is                                                               |
 | ------------------ | ------------------------------------------------------------------------ |
@@ -170,6 +277,8 @@ curl https://scrobbler.example.com/v1/users/<username>/stats/wrapped
 Errors always look like `{ "code": 404, "error": "…" }` and timestamps are Unix seconds (UTC). See `/v1/docs` on
 your instance for every endpoint, parameter and response field.
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Architecture
 
 ```
@@ -186,24 +295,106 @@ packages/
   testing/    Node-only test doubles (D1 on node:sqlite, KV in memory)
 ```
 
-- **Ports and adapters.** The core knows nothing about Cloudflare. Storage, cache and auth are adapters, so another database (Postgres, SQLite, Turso…) is a new `packages/db-<name>` that passes the same tests.
+- **Ports and adapters.** The core knows nothing about Cloudflare. Storage, cache and auth are adapters, so another database (Postgres, SQLite…) is a new `packages/db-<name>` that passes the same tests.
 - **Protocols are thin.** ListenBrainz and the native API only map their wire format onto the same core services, so a Last.fm-compatible endpoint would be one more folder.
 - **Built for Turso's billing.** Turso charges per row scanned and written: batch inserts use a single `json_each` statement, every listen read is bounded by an index (a test checks every query plan), counters are maintained instead of counted, and stats of large histories are cached in KV keyed by the listen count, so new listens invalidate them naturally. The same SQL also runs on Cloudflare D1.
 
 More detail for contributors is in [AGENTS.md](AGENTS.md).
 
-## Tech stack
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-[Cloudflare Workers](https://workers.cloudflare.com/) · [Turso](https://turso.tech/) ·
-[Workers KV](https://developers.cloudflare.com/kv/) · [Hono](https://hono.dev/) ·
-[Better Auth](https://www.better-auth.com/) · [TanStack Start](https://tanstack.com/start) ·
-[Panda CSS](https://panda-css.com/) · [Zag.js](https://zagjs.com/) · [Vite+](https://viteplus.dev/) · TypeScript
+## Roadmap
+
+- [x] ListenBrainz-compatible API (`/1`)
+- [x] Native JSON API with OpenAPI docs (`/v1`)
+- [x] Listening stats and insights
+- [x] Year in review
+- [x] Last.fm CSV import
+- [x] Private profiles and single-user sign-up
+- [x] English and French, light and dark themes
+- [x] Turso as the production database
+- [ ] MCP server, so AI assistants can read your listening history and stats
+- [ ] Last.fm-compatible scrobbling API
+- [ ] More languages
+
+See the [open issues](https://github.com/powpowchuuuu/stunning-winner/issues) for proposed features and known issues.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contributing
 
-Issues and pull requests are welcome. Run `vp check --fix` and `vp run -r test` before opening a PR, and read
-[AGENTS.md](AGENTS.md) for the dependency rules the codebase keeps.
+Contributions are welcome. If you have an idea that would make Apollon better, open an issue with the
+`enhancement` label or send a pull request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/my-feature`)
+3. Run `vp check --fix` and `vp run -r test`
+4. Commit your changes (`git commit -m "Add my feature"`)
+5. Push to the branch (`git push origin feature/my-feature`)
+6. Open a pull request
+
+Read [AGENTS.md](AGENTS.md) first: it lists the dependency rules the codebase keeps.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## License
 
-[AGPL-3.0](LICENSE). If you run a modified version as a public service, you must share your changes.
+Distributed under the GNU Affero General Public License v3.0. See [LICENSE](LICENSE) for details. If you run a
+modified version as a public service, you must share your changes.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Contact
+
+Open an [issue](https://github.com/powpowchuuuu/stunning-winner/issues) for questions, bugs and ideas.
+
+Project link: [github.com/powpowchuuuu/stunning-winner](https://github.com/powpowchuuuu/stunning-winner)
+
+Live instance: [apollon.dereje.cc](https://apollon.dereje.cc/u/dereje)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Acknowledgments
+
+- [ListenBrainz](https://listenbrainz.org/) and the [MetaBrainz Foundation](https://metabrainz.org/), for the open API this server implements
+- [MusicBrainz](https://musicbrainz.org/) and the [Cover Art Archive](https://coverartarchive.org/), for open music metadata and album art
+- [Deezer](https://developers.deezer.com/), for artist pictures and fallback covers
+- [Last.fm](https://www.last.fm/), for the scrobbling idea and the export format
+- [Best-README-Template](https://github.com/othneildrew/Best-README-Template), for the layout of this README
+- [Shields.io](https://shields.io/), for the badges
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- MARKDOWN LINKS & IMAGES -->
+
+[license-shield]: https://img.shields.io/github/license/powpowchuuuu/stunning-winner.svg?style=for-the-badge
+[license-url]: https://github.com/powpowchuuuu/stunning-winner/blob/main/LICENSE
+[stars-shield]: https://img.shields.io/github/stars/powpowchuuuu/stunning-winner.svg?style=for-the-badge
+[stars-url]: https://github.com/powpowchuuuu/stunning-winner/stargazers
+[issues-shield]: https://img.shields.io/github/issues/powpowchuuuu/stunning-winner.svg?style=for-the-badge
+[issues-url]: https://github.com/powpowchuuuu/stunning-winner/issues
+[commit-shield]: https://img.shields.io/github/last-commit/powpowchuuuu/stunning-winner.svg?style=for-the-badge
+[commit-url]: https://github.com/powpowchuuuu/stunning-winner/commits/main
+[demo-shield]: https://img.shields.io/badge/live-demo-6E44FF?style=for-the-badge
+[demo-url]: https://apollon.dereje.cc/u/dereje
+[product-screenshot]: docs/screenshots/profile.png
+[Workers]: https://img.shields.io/badge/Cloudflare_Workers-F38020?style=for-the-badge&logo=cloudflareworkers&logoColor=white
+[Workers-url]: https://workers.cloudflare.com/
+[Turso]: https://img.shields.io/badge/Turso-4FF8D2?style=for-the-badge&logo=turso&logoColor=black
+[Turso-url]: https://turso.tech/
+[Hono]: https://img.shields.io/badge/Hono-E36002?style=for-the-badge&logo=hono&logoColor=white
+[Hono-url]: https://hono.dev/
+[BetterAuth]: https://img.shields.io/badge/Better_Auth-000000?style=for-the-badge&logo=betterauth&logoColor=white
+[BetterAuth-url]: https://www.better-auth.com/
+[TanStack]: https://img.shields.io/badge/TanStack_Start-FF4154?style=for-the-badge&logo=reactquery&logoColor=white
+[TanStack-url]: https://tanstack.com/start
+[React]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
+[React-url]: https://react.dev/
+[Panda]: https://img.shields.io/badge/Panda_CSS-F6E458?style=for-the-badge&logo=pandacss&logoColor=black
+[Panda-url]: https://panda-css.com/
+[Zag]: https://img.shields.io/badge/Zag.js-2CC5D2?style=for-the-badge
+[Zag-url]: https://zagjs.com/
+[Vite]: https://img.shields.io/badge/Vite%2B-646CFF?style=for-the-badge&logo=vite&logoColor=white
+[Vite-url]: https://viteplus.dev/
+[TypeScript]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
+[TypeScript-url]: https://www.typescriptlang.org/
