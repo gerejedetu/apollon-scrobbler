@@ -1,0 +1,25 @@
+{
+  "name": "@scrobbler/db-libsql",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Turso / libSQL storage: runs the same SQL and migrations as db-d1 through a libSQL client.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@scrobbler/core": "workspace:*",
+    "@scrobbler/db-d1": "workspace:*"
+  },
+  "devDependencies": {
+    "@libsql/client": "0.18.0",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

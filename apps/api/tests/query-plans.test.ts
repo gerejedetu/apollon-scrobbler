@@ -5,11 +5,13 @@
  */
 import { expect, test } from "vite-plus/test";
 import { openApiDocument } from "../src/protocols/native/openapi.ts";
-import { testApi } from "./helpers.ts";
+import { TEST_DB, testApi } from "./helpers.ts";
+import type { SqliteD1 } from "@scrobbler/testing";
 
 const NOW = Date.parse("2026-11-20T12:00:00Z") / 1000;
 
-test("no endpoint makes SQLite scan a whole table", async () => {
+// Plans come from the node:sqlite double (same SQLite planner as libSQL and D1).
+test.skipIf(TEST_DB !== "d1")("no endpoint makes SQLite scan a whole table", async () => {
   const api = testApi({}, NOW);
   const token = await api.signUp("alice");
   await api.signUp("bob");
@@ -67,11 +69,13 @@ test("no endpoint makes SQLite scan a whole table", async () => {
   await api.request("/v1/users/alice/stats/wrapped?year=2026", { headers: auth });
 
   const seen = new Map<string, unknown[]>();
-  for (const { sql, params } of api.db.log) if (!seen.has(sql)) seen.set(sql, params);
+  for (const { sql, params } of (api.db as SqliteD1).log) if (!seen.has(sql)) seen.set(sql, params);
   const offenders: string[] = [];
   for (const [sql, params] of seen) {
     if (/^\s*(INSERT|PRAGMA|BEGIN|COMMIT)/i.test(sql)) continue;
-    const plan = api.db.raw.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...(params as never[])) as {
+    const plan = (api.db as SqliteD1).raw
+      .prepare(`EXPLAIN QUERY PLAN ${sql}`)
+      .all(...(params as never[])) as {
       detail: string;
     }[];
     // "SCAN <table>" without an index = every row of the table, for every user.

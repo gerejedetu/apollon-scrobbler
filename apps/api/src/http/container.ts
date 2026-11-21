@@ -1,13 +1,38 @@
 /**
- * Composition root: wires adapters (D1, KV, Better Auth) into core services for one request.
+ * Composition root: wires adapters (Turso or D1, KV, Better Auth) into core services for one request.
  * This is the only file of the API that knows which concrete adapters are used.
  */
 import { apiKeyVerifier, createAuth, type Auth } from "@scrobbler/auth";
 import { KvCache } from "@scrobbler/cache-kv";
 import { type Clock, createServices, MemoryCache, type Services } from "@scrobbler/core";
-import { createD1Repositories } from "@scrobbler/db-d1";
+import { createClient } from "@libsql/client/web";
+import { createD1Repositories, type D1Like } from "@scrobbler/db-d1";
+import { LibsqlDriver } from "@scrobbler/db-libsql";
 import type { Context, MiddlewareHandler } from "hono";
 import type { AppEnv, Bindings } from "../env.ts";
+
+/** One libSQL client per isolate (HTTP, no socket to keep), reused across requests. */
+let turso: { url: string; driver: LibsqlDriver } | undefined;
+
+/**
+ * The SQL database: Turso when TURSO_DATABASE_URL is set, else the D1 binding. Both speak the same
+ * D1-shaped API, so repositories and Better Auth are identical on either.
+ */
+function database(env: Bindings): D1Like {
+  if (env.TURSO_DATABASE_URL) {
+    if (turso?.url !== env.TURSO_DATABASE_URL) {
+      const client = createClient({
+        url: env.TURSO_DATABASE_URL,
+        authToken: env.TURSO_AUTH_TOKEN,
+        intMode: "number",
+      });
+      turso = { url: env.TURSO_DATABASE_URL, driver: new LibsqlDriver(client) };
+    }
+    return turso.driver;
+  }
+  if (!env.DB) throw new Error("No database: set TURSO_DATABASE_URL or bind a D1 database as DB.");
+  return env.DB;
+}
 
 /** Lives as long as the isolate: token checks are skipped for 60 s after a hit. */
 const authCache = new MemoryCache(5000);
@@ -23,13 +48,14 @@ function waitUntilOf(c: Context<AppEnv>): ((p: Promise<unknown>) => void) | unde
 
 function buildAuth(
   env: Bindings,
+  db: D1Like,
   origin: string,
   services: () => Services,
   waitUntil?: (p: Promise<unknown>) => void,
 ): Auth {
   return createAuth({
-    // The D1 binding is passed as-is; Better Auth detects it and uses its D1 dialect.
-    database: env.DB as never,
+    // D1 or the libSQL driver, passed as-is: Better Auth detects a D1-style database and uses its SQLite dialect.
+    database: db as never,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BASE_URL || origin,
     trustedOrigins: (env.TRUSTED_ORIGINS ?? "")
@@ -52,11 +78,12 @@ export interface ContainerOptions {
 export const createContainer =
   (options: ContainerOptions = {}): MiddlewareHandler<AppEnv> =>
   async (c, next) => {
+    const db = database(c.env);
     let auth: Auth | undefined;
     const getAuth = () =>
-      (auth ??= buildAuth(c.env, new URL(c.req.url).origin, () => services, waitUntilOf(c)));
+      (auth ??= buildAuth(c.env, db, new URL(c.req.url).origin, () => services, waitUntilOf(c)));
     const services = createServices(
-      createD1Repositories(c.env.DB),
+      createD1Repositories(db),
       { verify: (raw) => apiKeyVerifier(getAuth()).verify(raw) },
       {
         cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined,

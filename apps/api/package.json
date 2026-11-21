@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "test": "vp test",
+    "test": "vp test && TEST_DB=libsql vp test",
     "deploy": "node scripts/with-cloudflare-ids.mjs deploy",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "node scripts/with-cloudflare-ids.mjs d1 migrations apply DB --remote",
@@ -15,10 +15,12 @@
     "db:backfill-credits:remote": "vpx scripts/backfill-artist-credits.ts --remote"
   },
   "dependencies": {
+    "@libsql/client": "catalog:",
     "@scrobbler/auth": "workspace:*",
     "@scrobbler/cache-kv": "workspace:*",
     "@scrobbler/core": "workspace:*",
     "@scrobbler/db-d1": "workspace:*",
+    "@scrobbler/db-libsql": "workspace:*",
     "@scrobbler/types": "workspace:*",
     "hono": "4.13.19"
   },

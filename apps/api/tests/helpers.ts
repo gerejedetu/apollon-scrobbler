@@ -1,10 +1,15 @@
 import { createMigratedD1 } from "@scrobbler/db-d1/testing";
+import type { LibsqlDriver } from "@scrobbler/db-libsql";
+import { createMigratedLibsql } from "@scrobbler/db-libsql/testing";
 import { MemoryKV, type SqliteD1 } from "@scrobbler/testing";
 import { createApp } from "../src/app.ts";
 import type { Bindings } from "../src/env.ts";
 
+/** `TEST_DB=libsql vp test` runs the whole API suite on libSQL (Turso's engine) instead of the D1 double. */
+export const TEST_DB = process.env.TEST_DB === "libsql" ? "libsql" : "d1";
+
 export interface TestApi {
-  db: SqliteD1;
+  db: SqliteD1 | LibsqlDriver;
   kv: MemoryKV;
   request(path: string, init?: RequestInit): Promise<Response>;
   json<T = any>(path: string, init?: RequestInit): Promise<{ status: number; body: T }>;
@@ -15,7 +20,7 @@ export interface TestApi {
 }
 
 export function testApi(overrides: Partial<Bindings> = {}, now?: number): TestApi {
-  const db = createMigratedD1();
+  const db = TEST_DB === "libsql" ? createMigratedLibsql() : createMigratedD1();
   const kv = new MemoryKV();
   const env: Bindings = {
     DB: db,

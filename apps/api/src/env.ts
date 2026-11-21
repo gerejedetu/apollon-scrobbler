@@ -10,7 +10,12 @@ export interface RateLimiter {
 
 /** Worker bindings (see wrangler.jsonc). Typed structurally so tests can pass doubles. */
 export interface Bindings {
-  DB: D1Like;
+  /** Cloudflare D1. Used when no Turso database is configured. */
+  DB?: D1Like;
+  /** Turso (libSQL) database URL, e.g. libsql://<db>-<org>.turso.io. When set, it is used instead of D1. Secret. */
+  TURSO_DATABASE_URL?: string;
+  /** Turso auth token for that database. Secret. */
+  TURSO_AUTH_TOKEN?: string;
   CACHE?: KVLike;
   BETTER_AUTH_SECRET: string;
   /** Public URL of the Worker; defaults to the request's origin. */
