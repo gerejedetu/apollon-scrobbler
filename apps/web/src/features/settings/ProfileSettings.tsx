@@ -13,21 +13,21 @@ import { profilePrefix } from "../../lib/origin.ts";
 import { m } from "../../paraglide/messages.js";
 
 const group = css({ display: "flex", flexDirection: "column", gap: "8px" });
-const fieldLabel = css({ fontSize: "15px", fontWeight: "500" });
-const help = css({ m: 0, fontSize: "13px", lineHeight: "20px", color: "muted" });
+const fieldLabel = css({ fontSize: "13px", fontWeight: "500" });
+const help = css({ m: 0, fontSize: "12px", lineHeight: "18px", color: "muted" });
 
 function ReadOnly({ children }: { children: ReactNode }) {
   return (
     <div
       aria-readonly="true"
       className={css({
-        height: "44px",
-        px: "14px",
+        height: "40px",
+        px: "12px",
         display: "flex",
         alignItems: "center",
         borderRadius: "button",
         bg: "field",
-        fontSize: "14px",
+        fontSize: "13px",
         color: "placeholder",
       })}
     >

@@ -36,7 +36,7 @@ export function CreatedToken({
         <div
           className={css({ display: "flex", flexDirection: "column", gap: "4px", color: "ink" })}
         >
-          <b className={css({ fontSize: "14px", fontWeight: "600" })}>
+          <b className={css({ fontSize: "13px", fontWeight: "600" })}>
             {m.token_created({ name })}
           </b>
           <span className={css({ fontSize: "13px", color: "violetInk" })}>

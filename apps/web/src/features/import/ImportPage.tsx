@@ -107,8 +107,8 @@ export function ImportPage() {
           className={css({
             m: 0,
             maxWidth: "560px",
-            fontSize: "14px",
-            lineHeight: "22px",
+            fontSize: "13px",
+            lineHeight: "20px",
             color: "muted",
           })}
         >
@@ -181,7 +181,7 @@ export function ImportPage() {
                 <path d="M12 16V4M7 9l5-5 5 5M5 20h14" />
               </svg>
             </span>
-            <span className={css({ fontSize: "14px", fontWeight: "500" })}>
+            <span className={css({ fontSize: "13px", fontWeight: "500" })}>
               {m.import_drop()}{" "}
               <span className={css({ color: "violet", textDecoration: "underline" })}>
                 {m.import_pick()}
