@@ -58,7 +58,7 @@ export function ListenRow({
           {when}
         </span>
       )}
-      {actions}
+      <span className={css({ width: "28px", flexShrink: 0, display: "flex" })}>{actions}</span>
     </div>
   );
 }
