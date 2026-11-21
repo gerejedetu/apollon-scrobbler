@@ -1,6 +1,6 @@
 // Not ../../api/index.ts: that pulls in the Worker transport, and this file is unit tested.
-import { isNotFound } from "../../api/error.ts";
-import type { AlbumPage, ArtistPage, Range, Timeline, TrackPage } from "../../api/types.ts";
+import { isNotFound } from "@scrobbler/client";
+import type { AlbumPage, ArtistPage, Range, Timeline, TrackPage } from "@scrobbler/client";
 
 /**
  * The API answers 404 for a track, album or artist with no listen in the range (a track only playing now,
