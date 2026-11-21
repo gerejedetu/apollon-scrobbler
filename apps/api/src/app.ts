@@ -7,6 +7,7 @@ import { MemoryRateLimiter, rateLimit } from "./http/rate-limit.ts";
 import { listenBrainzApi } from "./protocols/listenbrainz/index.ts";
 import { nativeApi } from "./protocols/native/index.ts";
 import { authRoutes } from "./routes/auth.ts";
+import { wellKnownRoutes } from "./routes/well-known.ts";
 
 /** Same limits as wrangler.jsonc `ratelimits`, enforced per isolate as a backstop. */
 export const API_LIMIT_PER_MINUTE = 600;
@@ -45,6 +46,11 @@ export function createApp(options: ContainerOptions = {}) {
     "/api/auth/sign-in/*",
     rateLimit((env) => env.RATE_LIMIT_AUTH, authLimiter),
   );
+  // Anyone may register an OAuth client (MCP clients do it on their own): keep that cheap to abuse.
+  app.use(
+    "/api/auth/oauth2/register",
+    rateLimit((env) => env.RATE_LIMIT_AUTH, authLimiter),
+  );
   app.route("/1", listenBrainzApi);
   app.route("/v1", nativeApi);
   app.use(
@@ -63,5 +69,6 @@ export function createApp(options: ContainerOptions = {}) {
     }),
   );
   app.route("/api/auth", authRoutes);
+  app.route("/.well-known", wellKnownRoutes);
   return app;
 }

@@ -2,7 +2,7 @@
  * Composition root: wires adapters (Turso or D1, KV, Better Auth) into core services for one request.
  * This is the only file of the API that knows which concrete adapters are used.
  */
-import { apiKeyVerifier, createAuth, type Auth } from "@scrobbler/auth";
+import { createAuth, mcpResource, tokenVerifier, type Auth } from "@scrobbler/auth";
 import { KvCache } from "@scrobbler/cache-kv";
 import { type Clock, createServices, MemoryCache, type Services } from "@scrobbler/core";
 import { createClient } from "@libsql/client/web";
@@ -49,7 +49,7 @@ function waitUntilOf(c: Context<AppEnv>): ((p: Promise<unknown>) => void) | unde
 function buildAuth(
   env: Bindings,
   db: D1Like,
-  origin: string,
+  baseURL: string,
   services: () => Services,
   waitUntil?: (p: Promise<unknown>) => void,
 ): Auth {
@@ -57,7 +57,7 @@ function buildAuth(
     // D1 or the libSQL driver, passed as-is: Better Auth detects a D1-style database and uses its SQLite dialect.
     database: db as never,
     secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.BASE_URL || origin,
+    baseURL,
     trustedOrigins: (env.TRUSTED_ORIGINS ?? "")
       .split(",")
       .map((o) => o.trim())
@@ -81,11 +81,12 @@ export const createContainer =
   async (c, next) => {
     const db = database(c.env);
     let auth: Auth | undefined;
-    const getAuth = () =>
-      (auth ??= buildAuth(c.env, db, new URL(c.req.url).origin, () => services, waitUntilOf(c)));
+    const baseURL = c.env.BASE_URL || new URL(c.req.url).origin;
+    const getAuth = () => (auth ??= buildAuth(c.env, db, baseURL, () => services, waitUntilOf(c)));
     const services = createServices(
       createD1Repositories(db),
-      { verify: (raw) => apiKeyVerifier(getAuth()).verify(raw) },
+      // API keys, and OAuth access tokens that the MCP server forwards for its users.
+      { verify: (raw) => tokenVerifier(getAuth(), mcpResource(baseURL)).verify(raw) },
       {
         cache: c.env.CACHE ? new KvCache(c.env.CACHE, "v1:") : undefined,
         authCache,
