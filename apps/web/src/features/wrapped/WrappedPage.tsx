@@ -80,7 +80,7 @@ export function WrappedPage({
       <Breadcrumbs
         items={[
           <Link key="s" to="/u/$userName/stats" params={{ userName }}>
-            Stats
+            {m.nav_stats()}
           </Link>,
           m.wrapped_title(),
         ]}
@@ -95,7 +95,9 @@ export function WrappedPage({
             gap: "12px",
           })}
         >
-          <h1 className={css({ m: 0, textStyle: "pageTitle" })}>Bilan {w.year}</h1>
+          <h1 className={css({ m: 0, textStyle: "pageTitle" })}>
+            {m.wrapped_heading({ year: w.year })}
+          </h1>
           <SelectMenu<string>
             label={m.year_label()}
             value={String(w.year)}
