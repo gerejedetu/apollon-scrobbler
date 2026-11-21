@@ -41,10 +41,36 @@ export function lookupUrl(lookup: Lookup | undefined, size: ArtworkSize = 250): 
   return `/covers?${params.toString()}`;
 }
 
+/** The video id of a YouTube or YouTube Music page a scrobbler reported (`origin_url`), if any. */
+export function youtubeId(originUrl: unknown): string | null {
+  if (typeof originUrl !== "string") return null;
+  try {
+    const url = new URL(originUrl);
+    const host = url.hostname.replace(/^www\.|^m\./, "");
+    const id =
+      host === "youtu.be"
+        ? url.pathname.slice(1)
+        : host === "youtube.com" || host === "music.youtube.com"
+          ? url.searchParams.get("v")
+          : null;
+    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The thumbnail of the video the listen was played from: exact for that listen, used last (it is 16:9). */
+export function youtubeUrl(videoId: string | null | undefined): string | null {
+  return videoId ? `/covers?yt=${videoId}` : null;
+}
+
 export function artworkSources(
   mbid: string | null | undefined,
   lookup: Lookup | undefined,
   size: ArtworkSize,
+  videoId?: string | null,
 ): string[] {
-  return [artworkUrl(mbid, size), lookupUrl(lookup, size)].filter((s): s is string => Boolean(s));
+  return [artworkUrl(mbid, size), lookupUrl(lookup, size), youtubeUrl(videoId)].filter(
+    (s): s is string => Boolean(s),
+  );
 }

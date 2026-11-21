@@ -7,6 +7,7 @@ export function AlbumCover({
   album,
   track,
   mbid,
+  youtube,
   title,
   size,
 }: {
@@ -15,6 +16,8 @@ export function AlbumCover({
   /** Used to find the album when only the track is known. */
   track?: string | null;
   mbid?: string | null;
+  /** YouTube video the listen was played from: its thumbnail is the last resort. */
+  youtube?: string | null;
   /** Printed on the pattern while there is no artwork. */
   title?: string;
   size?: number;
@@ -25,6 +28,7 @@ export function AlbumCover({
       title={title}
       size={size}
       mbid={mbid}
+      youtube={youtube}
       lookup={{ kind: "album", artist, album, track }}
     />
   );

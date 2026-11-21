@@ -3,7 +3,7 @@ import { splitArtistCredit } from "@scrobbler/core";
 import { Fragment } from "react";
 import { css } from "styled-system/css";
 import type { Track } from "../../api/index.ts";
-import { AlbumCover } from "../../ui/cover/index.ts";
+import { AlbumCover, youtubeId } from "../../ui/cover/index.ts";
 
 const ellipsis = css({ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
 const link = css({
@@ -61,6 +61,7 @@ export function CoverLink({
       album={track.album}
       track={track.track}
       mbid={track.mbids?.release}
+      youtube={youtubeId(track.extra?.origin_url)}
       size={size}
     />
   );

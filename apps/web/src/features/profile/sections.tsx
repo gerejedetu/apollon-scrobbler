@@ -23,7 +23,7 @@ import { ChevronRight } from "../../ui/icons.tsx";
 import { BlockHeading, CountBadge, Empty, Stat } from "../../ui/primitives/index.ts";
 import { ListenItem, ListenRow } from "../listens/index.ts";
 import { AlbumCard, coverGrid } from "./cards.tsx";
-import { AlbumCover } from "../../ui/cover/index.ts";
+import { AlbumCover, youtubeId } from "../../ui/cover/index.ts";
 import { m } from "../../paraglide/messages.js";
 
 const stack14 = css({ display: "flex", flexDirection: "column", gap: "14px" });
@@ -186,6 +186,7 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
           album={nowPlaying.album}
           track={nowPlaying.track}
           mbid={nowPlaying.mbids?.release}
+          youtube={youtubeId(nowPlaying.extra?.origin_url)}
           size={48}
         />
         <div
