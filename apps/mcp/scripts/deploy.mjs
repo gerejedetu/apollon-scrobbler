@@ -2,7 +2,7 @@
 /**
  * `wrangler deploy` plus this instance's routes, kept out of git.
  *
- * MCP_ROUTES (comma-separated route patterns, e.g. `scrobbler.example.com/mcp*`) comes from apps/mcp/.env.cloudflare
+ * MCP_ROUTES (comma-separated route patterns, e.g. `scrobbler.example.com/mcp`) comes from apps/mcp/.env.cloudflare
  * (git-ignored, see .env.cloudflare.example) or the environment. Without it the Worker stays on workers.dev only.
  */
 import { spawnSync } from "node:child_process";
