@@ -58,7 +58,7 @@ const trigger = css({
   alignItems: "center",
   gap: "6px",
   border: 0,
-  borderRadius: "16px",
+  borderRadius: "pill",
   bg: "transparent",
   color: "ink",
   fontSize: "12px",

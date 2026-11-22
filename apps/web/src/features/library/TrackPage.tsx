@@ -13,6 +13,7 @@ import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
 import { BigFigure, EntityTitle, fillMonths, PeriodBars, recordOf } from "./shared.tsx";
 import { AlbumCover } from "../../ui/cover/index.ts";
 import { m } from "../../paraglide/messages.js";
+import { displayHeading } from "../../ui/primitives/index.ts";
 
 /** A track: totals and how it was played month by month. `album` comes from where the visitor clicked. */
 export function TrackPage({
@@ -128,9 +129,7 @@ export function TrackPage({
       </section>
       {months.length > 0 ? (
         <section className={css({ display: "flex", flexDirection: "column", gap: "14px" })}>
-          <h2 className={css({ m: 0, textStyle: "serif", fontSize: "32px", lineHeight: 1 })}>
-            {m.month_by_month()}
-          </h2>
+          <h2 className={displayHeading.serif}>{m.month_by_month()}</h2>
           <PeriodBars
             periods={months}
             height={160}

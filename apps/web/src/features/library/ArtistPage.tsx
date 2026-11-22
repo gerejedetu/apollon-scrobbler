@@ -15,7 +15,7 @@ import { rangeOptions } from "../../lib/ranges.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { ArrowUpRight } from "../../ui/icons.tsx";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
-import { BlockHeading, Stat } from "../../ui/primitives/index.ts";
+import { BlockHeading, displayHeading, sectionTitle, Stat } from "../../ui/primitives/index.ts";
 import { SelectMenu, TextTabs } from "../../ui/zag/index.ts";
 import { TrackRanking } from "../tops/index.ts";
 import { lastMonths, LastPeriods, lastWeeks, lastYears } from "./LastPeriods.tsx";
@@ -164,7 +164,7 @@ export function ArtistPage({
             fontSize: "13px",
           })}
         >
-          <h2 className={css({ m: 0, textStyle: "block" })}>{m.facts()}</h2>
+          <h2 className={sectionTitle}>{m.facts()}</h2>
           {record ? (
             <span className={css({ display: "flex", justifyContent: "space-between" })}>
               <span className={css({ color: "muted" })}>{m.record_month()}</span>
@@ -276,9 +276,7 @@ export function ArtistPage({
                 gap: "8px",
               })}
             >
-              <h2 className={css({ m: 0, textStyle: "serif", fontSize: "32px", lineHeight: 1 })}>
-                {m.over_time()}
-              </h2>
+              <h2 className={displayHeading.serif}>{m.over_time()}</h2>
               {list}
             </div>
           )}

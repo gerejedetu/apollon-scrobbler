@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import { ChevronLeft, DownloadIcon, KeyIcon, UserIcon } from "../../ui/icons.tsx";
 import { Breadcrumbs, Page } from "../../ui/layout/index.ts";
+import { pageTitle } from "../../ui/primitives/index.ts";
 import { AppHeader, MobileTabBar } from "../navigation/index.ts";
 import { m } from "../../paraglide/messages.js";
 
@@ -182,11 +183,4 @@ export function SettingsLayout({ userName, children }: { userName: string; child
 }
 
 /** Page titles of the settings: large on screens, hidden on phones (the back bar says "Réglages"). */
-export const settingsTitle = css({
-  m: 0,
-  display: { base: "none", sm: "block" },
-  textStyle: "wide",
-  fontSize: "34px",
-  letterSpacing: "-0.01em",
-  lineHeight: 1.05,
-});
+export const settingsTitle = cx(pageTitle, css({ display: { base: "none", sm: "block" } }));

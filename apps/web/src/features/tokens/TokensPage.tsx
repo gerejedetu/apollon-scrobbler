@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import { css } from "styled-system/css";
 import { api, type ApiKey } from "../../api/index.ts";
-import { Button, Field, Notice } from "../../ui/primitives/index.ts";
+import { Button, Field, lead, Notice } from "../../ui/primitives/index.ts";
 import { settingsTitle } from "../settings/index.ts";
 import { CreatedToken } from "./CreatedToken.tsx";
 import { TOKEN_NAME_MAX } from "./model.ts";
@@ -54,17 +54,7 @@ export function TokensPage({ keys }: { keys: ApiKey[] }) {
     <>
       <div className={css({ display: "flex", flexDirection: "column", gap: "8px" })}>
         <h1 className={settingsTitle}>{m.settings_tokens()}</h1>
-        <p
-          className={css({
-            m: 0,
-            maxWidth: "560px",
-            fontSize: "13px",
-            lineHeight: "20px",
-            color: "muted",
-          })}
-        >
-          {m.tokens_intro()}
-        </p>
+        <p className={lead}>{m.tokens_intro()}</p>
       </div>
 
       <form

@@ -14,7 +14,7 @@ const avatar = css({
   height: "28px",
   p: 0,
   border: 0,
-  borderRadius: "14px",
+  borderRadius: "pill",
   bg: "avatar",
   cursor: "pointer",
   "&[data-state=open]": {
@@ -108,7 +108,7 @@ export function AccountMenu({ userName }: { userName: string }) {
                   width: "36px",
                   height: "36px",
                   flexShrink: 0,
-                  borderRadius: "18px",
+                  borderRadius: "pill",
                   bg: "avatar",
                 })}
               />

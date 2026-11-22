@@ -5,6 +5,7 @@ import { AxisLabels } from "../../ui/charts/index.ts";
 import { isOngoing } from "./copy.ts";
 import { color } from "../../ui/theme/index.ts";
 import { m } from "../../paraglide/messages.js";
+import { sectionTitle } from "../../ui/primitives/index.ts";
 
 /** Days still to come in the current week, month or year (empty slots after today). */
 export function remainingDays(range: Range, lastDay: string): string[] {
@@ -43,7 +44,7 @@ export function Daily({ activity, range }: { activity: Activity; range: Range })
           gap: "12px",
         })}
       >
-        <h2 className={css({ m: 0, textStyle: "block" })}>{m.listens_per_day()}</h2>
+        <h2 className={sectionTitle}>{m.listens_per_day()}</h2>
         {peak.listenCount > 0 ? (
           <span className={css({ fontSize: "12px", color: "muted" })}>
             {m.record_label()}{" "}
