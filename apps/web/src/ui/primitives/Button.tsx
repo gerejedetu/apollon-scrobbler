@@ -23,14 +23,14 @@ export const button = cva({
       outline: {
         bg: "transparent",
         color: "ink",
-        border: "1px solid token(colors.dashed)",
-        _hover: { color: "ink", borderColor: "ink" },
+        border: "1px solid token(colors.control)",
+        _hover: { color: "ink", borderColor: "focus" },
       },
       soft: {
         bg: "transparent",
         color: "ink",
         border: "1px solid token(colors.violetLine)",
-        _hover: { color: "ink", borderColor: "violet" },
+        _hover: { color: "ink", borderColor: "focus" },
       },
       danger: { bg: "danger", color: "page", _hover: { color: "page", bg: "dangerInk" } },
     },

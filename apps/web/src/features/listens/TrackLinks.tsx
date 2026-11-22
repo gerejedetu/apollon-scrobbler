@@ -11,7 +11,6 @@ const link = css({
   textDecoration: "none",
   borderRadius: "2px",
   _hover: { color: "violet" },
-  "&:focus-visible": { outline: "2px solid token(colors.violet)", outlineOffset: "1px" },
 });
 
 /**
@@ -70,7 +69,6 @@ export function CoverLink({
     flexShrink: 0,
     borderRadius: "2px",
     _hover: { opacity: 0.85 },
-    "&:focus-visible": { outline: "2px solid token(colors.violet)", outlineOffset: "2px" },
   });
   return album ? (
     <Link {...album} tabIndex={-1} aria-hidden="true" className={className}>

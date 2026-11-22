@@ -12,7 +12,6 @@ const control = css({
   bg: "dashed",
   transition: "background 120ms",
   "&[data-state=checked]": { bg: "violet" },
-  "&[data-focus-visible]": { outline: "2px solid token(colors.violet)", outlineOffset: "2px" },
 });
 const thumb = css({
   position: "absolute",

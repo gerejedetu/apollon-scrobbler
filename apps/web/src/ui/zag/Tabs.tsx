@@ -10,7 +10,6 @@ const trigger = css({
   fontSize: "12px",
   color: "muted",
   "&[data-selected]": { color: "ink", fontWeight: "500" },
-  "&[data-focus-visible]": { outline: "2px solid token(colors.violet)", outlineOffset: "2px" },
 });
 
 export interface TextTab<V extends string> {

@@ -35,11 +35,11 @@ const choice = css({
   height: "40px",
   px: "12px",
   borderRadius: "button",
-  border: "1px solid token(colors.dashed)",
+  border: "1px solid token(colors.control)",
   fontSize: "13px",
   fontWeight: "400",
   cursor: "pointer",
-  "&:has(input:checked)": { borderColor: "ink", fontWeight: "500" },
+  "&:has(input:checked)": { borderColor: "focus", fontWeight: "500" },
   "& input": { m: 0, accentColor: "token(colors.violet)" },
 });
 

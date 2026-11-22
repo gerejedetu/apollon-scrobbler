@@ -129,8 +129,8 @@ export function ImportPage() {
               bg: "dropzone",
               textAlign: "center",
               cursor: "pointer",
-              "&[data-dragging=true]": { borderColor: "violet", bg: "violetSoft" },
-              "&:focus-within": { borderColor: "violet" },
+              "&[data-dragging=true]": { borderColor: "focus", bg: "violetSoft" },
+              "&:focus-within": { borderColor: "focus" },
             })}
             data-dragging={dragging}
           >

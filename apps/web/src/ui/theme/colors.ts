@@ -17,6 +17,10 @@ export const semanticColors = {
   rule: c("#EBEBEB", "#262626"),
   ruleSoft: c("#F0F0F0", "#1E1E1E"),
   dashed: c("#DADADA", "#3A3A3A"),
+  /** Borders of controls (outline buttons, dropdowns, choices) at rest. */
+  control: c("#DADADA", "#3A3A3A"),
+  /** The one colour of every focus ring and of a control hovered, open or picked: the primary. */
+  focus: c("#6E44FF", "#A58BFF"),
   muted: c("#6F6F6F", "#9C9C9C"),
   placeholder: c("#8A8A8A", "#7A7A7A"),
   ink: c("#111111", "#F2F2F2"),

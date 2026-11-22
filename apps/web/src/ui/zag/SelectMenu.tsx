@@ -20,7 +20,7 @@ export const dropdownTrigger = css({
   alignItems: "center",
   gap: "8px",
   flexShrink: 0,
-  border: "1px solid token(colors.dashed)",
+  border: "1px solid token(colors.control)",
   borderRadius: "button",
   bg: "transparent",
   color: "ink",
@@ -28,9 +28,8 @@ export const dropdownTrigger = css({
   fontWeight: "500",
   cursor: "pointer",
   "& > svg:first-child": { color: "muted" },
-  _hover: { borderColor: "ink" },
-  "&[data-state=open]": { borderColor: "ink" },
-  "&:focus-visible": { outline: "2px solid token(colors.violet)", outlineOffset: "1px" },
+  _hover: { borderColor: "focus" },
+  "&[data-state=open]": { borderColor: "focus" },
 });
 const content = css({
   width: "232px",
