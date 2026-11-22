@@ -19,7 +19,6 @@ const item = css({
     boxShadow: "0 1px 2px token(colors.shadow)",
     fontWeight: "500",
   },
-  "&[data-focus-visible]": { outline: "2px solid token(colors.violet)" },
 });
 
 /** "Clair · Sombre · Auto": a radio group drawn as a segmented control (Zag radio-group machine). */

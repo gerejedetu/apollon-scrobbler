@@ -26,7 +26,6 @@ const trigger = css({
   color: "ink",
   _hover: { bg: "chip" },
   "&[data-state=open]": { bg: "chip" },
-  "&:focus-visible": { outline: "2px solid token(colors.violet)", outlineOffset: "1px" },
 });
 const content = css({
   width: "248px",

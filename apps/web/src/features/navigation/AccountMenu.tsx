@@ -18,11 +18,7 @@ const avatar = css({
   bg: "avatar",
   cursor: "pointer",
   "&[data-state=open]": {
-    boxShadow: "0 0 0 2px token(colors.page), 0 0 0 4px token(colors.violet)",
-  },
-  "&:focus-visible": {
-    boxShadow: "0 0 0 2px token(colors.page), 0 0 0 4px token(colors.violet)",
-    outline: "none",
+    boxShadow: "0 0 0 2px token(colors.page), 0 0 0 4px token(colors.focus)",
   },
 });
 const content = css({

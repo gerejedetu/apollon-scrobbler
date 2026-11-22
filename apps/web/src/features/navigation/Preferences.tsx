@@ -67,7 +67,6 @@ const trigger = css({
   cursor: "pointer",
   _hover: { bg: "chip" },
   "&[data-state=open]": { bg: "chip" },
-  "&:focus-visible": { outline: "2px solid token(colors.violet)", outlineOffset: "1px" },
 });
 
 /** Signed out there is no account menu: a globe opens the same theme and language pickers. */

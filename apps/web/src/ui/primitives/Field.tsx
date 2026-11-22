@@ -14,7 +14,8 @@ export const input = css({
   width: "100%",
   minWidth: 0,
   outline: "none",
-  _focusVisible: { boxShadow: "inset 0 0 0 1px token(colors.violet)" },
+  // Fields show the global focus ring like everything else, plus a primary edge while typing.
+  _focus: { boxShadow: "inset 0 0 0 1px token(colors.focus)" },
   "&[aria-invalid=true]": { bg: "dangerBg", boxShadow: "inset 0 0 0 1px token(colors.dangerLine)" },
 });
 
