@@ -20,7 +20,7 @@ import { rangeOptions } from "../../lib/ranges.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { AxisLabels, Bars } from "../../ui/charts/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
-import { BlockHeading, CountBadge, Empty, Stat } from "../../ui/primitives/index.ts";
+import { BlockHeading, CountBadge, Empty, sectionTitle, Stat } from "../../ui/primitives/index.ts";
 import { ListenItem, ListenRow } from "../listens/index.ts";
 import { Equalizer } from "../../ui/feedback/index.ts";
 import { AlbumCard, coverGrid } from "./cards.tsx";
@@ -43,7 +43,7 @@ export function TopAlbums({ userName, top, range }: { userName: string; top: Top
           gap: "12px",
         })}
       >
-        <h2 className={css({ m: 0, textStyle: "block" })}>{m.top_albums()}</h2>
+        <h2 className={sectionTitle}>{m.top_albums()}</h2>
         <SelectMenu<Range>
           label={m.period()}
           value={range}
@@ -136,7 +136,7 @@ export function RecentListens({
           pb: "10px",
         })}
       >
-        <h2 className={css({ m: 0, textStyle: "block" })}>{m.recent_listens()}</h2>
+        <h2 className={sectionTitle}>{m.recent_listens()}</h2>
         <Link
           to="/u/$userName/historique"
           params={{ userName }}
@@ -169,7 +169,7 @@ export function NowPlayingCard({ nowPlaying }: { nowPlaying: NowPlaying["nowPlay
   if (!nowPlaying) return null;
   return (
     <section className={stack12}>
-      <h2 className={css({ m: 0, textStyle: "block" })}>{m.now_playing()}</h2>
+      <h2 className={sectionTitle}>{m.now_playing()}</h2>
       <div
         className={css({
           display: "flex",
@@ -214,7 +214,7 @@ export function MilestoneList({ milestones }: { milestones: Milestones }) {
   const items = [...milestones.items].sort((a, b) => b.n - a.n).slice(0, 4);
   return (
     <section className={stack12}>
-      <h2 className={css({ m: 0, textStyle: "block" })}>{m.milestones()}</h2>
+      <h2 className={sectionTitle}>{m.milestones()}</h2>
       {items.map((ms) => (
         <div
           key={ms.n}

@@ -1,13 +1,13 @@
 import { Link, type ErrorComponentProps } from "@tanstack/react-router";
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import { isNotFound } from "../../api/index.ts";
 import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
-import { button } from "../../ui/primitives/index.ts";
+import { button, lead, pageTitle } from "../../ui/primitives/index.ts";
 import { isStaleBuildError, reloadForNewBuild } from "../../lib/stale-build.ts";
 import { PreferencesMenu } from "../navigation/index.ts";
 import { m } from "../../paraglide/messages.js";
 
-const title = css({ m: 0, textStyle: "pageTitle", fontSize: "34px", textAlign: "center" });
+const title = cx(pageTitle, css({ textAlign: "center" }));
 const text = css({ m: 0, textAlign: "center", fontSize: "13px", color: "muted" });
 
 /** A profile that is private or does not exist (board "Profil privé ou introuvable"): both look the same. */
@@ -46,12 +46,8 @@ export function HiddenProfile({ signedIn }: { signedIn: boolean }) {
           <path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
       </span>
-      <h1 className={css({ m: 0, textStyle: "wide", fontSize: "28px", lineHeight: 1.15 })}>
-        {m.hidden_title()}
-      </h1>
-      <p className={css({ m: 0, fontSize: "14px", lineHeight: "22px", color: "muted" })}>
-        {signedIn ? m.hidden_text() : m.hidden_text_signed_out()}
-      </p>
+      <h1 className={pageTitle}>{m.hidden_title()}</h1>
+      <p className={lead}>{signedIn ? m.hidden_text() : m.hidden_text_signed_out()}</p>
       <Link
         to={signedIn ? "/" : "/connexion"}
         className={button({ tone: "primary" })}

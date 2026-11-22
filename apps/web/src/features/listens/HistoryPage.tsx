@@ -6,7 +6,7 @@ import { formatCount, localDate } from "../../lib/format/index.ts";
 import { dateFormat } from "../../lib/locale.ts";
 import { CalendarIcon, ChevronDown } from "../../ui/icons.tsx";
 import { LoadMore } from "../../ui/feedback/index.ts";
-import { Button, Empty, input } from "../../ui/primitives/index.ts";
+import { Button, Empty, input, pageTitle } from "../../ui/primitives/index.ts";
 import { dropdownTrigger, Popover } from "../../ui/zag/index.ts";
 import { localToUnix } from "../scrobble/index.ts";
 import { HistoryListen, HistoryNowPlaying } from "./HistoryRow.tsx";
@@ -91,17 +91,7 @@ export function HistoryPage({
         })}
       >
         <div className={css({ display: "flex", flexDirection: "column", gap: "8px" })}>
-          <h1
-            className={css({
-              m: 0,
-              textStyle: "wide",
-              fontSize: "34px",
-              letterSpacing: "-0.01em",
-              lineHeight: 1.05,
-            })}
-          >
-            {m.nav_history()}
-          </h1>
+          <h1 className={pageTitle}>{m.nav_history()}</h1>
           <span className={css({ fontSize: "13px", color: "muted" })}>
             <b className={css({ color: "ink", fontWeight: "600" })}>{formatCount(total)}</b>{" "}
             {m.history_sub()}
@@ -162,7 +152,7 @@ export function HistoryPage({
                   borderBottom: "2px solid token(colors.ink)",
                 })}
               >
-                <span className={css({ textStyle: "wide", fontSize: "15px" })}>{g.title}</span>
+                <span className={css({ textStyle: "block" })}>{g.title}</span>
                 <span className={css({ fontSize: "12px", color: "muted" })}>{g.note}</span>
               </div>
               {i === 0 && atStart && nowPlaying ? (

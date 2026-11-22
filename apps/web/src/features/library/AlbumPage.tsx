@@ -79,7 +79,7 @@ export function AlbumPage({
             sub={
               <Link
                 {...artistLink}
-                className={css({ fontSize: "18px", color: "muted", textDecoration: "none" })}
+                className={css({ fontSize: "15px", color: "muted", textDecoration: "none" })}
               >
                 {album.artist}
               </Link>

@@ -2,6 +2,7 @@ import { css } from "styled-system/css";
 import type { Listen, Track } from "../../api/index.ts";
 import { formatTime } from "../../lib/format/index.ts";
 import { Equalizer } from "../../ui/feedback/index.ts";
+import { badge } from "../../ui/primitives/index.ts";
 import { CoverLink, CreditLine, TitleLink } from "./TrackLinks.tsx";
 import { ListenActions, LovedMark, useFavourites } from "../favourites/index.ts";
 import { formatTrackLength, listenSource } from "./source.ts";
@@ -80,23 +81,7 @@ function Row({
           justifyContent: "flex-end",
         })}
       >
-        {source ? (
-          <span
-            className={css({
-              display: "inline-flex",
-              height: "22px",
-              px: "8px",
-              alignItems: "center",
-              borderRadius: "11px",
-              bg: "field",
-              fontSize: "11px",
-              color: "muted",
-              whiteSpace: "nowrap",
-            })}
-          >
-            {source}
-          </span>
-        ) : null}
+        {source ? <span className={badge}>{source}</span> : null}
       </span>
       {/* The owner gets a menu on stored listens: keep its slot on the now-playing row too. */}
       {fav.owner ? (

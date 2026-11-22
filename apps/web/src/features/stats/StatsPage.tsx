@@ -15,7 +15,7 @@ import { AxisLabels } from "../../ui/charts/index.ts";
 import { ArtistCover } from "../../ui/cover/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
 import { Main } from "../../ui/layout/index.ts";
-import { Stat } from "../../ui/primitives/index.ts";
+import { pageTitle, sectionTitle, Stat } from "../../ui/primitives/index.ts";
 import { color } from "../../ui/theme/index.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { AlbumGrid, ArtistGrid, BlockTitle, moreLink, TrackRanking } from "../tops/index.ts";
@@ -106,7 +106,7 @@ export function StatsPage({
             gap: "12px",
           })}
         >
-          <h1 className={css({ m: 0, textStyle: "pageTitle" })}>{m.nav_stats()}</h1>
+          <h1 className={pageTitle}>{m.nav_stats()}</h1>
           <SelectMenu<Range>
             label={m.period()}
             value={range}
@@ -256,7 +256,7 @@ export function StatsPage({
         >
           {hourCounts.some((n) => n > 0) ? (
             <section className={css({ display: "flex", flexDirection: "column", gap: "12px" })}>
-              <h2 className={css({ m: 0, textStyle: "block" })}>{m.when_you_listen()}</h2>
+              <h2 className={sectionTitle}>{m.when_you_listen()}</h2>
               <div
                 role="img"
                 aria-label={m.hours_aria({ hour: favourite })}
@@ -316,7 +316,7 @@ export function StatsPage({
                   alignItems: "baseline",
                 })}
               >
-                <h2 className={css({ m: 0, textStyle: "block" })}>{m.discoveries()}</h2>
+                <h2 className={sectionTitle}>{m.discoveries()}</h2>
                 <span className={css({ fontSize: "12px", color: "muted" })}>
                   {m.count_artists({ count: formatCount(discoveries.artists.total) })}
                 </span>

@@ -5,7 +5,7 @@ import { api } from "../../api/index.ts";
 import { forgetViewer } from "../../auth/index.ts";
 import { formatCount } from "../../lib/format/index.ts";
 import { CheckIcon } from "../../ui/icons.tsx";
-import { Button, capsLabel } from "../../ui/primitives/index.ts";
+import { Button, capsLabel, lead } from "../../ui/primitives/index.ts";
 import { settingsTitle } from "../settings/index.ts";
 import { batches, NotALastFmExport, parseLastFmExport } from "./lastfm.ts";
 import { color } from "../../ui/theme/index.ts";
@@ -103,17 +103,7 @@ export function ImportPage() {
     <>
       <div className={intro}>
         <h1 className={settingsTitle}>{m.settings_import()}</h1>
-        <p
-          className={css({
-            m: 0,
-            maxWidth: "560px",
-            fontSize: "13px",
-            lineHeight: "20px",
-            color: "muted",
-          })}
-        >
-          {m.import_intro()}
-        </p>
+        <p className={lead}>{m.import_intro()}</p>
       </div>
 
       {state.step !== "sending" ? (
@@ -159,7 +149,7 @@ export function ImportPage() {
               className={css({
                 width: "44px",
                 height: "44px",
-                borderRadius: "22px",
+                borderRadius: "pill",
                 bg: "violetTint",
                 color: "violet",
                 display: "inline-flex",

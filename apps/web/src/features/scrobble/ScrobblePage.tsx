@@ -4,7 +4,7 @@ import { css } from "styled-system/css";
 import { api } from "../../api/index.ts";
 import { forgetViewer } from "../../auth/index.ts";
 import { CheckIcon } from "../../ui/icons.tsx";
-import { Button, Field } from "../../ui/primitives/index.ts";
+import { Button, Field, lead, pageTitle } from "../../ui/primitives/index.ts";
 import { type FieldErrors, type ScrobbleForm, validateScrobble } from "./model.ts";
 import { m } from "../../paraglide/messages.js";
 
@@ -98,20 +98,8 @@ export function ScrobblePage({ userName }: { userName: string }) {
   return (
     <>
       <div className={css({ display: "flex", flexDirection: "column", gap: "8px" })}>
-        <h1
-          className={css({
-            m: 0,
-            textStyle: "wide",
-            fontSize: "34px",
-            letterSpacing: "-0.01em",
-            lineHeight: 1.05,
-          })}
-        >
-          {m.scrobble_title()}
-        </h1>
-        <p className={css({ m: 0, fontSize: "14px", lineHeight: "22px", color: "muted" })}>
-          {m.scrobble_intro()}
-        </p>
+        <h1 className={pageTitle}>{m.scrobble_title()}</h1>
+        <p className={lead}>{m.scrobble_intro()}</p>
       </div>
 
       <form

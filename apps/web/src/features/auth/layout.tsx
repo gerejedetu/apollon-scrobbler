@@ -1,16 +1,10 @@
 import type { ReactNode } from "react";
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
+import { pageTitle } from "../../ui/primitives/index.ts";
 import { PreferencesMenu } from "../navigation/index.ts";
 
-export const authTitle = css({
-  m: 0,
-  textAlign: "center",
-  textStyle: "wide",
-  fontSize: "34px",
-  letterSpacing: "-0.01em",
-  lineHeight: 1.1,
-});
+export const authTitle = cx(pageTitle, css({ textAlign: "center" }));
 export const authForm = css({ display: "flex", flexDirection: "column", gap: "16px" });
 export const authFoot = css({ m: 0, textAlign: "center", fontSize: "12px", color: "muted" });
 

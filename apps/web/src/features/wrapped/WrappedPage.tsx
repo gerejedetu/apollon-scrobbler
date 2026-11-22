@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import type { Wrapped } from "../../api/index.ts";
 import {
   formatCount,
@@ -14,7 +14,7 @@ import { estimateFromTotal } from "../../lib/listening-time.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
 import { Breadcrumbs, Main } from "../../ui/layout/index.ts";
-import { Empty, Stat } from "../../ui/primitives/index.ts";
+import { Empty, pageTitle, sectionTitle, Stat } from "../../ui/primitives/index.ts";
 import { SelectMenu } from "../../ui/zag/index.ts";
 import { AlbumGrid, ArtistGrid, BlockTitle, TrackRanking } from "../tops/index.ts";
 import { m } from "../../paraglide/messages.js";
@@ -95,9 +95,7 @@ export function WrappedPage({
             gap: "12px",
           })}
         >
-          <h1 className={css({ m: 0, textStyle: "pageTitle" })}>
-            {m.wrapped_heading({ year: w.year })}
-          </h1>
+          <h1 className={pageTitle}>{m.wrapped_heading({ year: w.year })}</h1>
           <SelectMenu<string>
             label={m.year_label()}
             value={String(w.year)}
@@ -214,7 +212,7 @@ export function WrappedPage({
                     pb: "10px",
                   })}
                 >
-                  <h2 className={css({ m: 0, textStyle: "block" })}>{m.best_discoveries()}</h2>
+                  <h2 className={sectionTitle}>{m.best_discoveries()}</h2>
                   <span className={muted}>
                     {m.discovered_counts({
                       artists: formatCount(w.newArtists),
@@ -302,9 +300,7 @@ export function WrappedPage({
               <section
                 className={css({ display: "flex", flexDirection: "column", fontSize: "13px" })}
               >
-                <h2 className={css({ m: 0, pb: "10px", textStyle: "block" })}>
-                  {m.moments_title()}
-                </h2>
+                <h2 className={cx(sectionTitle, css({ pb: "10px" }))}>{m.moments_title()}</h2>
                 {moments.map((moment) => (
                   <div
                     key={moment.label}

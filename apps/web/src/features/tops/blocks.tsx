@@ -6,6 +6,7 @@ import { barWidth, formatCount } from "../../lib/format/index.ts";
 import { AlbumCover, ArtistCover } from "../../ui/cover/index.ts";
 import { ChevronRight } from "../../ui/icons.tsx";
 import { m } from "../../paraglide/messages.js";
+import { sectionTitle } from "../../ui/primitives/index.ts";
 
 const grid5 = css({
   display: "grid",
@@ -51,7 +52,7 @@ export function BlockTitle({ title, more }: { title: string; more?: ReactNode })
         gap: "12px",
       })}
     >
-      <h2 className={css({ m: 0, textStyle: "block" })}>{title}</h2>
+      <h2 className={sectionTitle}>{title}</h2>
       {more}
     </div>
   );

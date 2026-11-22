@@ -11,7 +11,7 @@ const list = css({
   display: "flex",
   flexDirection: "column",
   gap: "6px",
-  fontSize: "14px",
+  fontSize: "13px",
 });
 const actions = css({ display: "flex", gap: "12px", mt: "8px", "& > *": { flex: 1 } });
 
@@ -53,7 +53,7 @@ export function ConsentPage({
         {m.consent_title({ client })}
       </h1>
       {failed ? <Notice tone="error">{m.consent_invalid()}</Notice> : null}
-      <p className={css({ m: 0, fontSize: "14px" })}>{m.consent_body({ client })}</p>
+      <p className={css({ m: 0, fontSize: "13px" })}>{m.consent_body({ client })}</p>
       <ul className={list}>
         <li>{m.consent_read()}</li>
         <li>{m.consent_write()}</li>
