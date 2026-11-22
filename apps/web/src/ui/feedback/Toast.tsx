@@ -42,7 +42,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               display: "inline-flex",
               alignItems: "center",
               gap: "10px",
-              borderRadius: "18px",
+              borderRadius: "pill",
               bg: "violet",
               color: "page",
               fontSize: "13px",

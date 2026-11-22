@@ -21,7 +21,7 @@ const trigger = css({
   alignItems: "center",
   justifyContent: "center",
   border: 0,
-  borderRadius: "14px",
+  borderRadius: "pill",
   bg: "transparent",
   color: "ink",
   _hover: { bg: "chip" },

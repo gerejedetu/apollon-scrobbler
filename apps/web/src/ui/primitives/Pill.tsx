@@ -9,7 +9,7 @@ export const pill = cva({
     alignItems: "center",
     gap: "6px",
     border: 0,
-    borderRadius: "14px",
+    borderRadius: "pill",
     fontSize: "12px",
     textDecoration: "none",
     whiteSpace: "nowrap",
