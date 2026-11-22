@@ -50,7 +50,7 @@ const item = css({
   alignItems: "center",
   justifyContent: "space-between",
   gap: "10px",
-  height: "34px",
+  height: "36px",
   px: "10px",
   borderRadius: "field",
   fontSize: "13px",

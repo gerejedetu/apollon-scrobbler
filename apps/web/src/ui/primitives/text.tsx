@@ -5,27 +5,42 @@ import { m } from "../../paraglide/messages.js";
 
 export const capsLabel = css({ textStyle: "label", color: "muted", textTransform: "uppercase" });
 
+/** Every page's <h1>: one size, one face (Historique, Stats, Réglages, Connexion…). */
+export const pageTitle = css({ m: 0, textStyle: "pageTitle", lineHeight: 1.1 });
+
+/** Every block's <h2> ("Top albums", "Paliers", "Écoutes par jour"…). */
+export const sectionTitle = css({ m: 0, textStyle: "block" });
+
+/** The grey paragraph under a page title. */
+export const lead = css({
+  m: 0,
+  maxWidth: "560px",
+  fontSize: "13px",
+  lineHeight: "20px",
+  color: "muted",
+});
+
+/** Small grey rounded label: counts beside headings and tabs, the client that sent a listen. */
+export const badge = css({
+  display: "inline-flex",
+  alignItems: "center",
+  height: "20px",
+  px: "7px",
+  borderRadius: "pill",
+  bg: "chip",
+  fontSize: "11px",
+  fontWeight: "500",
+  color: "muted",
+  whiteSpace: "nowrap",
+});
+
 export function Caps({ children, className }: { children: ReactNode; className?: string }) {
   return <span className={cx(capsLabel, className)}>{children}</span>;
 }
 
 /** The grey count bubble next to a heading or a tab: "3", "142k". */
 export function CountBadge({ children }: { children: ReactNode }) {
-  return (
-    <span
-      className={css({
-        px: "6px",
-        py: "1px",
-        borderRadius: "9px",
-        bg: "chip",
-        fontSize: "11px",
-        fontWeight: "500",
-        color: "muted",
-      })}
-    >
-      {children}
-    </span>
-  );
+  return <span className={badge}>{children}</span>;
 }
 
 /** The violet "NOUVEAU" tag. */
@@ -90,7 +105,7 @@ export function BlockHeading({ title, aside }: { title: ReactNode; aside?: React
         gap: "8px",
       })}
     >
-      <h2 className={css({ m: 0, textStyle: "block" })}>{title}</h2>
+      <h2 className={sectionTitle}>{title}</h2>
       {aside ? <span className={css({ fontSize: "12px", color: "muted" })}>{aside}</span> : null}
     </div>
   );
