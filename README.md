@@ -102,19 +102,19 @@ Browse a real profile on the [live instance](https://apollon.dereje.cc/u/dereje)
 
 | Listening reports                                                                                                                                      | Laurels                                                                                                              |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| ![Monthly listening report: scrobbles compared with the previous month, listens per day, top artists, albums and tracks](docs/screenshots/reports.png) | ![Laurels page: earned badges such as First note, Centurion, Marathon and A full week](docs/screenshots/laurels.png) |
+| ![Monthly listening report: scrobbles compared with the previous month, listens per day, top artists, albums and tracks](docs/screenshots/v2/reports.png) | ![Laurels page: earned badges such as First note, Centurion, Marathon and A full week](docs/screenshots/v2/laurels.png) |
 
 | Artist page                                                                                                      | Album page                                                                                                     |
 | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| ![Artist page with scrobbles, first and last listen, top tracks and plays by month](docs/screenshots/artist.png) | ![Album page with cover, first and last listen and the tracklist with play counts](docs/screenshots/album.png) |
+| ![Artist page with scrobbles, first and last listen, top tracks and plays by month](docs/screenshots/v2/artist.png) | ![Album page with cover, first and last listen and the tracklist with play counts](docs/screenshots/v2/album.png) |
 
 | Library                                                                                                   | Year in review                                                                                                                     |
 | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| ![Library: every scrobble by day, search, go to a date and listens per day](docs/screenshots/library.png) | ![Year in review: artist of the year, totals, longest streak, top artists, tracks and albums](docs/screenshots/year-in-review.png) |
+| ![Library: every scrobble by day, search, go to a date and listens per day](docs/screenshots/v2/library.png) | ![Year in review: artist of the year, totals, longest streak, top artists, tracks and albums](docs/screenshots/v2/year-in-review.png) |
 
 | Light theme                                                                | On a phone                                                                                                  |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| ![Profile overview in the light theme](docs/screenshots/profile-light.png) | ![Profile, monthly report and artist page on a phone, with the bottom tab bar](docs/screenshots/mobile.png) |
+| ![Profile overview in the light theme](docs/screenshots/v2/profile-light.png) | ![Profile, monthly report and artist page on a phone, with the bottom tab bar](docs/screenshots/v2/mobile.png) |
 
 ### Built With
 
@@ -435,7 +435,7 @@ Live instance: [apollon.dereje.cc](https://apollon.dereje.cc/u/dereje)
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
-[product-screenshot]: docs/screenshots/profile.png
+[product-screenshot]: docs/screenshots/v2/profile.png
 [Workers]: https://img.shields.io/badge/Cloudflare_Workers-F38020?style=for-the-badge&logo=cloudflareworkers&logoColor=white
 [Workers-url]: https://workers.cloudflare.com/
 [Turso]: https://img.shields.io/badge/Turso-4FF8D2?style=for-the-badge&logo=turso&logoColor=black
