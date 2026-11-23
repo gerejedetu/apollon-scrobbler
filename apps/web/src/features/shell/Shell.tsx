@@ -1,5 +1,11 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
-import { type CSSProperties, type ReactNode, useState, useSyncExternalStore } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { authClient, forgetViewer, type Viewer } from "../../auth/index.ts";
 import { initialTheme, renderedTheme } from "../../lib/theme.ts";
 import { getLocale, type Locale, setLocale } from "../../paraglide/runtime.js";
@@ -47,6 +53,17 @@ export function Shell({
   // Whose pages the navigation points at: the profile being read, else the viewer's own.
   const owner = profile?.userName ?? viewer?.userName ?? null;
   const visitor = viewer === null;
+
+  // While the phone menu covers the screen, the page under it does not scroll. A new page closes it.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [menuOpen]);
+  useEffect(() => setMenuOpen(false), [pathname]);
 
   const links = owner
     ? visitor ||

@@ -4707,3 +4707,12 @@ svg.ap-hero__cover {
 .ap-chart__row > div {
   min-width: 0;
 }
+/* The phone menu covers the screen (design: Pages mobiles) instead of following the footer in the page. */
+.ap-shell > .ap-mmenu {
+  position: fixed;
+  inset: 0;
+  z-index: 960;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
