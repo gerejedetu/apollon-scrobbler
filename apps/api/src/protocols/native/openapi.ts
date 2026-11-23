@@ -322,6 +322,40 @@ const insightPaths = {
       },
     },
   ),
+  "/users/{userName}/stats/album-sessions": insight(
+    "Albums played through in one go",
+    "Runs of consecutive listens of one album with at least minTracks distinct tracks.",
+    [
+      range,
+      q("minTracks", { type: "integer", minimum: 2, maximum: 100, default: 5 }),
+      q("gapMinutes", { type: "integer", minimum: 5, maximum: 1440, default: 30 }),
+      limitParam(10),
+    ],
+    {
+      ...rangeProps,
+      gapMinutes: { type: "integer" },
+      minTracks: { type: "integer" },
+      total: { type: "integer", description: "Every run in the range, beyond the ones listed." },
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            artistName: { type: "string" },
+            releaseName: { type: "string" },
+            releaseMbid: { type: ["string", "null"] },
+            trackCount: {
+              type: "integer",
+              description: "Distinct tracks of the album in the run.",
+            },
+            listenCount: { type: "integer" },
+            startedAt: { type: "integer" },
+            endedAt: { type: "integer" },
+          },
+        },
+      },
+    },
+  ),
   "/users/{userName}/stats/repeats": insight(
     "Tracks played back to back",
     "Each track's longest run of consecutive plays (2 or more), longest first, then most recent.",
@@ -677,7 +711,13 @@ const baseDocument = {
         security: secured,
         requestBody: {
           required: true,
-          content: json({ type: "object", properties: { private: { type: "boolean" } } }),
+          content: json({
+            type: "object",
+            properties: {
+              private: { type: "boolean" },
+              accent: { type: ["string", "null"], pattern: "^#[0-9a-fA-F]{6}$" },
+            },
+          }),
         },
         responses: {
           "200": ok("Updated profile", ref("Me")),
@@ -751,6 +791,24 @@ const baseDocument = {
             properties: {
               userName: { type: "string" },
               obsession: { oneOf: [ref("Favourite"), { type: "null" }] },
+            },
+          }),
+          "404": errors["404"],
+        },
+      },
+    },
+    "/users/{userName}": {
+      get: {
+        summary: "A profile's public card",
+        parameters: [userName],
+        responses: {
+          "200": ok("Profile", {
+            type: "object",
+            properties: {
+              userName: { type: "string" },
+              createdAt: { type: "integer" },
+              listenCount: { type: "integer" },
+              accent: { type: ["string", "null"] },
             },
           }),
           "404": errors["404"],
@@ -843,6 +901,18 @@ const baseDocument = {
             properties: {
               userName: { type: "string" },
               total: { type: "integer" },
+              longest: {
+                oneOf: [
+                  {
+                    allOf: [
+                      ref("Favourite"),
+                      { type: "object", properties: { until: { type: ["integer", "null"] } } },
+                    ],
+                  },
+                  { type: "null" },
+                ],
+                description: "The obsession kept longest; an open one counts up to now.",
+              },
               items: {
                 type: "array",
                 items: {

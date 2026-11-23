@@ -320,6 +320,54 @@ export function d1Insights(db: D1Like): InsightsRepository {
       };
     },
 
+    async albumRuns({ userId, window, gapSeconds, minTracks, limit }) {
+      // A run breaks on a different album (or no album) or on a silence longer than the gap.
+      const rows = await all<{
+        artist_name: string;
+        release_name: string;
+        release_mbid: string | null;
+        tracks: number;
+        n: number;
+        a: number;
+        b: number;
+        total: number;
+      }>(
+        `WITH o AS (
+           SELECT listened_at, id, artist_name, release_name, release_mbid, track_name,
+                  CASE WHEN release_name IS NOT NULL
+                        AND release_name = lag(release_name) OVER w AND artist_name = lag(artist_name) OVER w
+                        AND listened_at - lag(listened_at) OVER w <= CAST(?4 AS INTEGER)
+                       THEN 0 ELSE 1 END AS brk
+           FROM listens WHERE ${WINDOW} WINDOW w AS (ORDER BY listened_at, id)
+         ),
+         r AS (SELECT *, sum(brk) OVER (ORDER BY listened_at, id ROWS UNBOUNDED PRECEDING) AS run FROM o),
+         runs AS (
+           SELECT artist_name, release_name, max(release_mbid) AS release_mbid, count(DISTINCT track_name) AS tracks,
+                  count(*) AS n, min(listened_at) AS a, max(listened_at) AS b
+           FROM r WHERE release_name IS NOT NULL GROUP BY run HAVING tracks >= CAST(?5 AS INTEGER)
+         )
+         SELECT *, (SELECT count(*) FROM runs) AS total FROM runs ORDER BY tracks DESC, b DESC LIMIT ?6`,
+        userId,
+        window.fromTs,
+        window.toTs,
+        gapSeconds,
+        minTracks,
+        limit,
+      );
+      return {
+        total: rows[0]?.total ?? 0,
+        items: rows.map((r) => ({
+          artistName: r.artist_name,
+          releaseName: r.release_name,
+          releaseMbid: r.release_mbid,
+          trackCount: r.tracks,
+          listenCount: r.n,
+          startedAt: r.a,
+          endedAt: r.b,
+        })),
+      };
+    },
+
     async sessions({ userId, window, gapSeconds }) {
       const [row] = await all<{
         cnt: number;

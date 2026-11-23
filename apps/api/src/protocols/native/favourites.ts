@@ -72,10 +72,16 @@ export const favouriteRoutes = new Hono<AppEnv>()
     const user = await readableUser(c, c.req.param("userName"));
     const { limit, offset } = c.req.query();
     const page = await c.var.services.favourites.obsessionHistory(user, { limit, offset });
+    const period = (p: (typeof page.items)[number]) => ({
+      ...presentFavourite(p, "since"),
+      until: p.endedAt,
+    });
     return c.json({
       userName: user.name,
       total: page.total,
-      items: page.items.map((p) => ({ ...presentFavourite(p, "since"), until: p.endedAt })),
+      // The obsession kept longest (the current one counts up to now): what "Obsédé" laurels look at.
+      longest: page.longest ? period(page.longest) : null,
+      items: page.items.map(period),
     });
   })
   .put("/me/obsession", async (c) => {

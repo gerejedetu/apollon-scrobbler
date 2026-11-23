@@ -47,7 +47,10 @@ export function createEndpoints(http: Http) {
     },
     me: {
       get: () => http.get<T.Me>(`${v1}/me`),
-      update: (patch: { private?: boolean }) => http.patch<T.Me>(`${v1}/me`, patch),
+      update: (patch: { private?: boolean; accent?: string | null }) =>
+        http.patch<T.Me>(`${v1}/me`, patch),
+      /** Any profile's public card (name, member since, listen count, accent). */
+      profile: (name: string) => http.get<T.Profile>(user(name)),
     },
     listens: {
       /** POST /v1/listens: up to 1000 at once; duplicates (same time and track) are ignored. `listenedAt`: Unix seconds or ISO 8601, default now. */
@@ -93,6 +96,10 @@ export function createEndpoints(http: Http) {
         http.get<T.OneShots>(`${user(name)}/stats/one-shots`, q),
       diversity: (name: string, q: { range?: T.Range }) =>
         http.get<T.Diversity>(`${user(name)}/stats/diversity`, q),
+      albumSessions: (
+        name: string,
+        q: { range?: T.Range; minTracks?: number; gapMinutes?: number; limit?: number } = {},
+      ) => http.get<T.AlbumSessions>(`${user(name)}/stats/album-sessions`, q),
       sessions: (name: string, q: { range?: T.Range; gapMinutes?: number }) =>
         http.get<T.Sessions>(`${user(name)}/stats/sessions`, q),
       milestones: (name: string) => http.get<T.Milestones>(`${user(name)}/stats/milestones`),

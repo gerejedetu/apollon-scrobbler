@@ -485,6 +485,27 @@ export class InsightsService {
   }
 
   /** 22: listening sessions, cut after `gapMinutes` of silence. */
+  /** Albums played through in one go ("D'une traite"): see InsightsRepository.albumRuns. */
+  async albumSessions(user: User, q: Params) {
+    const r = this.ranged(q.range);
+    const gapMinutes = p.int("gapMinutes", q.gapMinutes, 30, 5, 24 * 60);
+    const minTracks = p.int("minTracks", q.minTracks, 5, 2, 100);
+    const n = p.limit(q.limit, 10);
+    return this.cached(user, "album-sessions", [r.from, gapMinutes, minTracks, n], async () => ({
+      ...this.meta(r),
+      gapMinutes,
+      minTracks,
+      ...(await this.insights.albumRuns({
+        userId: user.id,
+        window: r.window,
+        utcOffsetSeconds: 0,
+        gapSeconds: gapMinutes * 60,
+        minTracks,
+        limit: n,
+      })),
+    }));
+  }
+
   async sessions(user: User, q: Params) {
     const r = this.ranged(q.range);
     const gapMinutes = p.int("gapMinutes", q.gapMinutes, 30, 5, 24 * 60);

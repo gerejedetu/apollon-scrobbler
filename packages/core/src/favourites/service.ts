@@ -80,7 +80,7 @@ export class FavouriteService {
   obsessionHistory(user: User, query: { limit?: unknown; offset?: unknown } = {}) {
     const limit = Math.min(Math.max(Number(query.limit ?? 50) || 50, 1), MAX_LOVED_PAGE);
     const offset = Math.max(Number(query.offset ?? 0) || 0, 0);
-    return this.favourites.obsessionHistory(user.id, limit, offset);
+    return this.favourites.obsessionHistory(user.id, limit, offset, this.clock());
   }
 
   obsession(user: User): Promise<FavouriteTrack | null> {
