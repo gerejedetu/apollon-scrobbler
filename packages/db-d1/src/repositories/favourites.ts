@@ -12,6 +12,10 @@ interface Row {
 }
 
 const COLUMNS = "artist_name, track_name, release_name, recording_mbid, release_mbid";
+/** An obsession kept less than this was a misclick: it is not recorded in the history. */
+const MIN_PERIOD_SECONDS = 60;
+/** Setting the previous obsession again within this time continues its period instead of opening one. */
+const RESUME_WITHIN_SECONDS = 600;
 
 const toTrack = (r: Row): FavouriteTrack => ({
   artistName: r.artist_name,
@@ -81,6 +85,12 @@ export function d1Favourites(db: D1Like): FavouriteRepository {
             .bind(userId, t.artistName, t.trackName)
             .first<{ same: number }>()
         : null;
+      // Closing a period: one that lasted under a minute was a misclick and leaves no trace.
+      const dropShort = db
+        .prepare(
+          `DELETE FROM obsession_history WHERE user_id = ?1 AND ended_at IS NULL AND ?2 - started_at < ${MIN_PERIOD_SECONDS}`,
+        )
+        .bind(userId, at);
       const close = db
         .prepare(
           "UPDATE obsession_history SET ended_at = ?2 WHERE user_id = ?1 AND ended_at IS NULL",
@@ -89,6 +99,7 @@ export function d1Favourites(db: D1Like): FavouriteRepository {
       if (!t) {
         await db.batch([
           db.prepare("DELETE FROM obsessions WHERE user_id = ?1").bind(userId),
+          dropShort,
           close,
         ]);
         return;
@@ -103,40 +114,64 @@ export function d1Favourites(db: D1Like): FavouriteRepository {
         return;
       }
       await db.batch([
+        dropShort,
         close,
         set,
+        // Coming back to the track of the latest period soon after leaving it continues that period.
         db
           .prepare(
-            `INSERT INTO obsession_history (user_id, ${COLUMNS}, started_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
+            `UPDATE obsession_history SET ended_at = NULL
+             WHERE id = (SELECT id FROM obsession_history WHERE user_id = ?1 ORDER BY started_at DESC, id DESC LIMIT 1)
+               AND artist_name = ?2 AND track_name = ?3 AND ended_at >= ?4 - ${RESUME_WITHIN_SECONDS}`,
+          )
+          .bind(userId, t.artistName, t.trackName, at),
+        // Otherwise a new period (changes() is the row count of the statement just above).
+        db
+          .prepare(
+            `INSERT INTO obsession_history (user_id, ${COLUMNS}, started_at)
+             SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7 WHERE changes() = 0`,
           )
           .bind(userId, ...values(t)),
       ]);
+    },
+
+    async deleteObsessionPeriod(userId, id) {
+      const res = await db
+        .prepare("DELETE FROM obsession_history WHERE user_id = ?1 AND id = ?2")
+        .bind(userId, id)
+        .run();
+      return res.meta.changes > 0;
     },
 
     async obsessionHistory(userId, limit, offset, now) {
       const [rows, total, longest] = await db.batch([
         db
           .prepare(
-            `SELECT ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
+            `SELECT id, ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
              ORDER BY started_at DESC, id DESC LIMIT ?2 OFFSET ?3`,
           )
           .bind(userId, limit, offset),
         db.prepare("SELECT count(*) AS n FROM obsession_history WHERE user_id = ?1").bind(userId),
         db
           .prepare(
-            `SELECT ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
+            `SELECT id, ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
              ORDER BY coalesce(ended_at, ?2) - started_at DESC, started_at DESC LIMIT 1`,
           )
           .bind(userId, now),
       ]);
-      const top = (longest?.results[0] ?? null) as (Row & { ended_at: number | null }) | null;
+      const top = (longest?.results[0] ?? null) as
+        | (Row & { id: number; ended_at: number | null })
+        | null;
       return {
-        items: ((rows?.results ?? []) as (Row & { ended_at: number | null })[]).map((r) => ({
-          ...toTrack(r),
-          endedAt: r.ended_at,
-        })),
+        items: ((rows?.results ?? []) as (Row & { id: number; ended_at: number | null })[]).map(
+          (r) => ({
+            ...toTrack(r),
+            id: r.id,
+            endedAt: r.ended_at,
+          }),
+        ),
         total: ((total?.results[0] ?? { n: 0 }) as { n: number }).n,
-        longest: top ? { ...toTrack(top), endedAt: top.ended_at } : null,
+        longest: top ? { ...toTrack(top), id: top.id, endedAt: top.ended_at } : null,
       };
     },
 

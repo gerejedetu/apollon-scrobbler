@@ -515,13 +515,25 @@ describe("library search", () => {
 });
 
 describe("obsession history", () => {
-  test("lists every obsession with its start and end", async () => {
+  test("lists every obsession; a replacement within a minute leaves no trace", async () => {
     await api.request("/v1/me/obsession", send("PUT", { artist: "Air", track: "One" }));
     await api.request("/v1/me/obsession", send("PUT", { artist: "Air", track: "Two" }));
     const h = await api.json("/v1/users/alice/obsessions");
-    expect(h.body.total).toBe(2);
-    expect(h.body.items[0]).toMatchObject({ track: "Two", until: null });
-    expect(h.body.items[1]).toMatchObject({ track: "One", until: expect.any(Number) });
+    // "One" was replaced at once (a misclick): only the current "Two" is kept.
+    expect(h.body.total).toBe(1);
+    expect(h.body.items[0]).toMatchObject({ id: expect.any(Number), track: "Two", until: null });
+  });
+
+  test("DELETE /me/obsessions/{id} removes one period", async () => {
+    await api.request("/v1/me/obsession", send("PUT", { artist: "Air", track: "One" }));
+    const id = (await api.json("/v1/users/alice/obsessions")).body.items[0].id;
+    const del = (path: string) =>
+      api.request(path, { method: "DELETE", headers: { authorization: `Bearer ${token}` } });
+    expect((await api.request(`/v1/me/obsessions/${id}`, { method: "DELETE" })).status).toBe(401);
+    expect((await del(`/v1/me/obsessions/${id}`)).status).toBe(204);
+    expect((await api.json("/v1/users/alice/obsessions")).body.total).toBe(0);
+    expect((await del(`/v1/me/obsessions/${id}`)).status).toBe(404);
+    expect((await del("/v1/me/obsessions/abc")).status).toBe(400);
   });
 });
 
