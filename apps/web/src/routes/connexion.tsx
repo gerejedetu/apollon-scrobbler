@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { isOAuthRequest, redirectIfSignedIn } from "../auth/index.ts";
 import { loadInstance } from "../auth/instance.ts";
-import { AuthLayout, SignInForm } from "../features/auth/index.ts";
+import { SignInForm } from "../features/auth/index.ts";
 import { m } from "../paraglide/messages.js";
 import { pageTitle } from "../ui/brand/index.ts";
 
@@ -26,9 +26,5 @@ export const Route = createFileRoute("/connexion")({
 function SignIn() {
   const { redirect, created } = Route.useSearch();
   const { signupOpen } = Route.useLoaderData();
-  return (
-    <AuthLayout>
-      <SignInForm created={created} redirectTo={redirect} signupOpen={signupOpen} />
-    </AuthLayout>
-  );
+  return <SignInForm created={created} redirectTo={redirect} signupOpen={signupOpen} />;
 }

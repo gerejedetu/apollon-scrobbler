@@ -1,6 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { api, isNotFound, type Range } from "../../../../api/index.ts";
-import { AlbumPage, emptyAlbum, orEmpty } from "../../../../features/library/index.ts";
+import { AlbumDetail } from "../../../../features/apollon/index.ts";
+import { emptyAlbum, orEmpty } from "../../../../features/library/index.ts";
 import { isRange, textParam } from "../../../../lib/ranges.ts";
 import { NotFound } from "../../../../features/errors/index.ts";
 import { pageTitle } from "../../../../ui/brand/index.ts";
@@ -45,11 +46,10 @@ export const Route = createFileRoute("/u/$userName/albums/$artist/$album")({
   notFoundComponent: NotFound,
   head: ({ params }) => ({ meta: [{ title: pageTitle(params.album, params.artist) }] }),
   component: () => (
-    <AlbumPage
+    <AlbumDetail
       userName={Route.useParams().userName}
       album={Route.useLoaderData()}
       mbid={Route.useSearch().mbid}
-      range={Route.useLoaderDeps().range}
     />
   ),
 });

@@ -1,10 +1,10 @@
 import { Link, type ErrorComponentProps } from "@tanstack/react-router";
 import { css, cx } from "styled-system/css";
 import { isNotFound } from "../../api/index.ts";
-import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
+import { Main } from "../../ui/layout/index.ts";
+import { Shell } from "../shell/index.ts";
 import { button, lead, pageTitle } from "../../ui/primitives/index.ts";
 import { isStaleBuildError, reloadForNewBuild } from "../../lib/stale-build.ts";
-import { PreferencesMenu } from "../navigation/index.ts";
 import { m } from "../../paraglide/messages.js";
 
 const title = cx(pageTitle, css({ textAlign: "center" }));
@@ -23,7 +23,7 @@ export function HiddenProfile({ signedIn }: { signedIn: boolean }) {
         className={css({
           width: "56px",
           height: "56px",
-          borderRadius: "28px",
+          borderRadius: "var(--radius-3)",
           bg: "field",
           color: "muted",
           display: "inline-flex",
@@ -91,16 +91,16 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
 /** At the root, where no layout drew a header yet. */
 export function RootNotFound() {
   return (
-    <Page header={<BareHeader left={<PreferencesMenu />} />}>
+    <Shell viewer={null}>
       <NotFound />
-    </Page>
+    </Shell>
   );
 }
 
 export function RootError(props: ErrorComponentProps) {
   return (
-    <Page header={<BareHeader left={<PreferencesMenu />} />}>
+    <Shell viewer={null}>
       <RouteError {...props} />
-    </Page>
+    </Shell>
   );
 }
