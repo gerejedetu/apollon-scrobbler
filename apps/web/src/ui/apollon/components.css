@@ -4038,3 +4038,61 @@ svg.ap-hero__cover {
   flex: 1;
   min-width: 0;
 }
+
+/* App additions to the listen row: linked artist names, and the owner's ⋮ menu as a last column. */
+.ap-root .ap-row__title:hover,
+.ap-root .ap-row__link:hover,
+.ap-root .ap-chart__title:hover,
+.ap-root .ap-chart__artist a:hover {
+  color: var(--gold-text);
+  text-decoration: underline;
+}
+.ap-row--trail {
+  grid-template-columns: auto auto auto minmax(0, 2fr) minmax(0, 1.4fr) auto auto;
+}
+.ap-row__trail {
+  display: flex;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .ap-row--trail {
+    grid-template-columns: 48px minmax(0, 1fr) auto auto;
+    grid-template-areas: "cover title love trail" "cover artist time trail";
+  }
+  .ap-row__trail {
+    grid-area: trail;
+  }
+}
+/* A smaller ⋮ for listen rows. */
+.ap-iconbtn--sm {
+  width: 32px;
+  height: 32px;
+}
+/* Overview layout bits (the mockup sets them inline). */
+.ap-ov__stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.ap-ov__cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+.ap-ov__reports {
+  display: grid;
+  gap: var(--space-3);
+}
+.ap-root .ap-ov__media {
+  display: block;
+}
+.ap-root .ap-ov__media:hover .ap-media__title {
+  color: var(--gold-text);
+}
+@media (max-width: 720px) {
+  .ap-ov__cards {
+    grid-template-columns: 1fr;
+  }
+}

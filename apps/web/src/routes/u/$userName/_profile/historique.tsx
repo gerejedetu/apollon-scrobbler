@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { api } from "../../../api/index.ts";
-import { FavouritesProvider, loadFavourites } from "../../../features/favourites/index.ts";
-import { HistoryPage, PAGE_SIZE, parseHistorySearch } from "../../../features/listens/index.ts";
-import { utcOffset } from "../../../lib/timezone.ts";
-import { Main } from "../../../ui/layout/index.ts";
-import { m } from "../../../paraglide/messages.js";
-import { pageTitle } from "../../../ui/brand/index.ts";
+import { api } from "../../../../api/index.ts";
+import { FavouritesProvider, loadFavourites } from "../../../../features/favourites/index.ts";
+import { HistoryPage, PAGE_SIZE, parseHistorySearch } from "../../../../features/listens/index.ts";
+import { utcOffset } from "../../../../lib/timezone.ts";
+import { Main } from "../../../../ui/layout/index.ts";
+import { m } from "../../../../paraglide/messages.js";
+import { pageTitle } from "../../../../ui/brand/index.ts";
 
-export const Route = createFileRoute("/u/$userName/historique")({
+export const Route = createFileRoute("/u/$userName/_profile/historique")({
   validateSearch: parseHistorySearch,
   loaderDeps: ({ search }) => search,
   loader: async ({ params, deps }) => {

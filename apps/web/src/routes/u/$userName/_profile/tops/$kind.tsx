@@ -1,14 +1,14 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { api, type Range } from "../../../../api/index.ts";
-import { ProfileHeader, ProfileTabs } from "../../../../features/profile/index.ts";
-import { isKind, KINDS, TOP_PAGE, TopsPage } from "../../../../features/tops/index.ts";
-import { isRange } from "../../../../lib/ranges.ts";
-import { utcOffset } from "../../../../lib/timezone.ts";
-import { Main } from "../../../../ui/layout/index.ts";
-import { m } from "../../../../paraglide/messages.js";
-import { pageTitle } from "../../../../ui/brand/index.ts";
+import { api, type Range } from "../../../../../api/index.ts";
+import { ProfileHeader, ProfileTabs } from "../../../../../features/profile/index.ts";
+import { isKind, KINDS, TOP_PAGE, TopsPage } from "../../../../../features/tops/index.ts";
+import { isRange } from "../../../../../lib/ranges.ts";
+import { utcOffset } from "../../../../../lib/timezone.ts";
+import { Main } from "../../../../../ui/layout/index.ts";
+import { m } from "../../../../../paraglide/messages.js";
+import { pageTitle } from "../../../../../ui/brand/index.ts";
 
-export const Route = createFileRoute("/u/$userName/tops/$kind")({
+export const Route = createFileRoute("/u/$userName/_profile/tops/$kind")({
   validateSearch: (search: Record<string, unknown>): { periode?: Range } => ({
     periode: isRange(search.periode) ? search.periode : undefined,
   }),

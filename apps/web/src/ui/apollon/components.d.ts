@@ -3,43 +3,9 @@
 import type * as React from "react";
 type Extra = { [prop: string]: any };
 
-export interface Mbids {
-  recording?: string | null;
-  release?: string | null;
-  artists?: string[];
-}
-/** Track (also the now-playing body) */
-export interface Track {
-  artist: string;
-  track: string;
-  album?: string | null;
-  durationMs?: number | null;
-  mbids?: Mbids;
-  extra?: object;
-}
-/** Listen, from GET /users/{userName}/listens */
-export interface Listen extends Track {
-  id: string;
-  listenedAt: number;
-  insertedAt?: number;
-}
-/** Favourite, from the loved and obsession endpoints */
-export interface Favourite {
-  artist: string;
-  track: string;
-  album?: string | null;
-  mbids?: Mbids;
-  lovedAt?: number;
-  since?: number;
-}
-/** One item of GET /users/{userName}/stats/{entity} */
-export interface TopItem {
-  artist: string;
-  track?: string;
-  album?: string | null;
-  mbids?: Mbids;
-  listenCount: number;
-}
+// The API's own shapes (the design system mirrors them).
+import type { Favourite, Listen, Mbids, TopItem, Track } from "@scrobbler/client";
+export type { Favourite, Listen, Mbids, TopItem, Track };
 export type Entity = "artists" | "recordings" | "releases";
 
 export interface SiteHeaderProps {
@@ -55,10 +21,10 @@ export interface ProfileHeaderProps {
   createdAt?: number;
   avatarUrl?: string;
   imageUrl?: string;
-  tabs?: string[];
+  tabs?: (string | { label: string; href: string })[];
   activeTab?: string;
   onTab?: (tab: string) => void;
-  topTrack?: { track: string; artist: string };
+  topTrack?: { track: string; artist: string; album?: string | null };
   topTrackCoverUrl?: string;
 }
 export interface StatInlineProps {
@@ -655,4 +621,13 @@ export declare const format: {
   day(unixSeconds: number, now?: number): string;
   date(unixSeconds: number): string;
   plural(n: number, one: string, many: string): string;
+};
+
+type IconFn = (filled?: boolean) => React.JSX.Element;
+export declare const icons: {
+  dots: IconFn;
+  heart: IconFn;
+  play: IconFn;
+  search: IconFn;
+  [name: string]: IconFn | undefined;
 };
