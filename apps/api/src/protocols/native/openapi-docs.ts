@@ -103,6 +103,12 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     tag: "Favourites",
     description: "Clears your current obsession: your profile no longer shows one.",
   },
+  "DELETE /me/obsessions/{id}": {
+    operationId: "deleteObsessionPeriod",
+    tag: "Favourites",
+    description:
+      "Removes one past or current period from your obsession history (`id` from `GET /users/{userName}/obsessions`). It does not clear the current obsession itself. 404 when you have no period with that id.",
+  },
   "GET /users/{userName}/loved": {
     operationId: "listLoved",
     tag: "Favourites",
@@ -130,7 +136,7 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "listObsessions",
     tag: "Favourites",
     description:
-      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period. `longest` is the one kept longest, the current one counting up to now.",
+      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Each period has an `id` (to delete it). Setting the same track again does not start a new period, nor does coming back to the previous one within 10 minutes; an obsession kept under a minute is not recorded. `longest` is the one kept longest, the current one counting up to now.",
   },
   "GET /instance": {
     operationId: "getInstance",
@@ -353,7 +359,7 @@ export const PARAMETERS: Record<string, string> = {
   albumName: "Exact album name, URL-encoded.",
   trackName: "Exact track title, URL-encoded.",
   listenedAt: "When the listen happened, in Unix seconds (as returned by the listing).",
-  id: "The listen's id (`id` in the listing).",
+  id: "The item's id: `id` in its listing (listens or obsession history).",
   before:
     "Only listens strictly older than this time (Unix seconds). Pass a page's `next` here to get the next page.",
   after: "Only listens strictly newer than this time (Unix seconds).",

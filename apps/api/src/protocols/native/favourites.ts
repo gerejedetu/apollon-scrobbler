@@ -73,6 +73,7 @@ export const favouriteRoutes = new Hono<AppEnv>()
     const { limit, offset } = c.req.query();
     const page = await c.var.services.favourites.obsessionHistory(user, { limit, offset });
     const period = (p: (typeof page.items)[number]) => ({
+      id: p.id,
       ...presentFavourite(p, "since"),
       until: p.endedAt,
     });
@@ -92,5 +93,10 @@ export const favouriteRoutes = new Hono<AppEnv>()
   .delete("/me/obsession", async (c) => {
     const user = await requireUserOrSession(c);
     await c.var.services.favourites.clearObsession(user);
+    return c.body(null, 204);
+  })
+  .delete("/me/obsessions/:id", async (c) => {
+    const user = await requireUserOrSession(c);
+    await c.var.services.favourites.deleteObsessionPeriod(user, c.req.param("id"));
     return c.body(null, 204);
   });

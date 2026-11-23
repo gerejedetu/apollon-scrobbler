@@ -173,6 +173,8 @@ export interface FavouriteRepository {
   /** Replaces the obsession, or clears it with null, closing the current period of the history. */
   setObsession(userId: UserId, track: FavouriteTrack | null, at: number): Promise<void>;
   obsession(userId: UserId): Promise<FavouriteTrack | null>;
+  /** Removes one period of the history (the owner's own). False when there was none with that id. */
+  deleteObsessionPeriod(userId: UserId, id: number): Promise<boolean>;
   /** Every obsession, newest first, and the longest one (an open period counts up to `now`). */
   obsessionHistory(
     userId: UserId,

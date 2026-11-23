@@ -443,20 +443,52 @@ describe("favourites", () => {
 
   test("obsession: set, replace, clear, and the history keeps every period", async () => {
     expect(await repos.favourites.obsession(userId)).toBeNull();
-    await repos.favourites.setObsession(userId, t("One", 1), 1);
-    await repos.favourites.setObsession(userId, t("One", 1), 1); // same track: same period
-    await repos.favourites.setObsession(userId, t("Two", 2), 2);
+    await repos.favourites.setObsession(userId, t("One", 1000), 1000);
+    await repos.favourites.setObsession(userId, t("One", 1000), 1100); // same track: same period
+    await repos.favourites.setObsession(userId, t("Two", 2000), 2000);
     expect((await repos.favourites.obsession(userId))?.trackName).toBe("Two");
-    await repos.favourites.setObsession(userId, null, 3);
+    await repos.favourites.setObsession(userId, null, 3000);
     expect(await repos.favourites.obsession(userId)).toBeNull();
-    const history = await repos.favourites.obsessionHistory(userId, 10, 0, 100);
-    // One: 1→2 (1 s), Two: 2→3 (1 s): equal, the most recent wins.
+    const history = await repos.favourites.obsessionHistory(userId, 10, 0, 9999);
+    // One: 1000→2000, Two: 2000→3000: equal, the most recent wins.
     expect(history.longest?.trackName).toBe("Two");
     expect(history.total).toBe(2);
     expect(history.items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([
-      ["Two", 2, 3],
-      ["One", 1, 2],
+      ["Two", 2000, 3000],
+      ["One", 1000, 2000],
     ]);
+  });
+
+  test("obsession history: misclicks leave no trace, a quick return resumes the period", async () => {
+    // Kept 19 s then cleared: not recorded.
+    await repos.favourites.setObsession(userId, t("One", 1000), 1000);
+    await repos.favourites.setObsession(userId, null, 1019);
+    expect((await repos.favourites.obsessionHistory(userId, 10, 0, 9999)).total).toBe(0);
+    // Kept 5 min, cleared, set again 2 min later: one period, open again.
+    await repos.favourites.setObsession(userId, t("One", 2000), 2000);
+    await repos.favourites.setObsession(userId, null, 2300);
+    await repos.favourites.setObsession(userId, t("One", 2420), 2420);
+    let h = await repos.favourites.obsessionHistory(userId, 10, 0, 9999);
+    expect(h.items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([["One", 2000, null]]);
+    // Replaced by Two for 10 s, then back to One: Two is dropped and One continues.
+    await repos.favourites.setObsession(userId, t("Two", 3000), 3000);
+    await repos.favourites.setObsession(userId, t("One", 3010), 3010);
+    h = await repos.favourites.obsessionHistory(userId, 10, 0, 9999);
+    expect(h.items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([["One", 2000, null]]);
+    // Coming back after 10 minutes is a new period.
+    await repos.favourites.setObsession(userId, null, 4000);
+    await repos.favourites.setObsession(userId, t("One", 5000), 5000);
+    h = await repos.favourites.obsessionHistory(userId, 10, 0, 9999);
+    expect(h.items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([
+      ["One", 5000, null],
+      ["One", 2000, 4000],
+    ]);
+    // A period can be deleted by its owner only.
+    const old = h.items[1]!.id;
+    expect(await repos.favourites.deleteObsessionPeriod(userId + 1, old)).toBe(false);
+    expect(await repos.favourites.deleteObsessionPeriod(userId, old)).toBe(true);
+    expect(await repos.favourites.deleteObsessionPeriod(userId, old)).toBe(false);
+    expect((await repos.favourites.obsessionHistory(userId, 10, 0, 9999)).total).toBe(1);
   });
 });
 

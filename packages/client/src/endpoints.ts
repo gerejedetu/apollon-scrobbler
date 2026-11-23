@@ -39,6 +39,7 @@ export function createEndpoints(http: Http) {
         http.get<T.ObsessionHistory>(`${user(name)}/obsessions`, q),
       setObsession: (track: T.TrackRef) => http.put<void>(`${v1}/me/obsession`, track),
       clearObsession: () => http.delete<void>(`${v1}/me/obsession`),
+      deleteObsessionPeriod: (id: number) => http.delete<void>(`${v1}/me/obsessions/${id}`),
     },
     /** Instance settings: sign-up is open until the first account, then only if the owner reopens it. */
     instance: {
