@@ -757,6 +757,74 @@ const baseDocument = {
         },
       },
     },
+    "/users/{userName}/search": {
+      get: {
+        summary: "Search a user's library",
+        parameters: [
+          userName,
+          {
+            name: "q",
+            in: "query",
+            required: true,
+            schema: { type: "string", minLength: 1, maxLength: 100 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 50, default: 10 },
+          },
+        ],
+        responses: {
+          "200": ok("Results", {
+            type: "object",
+            properties: {
+              userName: { type: "string" },
+              query: { type: "string" },
+              artists: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: { artist: { type: "string" }, listenCount: { type: "integer" } },
+                },
+              },
+              albums: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    artist: { type: "string" },
+                    album: { type: "string" },
+                    mbids: {
+                      type: "object",
+                      properties: { release: { type: ["string", "null"] } },
+                    },
+                    listenCount: { type: "integer" },
+                  },
+                },
+              },
+              tracks: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    artist: { type: "string" },
+                    track: { type: "string" },
+                    album: { type: ["string", "null"] },
+                    mbids: {
+                      type: "object",
+                      properties: { release: { type: ["string", "null"] } },
+                    },
+                    listenCount: { type: "integer" },
+                  },
+                },
+              },
+            },
+          }),
+          "400": errors["400"],
+          "404": errors["404"],
+        },
+      },
+    },
     "/users/{userName}/obsessions": {
       get: {
         summary: "Every obsession a user has had",

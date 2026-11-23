@@ -170,3 +170,21 @@ export interface FavouriteTrack {
   releaseMbid: string | null;
   at: number;
 }
+
+/** What a search over one user's library finds, most listened first (names starting with the text first). */
+export interface SearchResults {
+  artists: { artistName: string; listenCount: number }[];
+  albums: {
+    artistName: string;
+    releaseName: string;
+    releaseMbid: string | null;
+    listenCount: number;
+  }[];
+  tracks: {
+    artistName: string;
+    trackName: string;
+    releaseName: string | null;
+    releaseMbid: string | null;
+    listenCount: number;
+  }[];
+}

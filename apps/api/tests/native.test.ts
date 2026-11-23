@@ -478,3 +478,49 @@ describe("instance sign-up", () => {
     expect((await closed.json("/v1/instance")).body.signupOpen).toBe(false);
   });
 });
+
+describe("library search", () => {
+  test("finds artists, albums and tracks by part of their name; prefix first; private profiles stay hidden", async () => {
+    await api.json(
+      "/v1/listens",
+      send("POST", {
+        listens: [
+          { listenedAt: T0, artist: "STAYC", track: "ASAP", album: "STAYDOM" },
+          { listenedAt: T0 + 1, artist: "STAYC", track: "Teddy Bear", album: "Teddy Bear" },
+          {
+            listenedAt: T0 + 2,
+            artist: "Mary J. Blige",
+            track: "Stay Down",
+            album: "Growing Pains",
+          },
+          { listenedAt: T0 + 3, artist: "Air", track: "100% Hits", album: "x" },
+        ],
+      }),
+    );
+    const r = await api.json("/v1/users/alice/search?q=stay");
+    expect(r.body.artists).toEqual([{ artist: "STAYC", listenCount: 2 }]);
+    expect(r.body.albums.map((a: { album: string }) => a.album)).toEqual(["STAYDOM"]);
+    expect(r.body.tracks.map((t: { track: string }) => t.track)).toEqual(["Stay Down"]);
+    // LIKE wildcards in the text are taken literally.
+    expect(
+      (await api.json("/v1/users/alice/search?q=%25")).body.tracks.map(
+        (t: { track: string }) => t.track,
+      ),
+    ).toEqual(["100% Hits"]);
+    expect((await api.json("/v1/users/alice/search")).status).toBe(400);
+    expect((await api.json("/v1/users/alice/search?q=a&limit=999")).status).toBe(400);
+    await api.json("/v1/me", send("PATCH", { private: true }));
+    expect((await api.json("/v1/users/alice/search?q=stay")).status).toBe(404);
+  });
+});
+
+describe("obsession history", () => {
+  test("lists every obsession with its start and end", async () => {
+    await api.request("/v1/me/obsession", send("PUT", { artist: "Air", track: "One" }));
+    await api.request("/v1/me/obsession", send("PUT", { artist: "Air", track: "Two" }));
+    const h = await api.json("/v1/users/alice/obsessions");
+    expect(h.body.total).toBe(2);
+    expect(h.body.items[0]).toMatchObject({ track: "Two", until: null });
+    expect(h.body.items[1]).toMatchObject({ track: "One", until: expect.any(Number) });
+  });
+});

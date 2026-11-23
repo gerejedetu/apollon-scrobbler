@@ -337,3 +337,23 @@ export interface OAuthClientPublic {
   client_name?: string | null;
   client_uri?: string | null;
 }
+
+/** GET /v1/users/{userName}/search */
+export interface SearchResults {
+  userName: string;
+  query: string;
+  artists: { artist: string; listenCount: number }[];
+  albums: {
+    artist: string;
+    album: string;
+    mbids: { release: string | null };
+    listenCount: number;
+  }[];
+  tracks: {
+    artist: string;
+    track: string;
+    album: string | null;
+    mbids: { release: string | null };
+    listenCount: number;
+  }[];
+}
