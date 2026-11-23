@@ -17,6 +17,7 @@ import type {
   EntityKey,
   FavouriteTrack,
   ObsessionPeriod,
+  SearchResults,
   Forgotten,
   InsightEntity,
   InsightQuery,
@@ -190,6 +191,12 @@ export interface ArtistRepository {
   knownAlbums(userId: UserId, pairs: [artist: string, album: string][]): Promise<Set<string>>;
 }
 
+/** Search inside one user's listens. */
+export interface SearchRepository {
+  /** `text` is matched anywhere in artist, album and track names (case-insensitive for Latin letters). */
+  search(userId: UserId, text: string, limit: number): Promise<SearchResults>;
+}
+
 export interface Repositories {
   users: UserRepository;
   favourites: FavouriteRepository;
@@ -200,6 +207,7 @@ export interface Repositories {
   insights: InsightsRepository;
   instance: InstanceRepository;
   artists: ArtistRepository;
+  search: SearchRepository;
 }
 
 export interface Cache {

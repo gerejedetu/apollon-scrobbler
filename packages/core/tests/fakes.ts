@@ -180,6 +180,34 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
       },
     },
     // Insights are SQL-heavy: they are tested against the real schema in db-d1 and apps/api, not faked here.
+    search: {
+      // Simple stand-in for the SQL (which is tested in db-d1 and apps/api): substring match, most listened first.
+      async search(userId, text, limit) {
+        const has = (v: string | null) =>
+          v !== null && v.toLowerCase().includes(text.toLowerCase());
+        const tally = (keys: string[]) => {
+          const m = new Map<string, number>();
+          for (const k of keys) m.set(k, (m.get(k) ?? 0) + 1);
+          return [...m].sort((a, b) => b[1] - a[1]).slice(0, limit);
+        };
+        const mine = listens.filter((l) => l.userId === userId);
+        return {
+          artists: tally(mine.filter((l) => has(l.artistName)).map((l) => l.artistName)).map(
+            ([artistName, listenCount]) => ({
+              artistName,
+              listenCount,
+            }),
+          ),
+          albums: [],
+          tracks: tally(
+            mine.filter((l) => has(l.trackName)).map((l) => `${l.artistName}\u0000${l.trackName}`),
+          ).map(([k, listenCount]) => {
+            const [artistName, trackName] = k.split("\u0000") as [string, string];
+            return { artistName, trackName, releaseName: null, releaseMbid: null, listenCount };
+          }),
+        };
+      },
+    },
     artists: {
       async known(userId, names) {
         return new Set(

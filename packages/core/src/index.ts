@@ -45,3 +45,4 @@ export {
   withoutAdvisory,
   withoutStoreSuffixes,
 } from "./albums/names.ts";
+export { SearchService } from "./search/service.ts";

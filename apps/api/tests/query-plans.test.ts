@@ -71,6 +71,7 @@ test.skipIf(TEST_DB !== "d1")("no endpoint makes SQLite scan a whole table", asy
     "/validate-token",
   ];
   for (const path of gets) await api.request(`/v1${path}`, { headers: auth });
+  await api.request("/v1/users/alice/search?q=Ai", { headers: auth });
   for (const path of lb)
     await api.request(`/1${path}`, { headers: { authorization: `Token ${token}` } });
   await api.request("/v1/me", { method: "PATCH", headers: auth, body: '{"private":true}' });
