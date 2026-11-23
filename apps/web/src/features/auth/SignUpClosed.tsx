@@ -1,18 +1,19 @@
 import { Link } from "@tanstack/react-router";
+import { EmptyState } from "../../ui/apollon/index.ts";
 import { m } from "../../paraglide/messages.js";
-import { authFoot, authTitle } from "./layout.tsx";
+import { AuthLayout, authFoot } from "./layout.tsx";
 
-/** Shown instead of the sign-up form when the instance takes no new accounts. */
+/** Sign-up when the instance takes no new accounts (design system: PageSignupClosed). */
 export function SignUpClosed() {
   return (
-    <>
-      <h1 className={authTitle}>{m.signup_closed_title()}</h1>
-      <p className={authFoot} style={{ fontSize: 14, textAlign: "left" }}>
-        {m.signup_closed_body()}
-      </p>
-      <p className={authFoot}>
-        <Link to="/connexion">{m.signin_submit()}</Link>
-      </p>
-    </>
+    <AuthLayout title={m.signup_closed_title()}>
+      <EmptyState icon="close" title={m.ds_closed_title()} text={m.signup_closed_body()} />
+      <div className={authFoot}>
+        {m.ds_have_account()}{" "}
+        <Link to="/connexion" className="ap-link">
+          {m.signin_submit()}
+        </Link>
+      </div>
+    </AuthLayout>
   );
 }
