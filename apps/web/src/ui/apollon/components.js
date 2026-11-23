@@ -796,14 +796,36 @@ function MoreLink(p) {
   );
 }
 
+/* Text made of linked parts ("Sickboyrari & Krisu": two artists, two links), or the plain text. */
+function linkParts(parts, text) {
+  if (!parts) return text;
+  return parts.map(function (part, i) {
+    return part.href
+      ? h(A, { key: i, href: part.href, className: "ap-row__link" }, part.text)
+      : h(React.Fragment, { key: i }, part.text);
+  });
+}
+
 /* ---------- listens ---------- */
 function TrackRow(p) {
   var l = p.listen || {};
   var now = !!p.nowPlaying;
   return h(
     "div",
-    { className: cx("ap-root ap-row", now && "ap-row--now") },
-    h(PlayButton, { onClick: p.onPlay, label: "Lire " + l.track }),
+    { className: cx("ap-root ap-row", now && "ap-row--now", p.trailing && "ap-row--trail") },
+    p.playHref
+      ? h(
+          "a",
+          {
+            className: "ap-play",
+            href: p.playHref,
+            target: "_blank",
+            rel: "noopener",
+            "aria-label": "Lire " + l.track,
+          },
+          icons.play(),
+        )
+      : h(PlayButton, { onClick: p.onPlay, label: "Lire " + l.track }),
     h(Cover, { src: p.coverUrl, seed: l.album || l.artist || l.track }),
     p.readOnly
       ? p.loved
@@ -818,8 +840,10 @@ function TrackRow(p) {
           )
         : h("span", { className: "ap-love", "aria-hidden": "true" })
       : h(LoveButton, { loved: p.loved, onToggle: p.onToggleLove }),
-    h("div", { className: "ap-row__title", title: l.track }, l.track),
-    h("div", { className: "ap-row__artist", title: l.artist }, l.artist),
+    p.titleHref
+      ? h(A, { className: "ap-row__title", title: l.track, href: p.titleHref }, l.track)
+      : h("div", { className: "ap-row__title", title: l.track }, l.track),
+    h("div", { className: "ap-row__artist", title: l.artist }, linkParts(p.artistLinks, l.artist)),
     now
       ? h(
           "div",
@@ -828,6 +852,7 @@ function TrackRow(p) {
           "En cours d'écoute",
         )
       : h("div", { className: "ap-row__time" }, fmtAgo(l.listenedAt, p.now)),
+    p.trailing ? h("div", { className: "ap-row__trail" }, p.trailing) : null,
   );
 }
 function TrackList(p) {
@@ -839,7 +864,17 @@ function TrackList(p) {
         key: "np",
         listen: p.nowPlaying,
         nowPlaying: true,
-        coverUrl: p.nowPlayingCoverUrl,
+        coverUrl: p.nowPlayingCoverUrl || (p.coverFor ? p.coverFor(p.nowPlaying) : undefined),
+        titleHref: p.titleHref ? p.titleHref(p.nowPlaying) : undefined,
+        artistLinks: p.artistLinks ? p.artistLinks(p.nowPlaying) : undefined,
+        playHref: p.playHref ? p.playHref(p.nowPlaying) : undefined,
+        readOnly: p.readOnly,
+        loved: p.isLoved ? p.isLoved(p.nowPlaying) : false,
+        onToggleLove: p.onToggleLove
+          ? function (next) {
+              p.onToggleLove(p.nowPlaying, next);
+            }
+          : undefined,
       }),
     );
   (p.listens || []).forEach(function (l) {
@@ -858,6 +893,10 @@ function TrackList(p) {
         readOnly: p.readOnly,
         loved: p.isLoved ? p.isLoved(l) : false,
         coverUrl: p.coverFor ? p.coverFor(l) : undefined,
+        titleHref: p.titleHref ? p.titleHref(l) : undefined,
+        artistLinks: p.artistLinks ? p.artistLinks(l) : undefined,
+        playHref: p.playHref ? p.playHref(l) : undefined,
+        trailing: p.trailing ? p.trailing(l) : undefined,
         onToggleLove: p.onToggleLove
           ? function (next) {
               p.onToggleLove(l, next);
@@ -893,12 +932,27 @@ function TopChart(p) {
         }),
         p.readOnly
           ? h("span", { className: "ap-love", "aria-hidden": "true" })
-          : h(LoveButton, { loved: p.isLoved ? p.isLoved(it) : false }),
+          : h(LoveButton, {
+              loved: p.isLoved ? p.isLoved(it) : false,
+              onToggle: p.onToggleLove
+                ? function (next) {
+                    p.onToggleLove(it, next);
+                  }
+                : undefined,
+            }),
         h(
           "div",
           { style: { minWidth: 0 } },
-          h("div", { className: "ap-chart__title" }, title),
-          entity === "artists" ? null : h("div", { className: "ap-chart__artist" }, it.artist),
+          p.hrefFor
+            ? h(A, { className: "ap-chart__title", href: p.hrefFor(it) }, title)
+            : h("div", { className: "ap-chart__title" }, title),
+          entity === "artists"
+            ? null
+            : h(
+                "div",
+                { className: "ap-chart__artist" },
+                linkParts(p.artistLinks ? p.artistLinks(it) : null, it.artist),
+              ),
         ),
         h(
           "div",
@@ -3583,3 +3637,4 @@ export {
   LandingHero,
 };
 export const format = { number: fmtNum, ago: fmtAgo, day: fmtDay, date: fmtDate, plural: plural };
+export { icons };
