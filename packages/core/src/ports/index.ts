@@ -6,6 +6,7 @@
  */
 import type {
   ActivityQuery,
+  AlbumRun,
   AlbumTrack,
   Bucket,
   BucketCount,
@@ -49,6 +50,7 @@ export interface UserRepository {
   /** Returns null when the name or the account is already taken (names are case-insensitive). */
   create(authUserId: string, name: string, createdAt: number): Promise<User | null>;
   setPrivate(userId: UserId, isPrivate: boolean): Promise<User | null>;
+  setAccent(userId: UserId, accent: string | null): Promise<User | null>;
 }
 
 /** Checks a raw ListenBrainz-style user token and returns the identity provider's account id. */
@@ -135,6 +137,13 @@ export interface InsightsRepository {
   diversity(query: InsightQuery): Promise<Diversity>;
   /** A session ends after `gapSeconds` without a listen. */
   sessions(query: InsightQuery & { gapSeconds: number }): Promise<SessionStats>;
+  /**
+   * Albums played through: runs of consecutive listens of one album (no other album in between, gaps under
+   * `gapSeconds`) with at least `minTracks` distinct tracks. Longest first, then most recent.
+   */
+  albumRuns(
+    query: InsightQuery & { gapSeconds: number; minTracks: number; limit: number },
+  ): Promise<{ total: number; items: AlbumRun[] }>;
   /** Tracks played several times in a row, longest runs first. */
   repeats(query: InsightQuery & { limit: number }): Promise<Repeat[]>;
   /** The n-th listen of all time for each n (absent when the user has fewer listens). */
@@ -164,12 +173,13 @@ export interface FavouriteRepository {
   /** Replaces the obsession, or clears it with null, closing the current period of the history. */
   setObsession(userId: UserId, track: FavouriteTrack | null, at: number): Promise<void>;
   obsession(userId: UserId): Promise<FavouriteTrack | null>;
-  /** Every obsession, newest first. */
+  /** Every obsession, newest first, and the longest one (an open period counts up to `now`). */
   obsessionHistory(
     userId: UserId,
     limit: number,
     offset: number,
-  ): Promise<{ items: ObsessionPeriod[]; total: number }>;
+    now: number,
+  ): Promise<{ items: ObsessionPeriod[]; total: number; longest: ObsessionPeriod | null }>;
 }
 
 /** Instance-wide settings and the facts they depend on. Every method is one indexed read or write. */

@@ -23,6 +23,7 @@ const STATS: Record<string, Simple> = {
   chart: (s, u, q) => s.chart(u, q),
   diversity: (s, u, q) => s.diversity(u, q),
   sessions: (s, u, q) => s.sessions(u, q),
+  "album-sessions": (s, u, q) => s.albumSessions(u, q),
   repeats: (s, u, q) => s.repeats(u, q),
   wrapped: (s, u, q) => s.wrapped(u, q),
   milestones: (s, u) => s.milestones(u),

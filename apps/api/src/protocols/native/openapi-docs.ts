@@ -76,7 +76,7 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "updateMe",
     tag: "Account",
     description:
-      "Changes settings of the signed-in user. Only the fields sent are changed. `private: true` hides the profile: its listens, now playing and every statistic answer 404 to anyone but the owner, as if the user did not exist.",
+      "Changes settings of the signed-in user. Only the fields sent are changed. `accent` sets the profile colour (`#rrggbb`, or null for the default). `private: true` hides the profile: its listens, now playing and every statistic answer 404 to anyone but the owner, as if the user did not exist.",
     requestExample: { private: true },
   },
   "PUT /me/loved": {
@@ -114,6 +114,12 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     tag: "Favourites",
     description: "A user's current obsession, or `obsession: null`.",
   },
+  "GET /users/{userName}": {
+    operationId: "getProfile",
+    tag: "Account",
+    description:
+      "What any visitor's page header needs about a profile: name, member since, listen count and accent colour. Private and unknown profiles answer 404 to everyone but their owner.",
+  },
   "GET /users/{userName}/search": {
     operationId: "searchLibrary",
     tag: "Pages",
@@ -124,7 +130,7 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "listObsessions",
     tag: "Favourites",
     description:
-      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period.",
+      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period. `longest` is the one kept longest, the current one counting up to now.",
   },
   "GET /instance": {
     operationId: "getInstance",
@@ -275,6 +281,12 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     description:
       "Listening sessions: listens are grouped into one session as long as they are less than `gapMinutes` apart (30 by default). Returns the number of sessions, their average length in listens and in time, and the longest one.",
   },
+  "GET /users/{userName}/stats/album-sessions": {
+    operationId: "getAlbumSessions",
+    tag: "Insights",
+    description:
+      'Albums listened to in one go: runs of consecutive listens of one album (nothing else in between, no silence longer than `gapMinutes`) covering at least `minTracks` distinct tracks. Longest runs first, then most recent; `total` counts them all. Album track lists are not known, so "the whole album" is approximated by `minTracks`.',
+  },
   "GET /users/{userName}/stats/repeats": {
     operationId: "getRepeats",
     tag: "Insights",
@@ -349,6 +361,7 @@ export const PARAMETERS: Record<string, string> = {
   minListens: "Minimum number of listens over all time for something to count as a favourite.",
   gapMinutes: "Silence, in minutes, after which a new session starts.",
   q: "Text to look for in artist, album and track names.",
+  minTracks: "Fewest distinct tracks of one album, back to back, for a run to count.",
 };
 
 type Json = Record<string, unknown>;

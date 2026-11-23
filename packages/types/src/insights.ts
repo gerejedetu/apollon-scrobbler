@@ -96,3 +96,15 @@ export interface ChartEntry extends EntityCount {
   period: string;
   rank: number;
 }
+
+/** An album played through: several of its tracks back to back, nothing else in between, in one session. */
+export interface AlbumRun {
+  artistName: string;
+  releaseName: string;
+  releaseMbid: string | null;
+  /** Distinct tracks of the album in the run. */
+  trackCount: number;
+  listenCount: number;
+  startedAt: number;
+  endedAt: number;
+}
