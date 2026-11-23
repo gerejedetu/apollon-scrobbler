@@ -449,7 +449,9 @@ describe("favourites", () => {
     expect((await repos.favourites.obsession(userId))?.trackName).toBe("Two");
     await repos.favourites.setObsession(userId, null, 3);
     expect(await repos.favourites.obsession(userId)).toBeNull();
-    const history = await repos.favourites.obsessionHistory(userId, 10, 0);
+    const history = await repos.favourites.obsessionHistory(userId, 10, 0, 100);
+    // One: 1→2 (1 s), Two: 2→3 (1 s): equal, the most recent wins.
+    expect(history.longest?.trackName).toBe("Two");
     expect(history.total).toBe(2);
     expect(history.items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([
       ["Two", 2, 3],

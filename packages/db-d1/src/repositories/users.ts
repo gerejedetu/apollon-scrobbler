@@ -28,5 +28,7 @@ export function d1Users(db: D1Like): UserRepository {
         userId,
         isPrivate ? 1 : 0,
       ),
+    setAccent: (userId, accent) =>
+      one(`UPDATE users SET accent = ?2 WHERE id = ?1 RETURNING ${USER_COLUMNS}`, userId, accent),
   };
 }

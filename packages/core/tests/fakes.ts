@@ -55,11 +55,16 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           history.push({ ...t, userId, endedAt: null });
         } else obsessions.delete(userId);
       },
-      async obsessionHistory(userId, limit, offset) {
+      async obsessionHistory(userId, limit, offset, now) {
         const mine = history.filter((p) => p.userId === userId).reverse();
+        const strip = ({ userId: _u, ...p }: (typeof history)[number]) => p;
+        const longest = [...mine].sort(
+          (a, b) => (b.endedAt ?? now) - b.at - ((a.endedAt ?? now) - a.at),
+        )[0];
         return {
-          items: mine.slice(offset, offset + limit).map(({ userId: _u, ...p }) => p),
+          items: mine.slice(offset, offset + limit).map(strip),
           total: mine.length,
+          longest: longest ? strip(longest) : null,
         };
       },
       async obsession(userId) {
@@ -77,6 +82,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
               listenCount: listens.filter((l) => l.userId === u.id).length,
               isPrivate: u.isPrivate,
               dataVersion: version.n,
+              accent: u.accent ?? null,
             }
           : null;
       },
@@ -90,6 +96,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
               listenCount: u.listenCount,
               isPrivate: u.isPrivate,
               dataVersion: version.n,
+              accent: u.accent ?? null,
             }
           : null;
       },
@@ -107,9 +114,17 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           listenCount: 0,
           isPrivate: false,
           dataVersion: version.n,
+          accent: null,
         };
         users.push({ ...user, authUserId });
         return user;
+      },
+      async setAccent(userId, accent) {
+        const u = users.find((x) => x.id === userId);
+        if (!u) return null;
+        u.accent = accent;
+        const { authUserId: _a, ...user } = u;
+        return { ...user };
       },
       async setPrivate(userId, isPrivate) {
         const u = users.find((x) => x.id === userId);

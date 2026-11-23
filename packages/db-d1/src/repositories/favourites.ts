@@ -113,8 +113,8 @@ export function d1Favourites(db: D1Like): FavouriteRepository {
       ]);
     },
 
-    async obsessionHistory(userId, limit, offset) {
-      const [rows, total] = await db.batch([
+    async obsessionHistory(userId, limit, offset, now) {
+      const [rows, total, longest] = await db.batch([
         db
           .prepare(
             `SELECT ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
@@ -122,13 +122,21 @@ export function d1Favourites(db: D1Like): FavouriteRepository {
           )
           .bind(userId, limit, offset),
         db.prepare("SELECT count(*) AS n FROM obsession_history WHERE user_id = ?1").bind(userId),
+        db
+          .prepare(
+            `SELECT ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
+             ORDER BY coalesce(ended_at, ?2) - started_at DESC, started_at DESC LIMIT 1`,
+          )
+          .bind(userId, now),
       ]);
+      const top = (longest?.results[0] ?? null) as (Row & { ended_at: number | null }) | null;
       return {
         items: ((rows?.results ?? []) as (Row & { ended_at: number | null })[]).map((r) => ({
           ...toTrack(r),
           endedAt: r.ended_at,
         })),
         total: ((total?.results[0] ?? { n: 0 }) as { n: number }).n,
+        longest: top ? { ...toTrack(top), endedAt: top.ended_at } : null,
       };
     },
 

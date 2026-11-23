@@ -711,7 +711,13 @@ const baseDocument = {
         security: secured,
         requestBody: {
           required: true,
-          content: json({ type: "object", properties: { private: { type: "boolean" } } }),
+          content: json({
+            type: "object",
+            properties: {
+              private: { type: "boolean" },
+              accent: { type: ["string", "null"], pattern: "^#[0-9a-fA-F]{6}$" },
+            },
+          }),
         },
         responses: {
           "200": ok("Updated profile", ref("Me")),
@@ -785,6 +791,24 @@ const baseDocument = {
             properties: {
               userName: { type: "string" },
               obsession: { oneOf: [ref("Favourite"), { type: "null" }] },
+            },
+          }),
+          "404": errors["404"],
+        },
+      },
+    },
+    "/users/{userName}": {
+      get: {
+        summary: "A profile's public card",
+        parameters: [userName],
+        responses: {
+          "200": ok("Profile", {
+            type: "object",
+            properties: {
+              userName: { type: "string" },
+              createdAt: { type: "integer" },
+              listenCount: { type: "integer" },
+              accent: { type: ["string", "null"] },
             },
           }),
           "404": errors["404"],
@@ -877,6 +901,18 @@ const baseDocument = {
             properties: {
               userName: { type: "string" },
               total: { type: "integer" },
+              longest: {
+                oneOf: [
+                  {
+                    allOf: [
+                      ref("Favourite"),
+                      { type: "object", properties: { until: { type: ["integer", "null"] } } },
+                    ],
+                  },
+                  { type: "null" },
+                ],
+                description: "The obsession kept longest; an open one counts up to now.",
+              },
               items: {
                 type: "array",
                 items: {
