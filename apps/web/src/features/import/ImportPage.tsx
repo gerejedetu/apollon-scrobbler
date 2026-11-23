@@ -6,7 +6,6 @@ import { forgetViewer } from "../../auth/index.ts";
 import { formatCount } from "../../lib/format/index.ts";
 import { CheckIcon } from "../../ui/icons.tsx";
 import { Button, capsLabel, lead } from "../../ui/primitives/index.ts";
-import { settingsTitle } from "../settings/index.ts";
 import { batches, NotALastFmExport, parseLastFmExport } from "./lastfm.ts";
 import { color } from "../../ui/theme/index.ts";
 import { intlLocale } from "../../lib/locale.ts";
@@ -102,7 +101,7 @@ export function ImportPage() {
   return (
     <>
       <div className={intro}>
-        <h1 className={settingsTitle}>{m.settings_import()}</h1>
+        <h1 className="ap-pagetitle">{m.settings_import()}</h1>
         <p className={lead}>{m.import_intro()}</p>
       </div>
 

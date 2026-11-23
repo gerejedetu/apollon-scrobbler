@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { css } from "styled-system/css";
 import { authClient, oauthRedirect } from "../../auth/index.ts";
-import { Button, Notice } from "../../ui/primitives/index.ts";
-import { authFoot, authTitle } from "../auth/layout.tsx";
+import { Notice } from "../../ui/primitives/index.ts";
+import { AuthLayout, authFoot } from "../auth/layout.tsx";
+import { Button } from "../../ui/apollon/index.ts";
 import { m } from "../../paraglide/messages.js";
 
 const list = css({
@@ -48,10 +49,7 @@ export function ConsentPage({
   }
 
   return (
-    <>
-      <h1 className={authTitle} style={{ marginBottom: 8 }}>
-        {m.consent_title({ client })}
-      </h1>
+    <AuthLayout title={m.consent_title({ client })}>
       {failed ? <Notice tone="error">{m.consent_invalid()}</Notice> : null}
       <p className={css({ m: 0, fontSize: "13px" })}>{m.consent_body({ client })}</p>
       <ul className={list}>
@@ -59,14 +57,14 @@ export function ConsentPage({
         <li>{m.consent_write()}</li>
       </ul>
       <div className={actions}>
-        <Button tone="outline" disabled={pending} onClick={() => answer(false)}>
+        <Button variant="secondary" disabled={pending} onClick={() => answer(false)}>
           {m.consent_deny()}
         </Button>
-        <Button disabled={pending} onClick={() => answer(true)}>
+        <Button variant="primary" disabled={pending} onClick={() => answer(true)}>
           {pending ? m.consent_pending() : m.consent_allow()}
         </Button>
       </div>
-      <p className={authFoot}>{m.consent_as({ user: userName })}</p>
-    </>
+      <div className={authFoot}>{m.consent_as({ user: userName })}</div>
+    </AuthLayout>
   );
 }

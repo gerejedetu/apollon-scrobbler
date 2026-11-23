@@ -3,7 +3,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { type ReactNode, useEffect } from "react";
 import { loadViewer } from "../auth/index.ts";
 import { RootError, RootNotFound } from "../features/errors/index.ts";
-import { initialTheme, THEME_SCRIPT } from "../lib/theme.ts";
+import { initialTheme, renderedTheme, THEME_SCRIPT } from "../lib/theme.ts";
 import { getLocale } from "../paraglide/runtime.js";
 import { OFFSET_SCRIPT } from "../lib/timezone.ts";
 import { watchForNewBuild } from "../lib/stale-build.ts";
@@ -20,8 +20,8 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "theme-color", content: "#FFFFFF", media: "(prefers-color-scheme: light)" },
-      { name: "theme-color", content: "#101010", media: "(prefers-color-scheme: dark)" },
+      // The black top bar (chrome) runs under the phone's status bar in every theme.
+      { name: "theme-color", content: "#0b0b0c" },
       { name: "description", content: m.meta_description() },
     ],
     links: [
@@ -59,6 +59,7 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html
       lang={getLocale()}
+      data-theme={renderedTheme(initialTheme())}
       className={initialTheme() === "dark" ? "dark" : undefined}
       suppressHydrationWarning
     >
