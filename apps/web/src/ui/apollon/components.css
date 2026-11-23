@@ -613,7 +613,7 @@
 .ap-tile__text {
   position: relative;
   padding: var(--space-4) var(--space-4);
-  color: #ffffff;
+  color: var(--on-chrome);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 .ap-tile__name {
@@ -2398,7 +2398,7 @@
 }
 .ap-root .ap-obstile,
 .ap-obstile {
-  color: #ffffff;
+  color: var(--on-chrome);
 }
 .ap-obstile {
   position: relative;
@@ -2407,7 +2407,7 @@
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  color: #ffffff;
+  color: var(--on-chrome);
 }
 .ap-obstile--current {
   outline: 3px solid var(--gold-500);
@@ -2462,7 +2462,7 @@
 
 /* SiteFooter */
 .ap-foot {
-  background: #111214;
+  background: var(--chrome-banner);
   color: var(--on-chrome);
 }
 .ap-foot__cols {
@@ -2495,7 +2495,7 @@
   color: var(--gold-500);
 }
 .ap-foot__bar {
-  border-top: 1px solid #2c2e33;
+  border-top: 1px solid var(--report-track);
 }
 .ap-foot__bar > div {
   max-width: 1120px;
@@ -3188,7 +3188,7 @@ svg.ap-hero__cover {
   height: calc(64px + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--chrome);
-  border-top: 1px solid #2c2e33;
+  border-top: 1px solid var(--report-track);
   grid-template-columns: repeat(5, 1fr);
 }
 .ap-root .ap-tabbar__item {
@@ -3286,7 +3286,7 @@ svg.ap-hero__cover {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) 0 var(--space-6);
-  border-bottom: 1px solid #2c2e33;
+  border-bottom: 1px solid var(--report-track);
 }
 .ap-mmenu__name {
   font: 700 22px/26px var(--font-sans);
@@ -3299,7 +3299,7 @@ svg.ap-hero__cover {
   list-style: none;
   margin: 0;
   padding: var(--space-2) 0;
-  border-bottom: 1px solid #2c2e33;
+  border-bottom: 1px solid var(--report-track);
 }
 .ap-root .ap-mmenu__list a {
   display: flex;
@@ -3954,7 +3954,7 @@ svg.ap-hero__cover {
   display: inline-flex;
   align-items: center;
   height: 36px;
-  border: 1px solid #3a3d42;
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-3);
   color: var(--on-chrome);
 }
@@ -3990,7 +3990,7 @@ svg.ap-hero__cover {
   outline-offset: 2px;
 }
 .ap-langsel select option {
-  color: #111111;
+  color: var(--cat-ink);
 }
 .ap-langsel--light {
   border-color: var(--line-strong);
@@ -4005,7 +4005,7 @@ svg.ap-hero__cover {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) 0;
-  border-bottom: 1px solid #2c2e33;
+  border-bottom: 1px solid var(--report-track);
   font-size: 17px;
   color: var(--on-chrome-muted);
 }

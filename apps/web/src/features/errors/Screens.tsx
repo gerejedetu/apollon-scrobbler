@@ -23,7 +23,7 @@ export function HiddenProfile({ signedIn }: { signedIn: boolean }) {
         className={css({
           width: "56px",
           height: "56px",
-          borderRadius: "28px",
+          borderRadius: "var(--radius-3)",
           bg: "field",
           color: "muted",
           display: "inline-flex",

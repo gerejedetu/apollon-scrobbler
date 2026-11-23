@@ -34,7 +34,7 @@ export function Cover({ round, size, mbid, lookup, youtube, className }: CoverPr
     <div
       aria-hidden="true"
       className={cx(frame, css({ bg: "chip", color: "placeholder" }), className)}
-      style={{ borderRadius: round ? "50%" : 0, width: size, height: size }}
+      style={{ borderRadius: round ? "var(--radius-3)" : 0, width: size, height: size }}
     >
       <svg
         viewBox="0 0 24 24"
