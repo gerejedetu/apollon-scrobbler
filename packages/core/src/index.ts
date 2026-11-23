@@ -35,6 +35,7 @@ export {
   bilingualParts,
   canonicalArtist,
   hasNativeScript,
+  withoutServiceLabel,
   type BilingualName,
 } from "./artists/names.ts";
 export {
