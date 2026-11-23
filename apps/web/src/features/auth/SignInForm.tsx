@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
-import { css } from "styled-system/css";
 import {
   authClient,
   describeAuthError,
@@ -8,9 +7,10 @@ import {
   oauthRedirect,
   safeRedirect,
 } from "../../auth/index.ts";
-import { Button, Field, Notice } from "../../ui/primitives/index.ts";
+import { Notice } from "../../ui/primitives/index.ts";
+import { Button, TextField } from "../../ui/apollon/index.ts";
 import { formText } from "./form.ts";
-import { authFoot, authForm, authTitle } from "./layout.tsx";
+import { AuthLayout, authFoot, authForm } from "./layout.tsx";
 import { m } from "../../paraglide/messages.js";
 
 /** "Connexion à Apollon": e-mail and password, then back where the visitor was going. */
@@ -57,14 +57,11 @@ export function SignInForm({
   }
 
   return (
-    <>
-      <h1 className={authTitle} style={{ marginBottom: 8 }}>
-        {m.signin_title()}
-      </h1>
+    <AuthLayout title={m.signin_submit()}>
       {created && !error ? <Notice tone="success">{m.signin_created()}</Notice> : null}
       {error ? <Notice tone="error">{error}</Notice> : null}
       <form className={authForm} onSubmit={onSubmit}>
-        <Field
+        <TextField
           label={m.field_email()}
           name="email"
           type="email"
@@ -72,7 +69,7 @@ export function SignInForm({
           placeholder={m.field_email_placeholder()}
           required
         />
-        <Field
+        <TextField
           label={m.field_password()}
           name="password"
           type="password"
@@ -80,15 +77,18 @@ export function SignInForm({
           placeholder={m.field_password_placeholder()}
           required
         />
-        <Button type="submit" className={css({ mt: "8px" })} disabled={pending}>
+        <Button variant="primary" type="submit" disabled={pending}>
           {pending ? m.signin_pending() : m.signin_submit()}
         </Button>
       </form>
       {signupOpen ? (
-        <p className={authFoot}>
-          {m.signin_no_account()} <Link to="/inscription">{m.signin_create()}</Link>
-        </p>
+        <div className={authFoot}>
+          {m.signin_no_account()}{" "}
+          <Link to="/inscription" className="ap-link">
+            {m.signin_create()}
+          </Link>
+        </div>
       ) : null}
-    </>
+    </AuthLayout>
   );
 }

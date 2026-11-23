@@ -1,20 +1,29 @@
 import type { ReactNode } from "react";
-import { css, cx } from "styled-system/css";
-import { BareHeader, Main, Page } from "../../ui/layout/index.ts";
-import { pageTitle } from "../../ui/primitives/index.ts";
-import { PreferencesMenu } from "../navigation/index.ts";
+import { AuthLayout as DsAuthLayout } from "../../ui/apollon/index.ts";
+import { m } from "../../paraglide/messages.js";
 
-export const authTitle = cx(pageTitle, css({ textAlign: "center" }));
-export const authForm = css({ display: "flex", flexDirection: "column", gap: "16px" });
-export const authFoot = css({ m: 0, textAlign: "center", fontSize: "12px", color: "muted" });
+/** Classes of the account screens' form parts (design system: AuthLayout). */
+export const authForm = "ap-auth__fields";
+export const authFoot = "ap-auth__alt";
 
-/** The narrow centred column of the account screens. */
-export function AuthLayout({ children }: { children: ReactNode }) {
+/**
+ * The account screens (design system: AuthLayout): a black half with one sentence and the count bars, the
+ * form on the white half. Full page: no top bar.
+ */
+export function AuthLayout({
+  title,
+  lead,
+  quote,
+  children,
+}: {
+  title: string;
+  lead?: string;
+  quote?: string;
+  children: ReactNode;
+}) {
   return (
-    <Page header={<BareHeader left={<PreferencesMenu />} />}>
-      <Main narrow gap={20} padding="56px 24px 80px">
-        {children}
-      </Main>
-    </Page>
+    <DsAuthLayout title={title} lead={lead} quote={quote ?? m.ds_auth_quote()}>
+      {children}
+    </DsAuthLayout>
   );
 }

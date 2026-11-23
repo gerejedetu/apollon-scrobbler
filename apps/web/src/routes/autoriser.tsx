@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { api, isNotFound } from "../api/index.ts";
 import { requireViewer } from "../auth/index.ts";
-import { AuthLayout } from "../features/auth/index.ts";
 import { ConsentPage } from "../features/oauth/index.ts";
 import { m } from "../paraglide/messages.js";
 import { pageTitle } from "../ui/brand/index.ts";
@@ -30,9 +29,5 @@ export const Route = createFileRoute("/autoriser")({
 function Consent() {
   const { clientName } = Route.useLoaderData();
   const { me } = Route.useRouteContext();
-  return (
-    <AuthLayout>
-      <ConsentPage clientName={clientName} userName={me.userName} />
-    </AuthLayout>
-  );
+  return <ConsentPage clientName={clientName} userName={me.userName} />;
 }

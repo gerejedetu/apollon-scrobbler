@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
-import { css } from "styled-system/css";
 import {
   authClient,
   type AuthFailure,
@@ -8,9 +7,10 @@ import {
   forgetViewer,
   loadViewer,
 } from "../../auth/index.ts";
-import { Button, Field, Notice } from "../../ui/primitives/index.ts";
+import { Notice } from "../../ui/primitives/index.ts";
+import { Button, TextField } from "../../ui/apollon/index.ts";
 import { formText } from "./form.ts";
-import { authFoot, authForm, authTitle } from "./layout.tsx";
+import { AuthLayout, authFoot, authForm } from "./layout.tsx";
 import { MIN_PASSWORD, validateUserName } from "./validation.ts";
 import { profilePrefix } from "../../lib/origin.ts";
 import { m } from "../../paraglide/messages.js";
@@ -56,26 +56,12 @@ export function SignUpForm() {
     failure !== null && failure.field === field ? failure.message : undefined;
 
   return (
-    <>
-      <div
-        className={css({
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          textAlign: "center",
-          mb: "8px",
-        })}
-      >
-        <h1 className={authTitle}>{m.signup_title()}</h1>
-        <p className={css({ m: 0, fontSize: "13px", lineHeight: "20px", color: "muted" })}>
-          {m.signup_intro()}
-        </p>
-      </div>
+    <AuthLayout title={m.signin_create()} lead={m.signup_intro()}>
       {failure && failure.field === undefined ? (
         <Notice tone="error">{failure.message}</Notice>
       ) : null}
       <form className={authForm} onSubmit={onSubmit}>
-        <Field
+        <TextField
           label={m.field_username()}
           name="username"
           autoComplete="username"
@@ -84,14 +70,9 @@ export function SignUpForm() {
           value={userName}
           onChange={(e) => setUserName(e.target.value.trim())}
           error={nameError ?? fieldError("username")}
-          hint={
-            <>
-              {m.username_help()} {profilePrefix()}
-              <b className={css({ color: "ink", fontWeight: "500" })}>{userName || "jules"}</b>
-            </>
-          }
+          hint={`${m.username_help()} ${profilePrefix()}${userName || "jules"}`}
         />
-        <Field
+        <TextField
           label={m.field_email()}
           name="email"
           type="email"
@@ -100,7 +81,7 @@ export function SignUpForm() {
           required
           error={fieldError("email")}
         />
-        <Field
+        <TextField
           label={m.field_password()}
           name="password"
           type="password"
@@ -110,17 +91,16 @@ export function SignUpForm() {
           required
           error={fieldError("password")}
         />
-        <Button
-          type="submit"
-          className={css({ mt: "8px" })}
-          disabled={pending || Boolean(nameError)}
-        >
+        <Button variant="primary" type="submit" disabled={pending || Boolean(nameError)}>
           {pending ? m.signup_pending() : m.signup_submit()}
         </Button>
       </form>
-      <p className={authFoot}>
-        {m.signup_have_account()} <Link to="/connexion">{m.signin_submit()}</Link>
-      </p>
-    </>
+      <div className={authFoot}>
+        {m.signup_have_account()}{" "}
+        <Link to="/connexion" className="ap-link">
+          {m.signin_submit()}
+        </Link>
+      </div>
+    </AuthLayout>
   );
 }

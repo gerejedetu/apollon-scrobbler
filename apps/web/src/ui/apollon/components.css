@@ -4180,3 +4180,12 @@ svg.ap-hero__cover {
     gap: var(--space-8);
   }
 }
+/* The fields of an account screen's form, one under the other. */
+.ap-auth__fields {
+  display: grid;
+  gap: var(--space-4);
+}
+.ap-auth__fields .ap-btn {
+  width: 100%;
+  margin-top: var(--space-2);
+}
