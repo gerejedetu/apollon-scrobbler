@@ -4226,3 +4226,18 @@ svg.ap-hero__cover {
 .ap-sres__block {
   min-width: 0;
 }
+/* Account screens fill the window; the form sits in the middle of its half. */
+.ap-auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.ap-auth__form {
+  width: 100%;
+  justify-self: center;
+}
+@media (max-width: 720px) {
+  .ap-auth {
+    min-height: 100dvh;
+    grid-template-rows: auto 1fr;
+  }
+}
