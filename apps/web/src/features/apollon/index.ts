@@ -15,3 +15,6 @@ export {
   type ReportPeriod,
 } from "./reports.ts";
 export { Reports } from "./Reports.tsx";
+export { type Laurel, loadLaurels } from "./laurels.ts";
+export { LaurelsPage, LovedPage, ObsessionsPage } from "./ProfileTabs.tsx";
+export { WrappedReview } from "./Wrapped.tsx";

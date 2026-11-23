@@ -6,6 +6,7 @@
  */
 import * as React from "react";
 import { A } from "./link.tsx";
+import { dayKey, fmtAgo, fmtDate, fmtDay, fmtIso, fmtNum } from "./format.ts";
 
 var h = React.createElement;
 function cx() {
@@ -13,75 +14,9 @@ function cx() {
 }
 
 /* ---------- formatting (French, Last.fm phrasing) ---------- */
-var MONTHS_S = [
-  "janv.",
-  "févr.",
-  "mars",
-  "avr.",
-  "mai",
-  "juin",
-  "juil.",
-  "août",
-  "sept.",
-  "oct.",
-  "nov.",
-  "déc.",
-];
-var MONTHS = [
-  "janvier",
-  "février",
-  "mars",
-  "avril",
-  "mai",
-  "juin",
-  "juillet",
-  "août",
-  "septembre",
-  "octobre",
-  "novembre",
-  "décembre",
-];
-var WEEKDAYS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-function fmtNum(n) {
-  return n == null ? "" : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
+
 function plural(n, one, many) {
   return fmtNum(n) + " " + (n > 1 ? many : one);
-}
-function fmtAgo(ts, now) {
-  if (ts == null) return "";
-  now = now || Math.floor(Date.now() / 1000);
-  var d = Math.max(0, now - ts);
-  if (d < 60) return "à l'instant";
-  if (d < 3600) return "il y a " + plural(Math.floor(d / 60), "minute", "minutes");
-  if (d < 86400) return "il y a " + plural(Math.floor(d / 3600), "heure", "heures");
-  var dt = new Date(ts * 1000);
-  return (
-    dt.getDate() +
-    " " +
-    MONTHS_S[dt.getMonth()] +
-    " " +
-    String(dt.getHours()).padStart(2, "0") +
-    "h" +
-    String(dt.getMinutes()).padStart(2, "0")
-  );
-}
-function dayKey(ts) {
-  var d = new Date(ts * 1000);
-  return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
-}
-function fmtDay(ts, now) {
-  now = now || Math.floor(Date.now() / 1000);
-  if (dayKey(ts) === dayKey(now)) return "Aujourd'hui";
-  if (dayKey(ts) === dayKey(now - 86400)) return "Hier";
-  var d = new Date(ts * 1000);
-  return (
-    WEEKDAYS[d.getDay()] + " " + d.getDate() + " " + MONTHS[d.getMonth()] + " " + d.getFullYear()
-  );
-}
-function fmtDate(ts) {
-  var d = new Date(ts * 1000);
-  return d.getDate() + " " + MONTHS_S[d.getMonth()] + " " + d.getFullYear();
 }
 
 /* ---------- icons: 16 grid, 1.5 stroke, currentColor ---------- */
@@ -1645,11 +1580,6 @@ function StreakCard(p) {
       : null,
   );
 }
-function fmtIso(s) {
-  if (!s) return "";
-  var a = s.split("-");
-  return parseInt(a[2], 10) + " " + MONTHS_S[parseInt(a[1], 10) - 1];
-}
 
 function MilestoneList(p) {
   var items = p.items || [];
@@ -2657,10 +2587,6 @@ function obsPeriod(o, now) {
     " · " +
     plural(days, "jour", "jours")
   );
-}
-function fmtLongDate(ts) {
-  var d = new Date(ts * 1000);
-  return d.getDate() + " " + MONTHS[d.getMonth()] + " " + d.getFullYear();
 }
 var FOOT = [
   {
