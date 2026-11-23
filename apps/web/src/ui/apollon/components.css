@@ -4127,3 +4127,27 @@ svg.ap-hero__cover {
 .ap-search__filters {
   margin: var(--space-4) 0 var(--space-8);
 }
+.ap-detail__intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+.ap-detail__lead {
+  margin: 0;
+  font-size: 16px;
+  line-height: 26px;
+}
+@media (max-width: 720px) {
+  .ap-detail__intro {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+/* Buttons drawn as links (<a class="ap-btn">): keep their colours over ".ap-root a { color: inherit }". */
+.ap-root a.ap-btn--primary { color: var(--gold-ink); }
+.ap-root a.ap-btn--dark { color: var(--on-chrome); }
+.ap-root a.ap-btn--secondary { color: var(--ink); }
+.ap-root a.ap-btn--danger { color: var(--danger); }
+.ap-root a.ap-btn--light { color: var(--chrome); }
+.ap-root a.ap-btn--band { color: var(--band-ink); }

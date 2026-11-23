@@ -1285,12 +1285,25 @@ function EntityHero(p) {
         p.actions !== undefined
           ? p.actions
           : [
-              h(
-                Button,
-                { key: "p", variant: "light", icon: "play", onClick: p.onPlay },
-                KIND_PLAY[kind],
-              ),
-              kind === "track"
+              p.playHref
+                ? h(
+                    "a",
+                    {
+                      key: "p",
+                      className: "ap-btn ap-btn--light",
+                      href: p.playHref,
+                      target: "_blank",
+                      rel: "noopener",
+                    },
+                    icons.play(),
+                    KIND_PLAY[kind],
+                  )
+                : h(
+                    Button,
+                    { key: "p", variant: "light", icon: "play", onClick: p.onPlay },
+                    KIND_PLAY[kind],
+                  ),
+              kind === "track" && !p.readOnly
                 ? h(IconButton, {
                     key: "l",
                     icon: "heart",
@@ -1299,7 +1312,7 @@ function EntityHero(p) {
                     onClick: p.onToggleLove,
                   })
                 : null,
-              kind === "track"
+              kind === "track" && !p.readOnly
                 ? h(IconButton, {
                     key: "o",
                     icon: "target",
@@ -1308,7 +1321,14 @@ function EntityHero(p) {
                     onClick: p.onObsession,
                   })
                 : null,
-              h(IconButton, { key: "m", icon: "dots", label: "Plus d'actions", onClick: p.onMore }),
+              p.onMore
+                ? h(IconButton, {
+                    key: "m",
+                    icon: "dots",
+                    label: "Plus d'actions",
+                    onClick: p.onMore,
+                  })
+                : null,
             ],
         (p.stats || []).length
           ? h(
