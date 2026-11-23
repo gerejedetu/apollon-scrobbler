@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import type { Listen, Range, TopItem } from "../../api/index.ts";
 import { dateFormat } from "../../lib/locale.ts";
 import { rangeOptions } from "../../lib/ranges.ts";
@@ -32,6 +33,7 @@ import {
   trackHref,
 } from "./links.ts";
 import { ListenMenu } from "./ListenMenu.tsx";
+import { type Laurel, loadLaurels } from "./laurels.ts";
 import type { OverviewData, OverviewPeriods } from "./overview.ts";
 
 const periods = () => rangeOptions().map(({ value, label }) => ({ value, label }));
@@ -199,16 +201,7 @@ export function Overview({
       }}
       days={data.days}
     />,
-    data.laurels.length ? (
-      <section key="laurels">
-        <SectionHeader title={m.ds_tab_laurels()} size="sm" showPeriod={false} />
-        <LaurelStrip
-          items={data.laurels}
-          total={data.laurels.filter((l) => !l.progress).length}
-          href={`${root}/lauriers`}
-        />
-      </section>
-    ) : null,
+    <LaurelsAside key="laurels" userName={userName} href={`${root}/lauriers`} />,
     <section key="reports">
       <SectionHeader title={m.ds_listening_reports()} size="sm" showPeriod={false} />
       <div className="ap-ov__reports">
@@ -271,3 +264,27 @@ const monthName = (s: number) => {
   const name = dateFormat({ month: "long", timeZone: "UTC" }).format(new Date(s * 1000));
   return name.charAt(0).toUpperCase() + name.slice(1);
 };
+
+/**
+ * The laurels of the sidebar, fetched once the page is shown: they take several API calls, which the
+ * page's first render does not wait for (the API would get too many at once).
+ */
+function LaurelsAside({ userName, href }: { userName: string; href: string }) {
+  const [laurels, setLaurels] = useState<Laurel[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadLaurels(userName)
+      .then((l) => live && setLaurels(l))
+      .catch(() => live && setLaurels([]));
+    return () => {
+      live = false;
+    };
+  }, [userName]);
+  if (!laurels?.length) return null;
+  return (
+    <section>
+      <SectionHeader title={m.ds_tab_laurels()} size="sm" showPeriod={false} />
+      <LaurelStrip items={laurels} total={laurels.filter((l) => !l.progress).length} href={href} />
+    </section>
+  );
+}
