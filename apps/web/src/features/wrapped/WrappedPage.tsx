@@ -79,7 +79,7 @@ export function WrappedPage({
     <Main gap={32} padding="16px 24px 64px">
       <Breadcrumbs
         items={[
-          <Link key="s" to="/u/$userName/stats" params={{ userName }}>
+          <Link key="s" to="/u/$userName/rapports" params={{ userName }}>
             {m.nav_stats()}
           </Link>,
           m.wrapped_title(),
@@ -340,7 +340,7 @@ export function WrappedPage({
               </section>
             ) : null}
             <Link
-              to="/u/$userName/stats"
+              to="/u/$userName/rapports"
               params={{ userName }}
               className={css({
                 display: "flex",

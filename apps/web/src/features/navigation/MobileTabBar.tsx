@@ -58,7 +58,7 @@ export function MobileTabBar({ userName }: { userName: string }) {
       <Link to="/scrobbler" aria-label={m.nav_scrobble()} className={tab}>
         <PlusIcon size={24} />
       </Link>
-      <Link to="/u/$userName/stats" params={params} aria-label={m.nav_stats()} className={tab}>
+      <Link to="/u/$userName/rapports" params={params} aria-label={m.nav_stats()} className={tab}>
         <BarsIcon />
       </Link>
       <Link to="/reglages" aria-label={m.nav_settings()} className={tab}>

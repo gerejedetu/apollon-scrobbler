@@ -47,7 +47,7 @@ export function AppHeader({
               <Link to="/u/$userName/historique" params={{ userName }} className={navLink}>
                 {m.nav_history()}
               </Link>
-              <Link to="/u/$userName/stats" params={{ userName }} className={navLink}>
+              <Link to="/u/$userName/rapports" params={{ userName }} className={navLink}>
                 {m.nav_stats()}
               </Link>
             </span>

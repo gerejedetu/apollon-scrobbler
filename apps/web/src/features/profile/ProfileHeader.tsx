@@ -146,7 +146,7 @@ export function ProfileTabs({ userName, summary }: { userName: string; summary: 
       <Link to="/u/$userName/tops/$kind" params={{ userName, kind: "titres" }} className={tab}>
         {m.tab_tracks()} <CountBadge>{formatCompact(summary.recordingCount)}</CountBadge>
       </Link>
-      <Link to="/u/$userName/stats" params={params} className={tab}>
+      <Link to="/u/$userName/rapports" params={params} className={tab}>
         {m.nav_stats()}
       </Link>
     </nav>
