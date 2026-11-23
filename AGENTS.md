@@ -99,7 +99,10 @@ the container. Better Auth needs its own adapter for that database too.
 - Names are normalized at ingest (core `artists/names.ts`, `albums/names.ts`): a bilingual credit ("헤이즈 Heize") joins the
   artist the library already has and its other forms are learned in `artist_aliases`; content advisories ("[Clean]") are dropped
   and an edition ("(Deluxe)") joins the plain album when the library has it. Only names with a marker cost a lookup.
+  A service's type label ("Song • STAYC") is stripped from artist names before anything else.
   Existing duplicates: `vpx scripts/turso.ts merge-artist|merge-album` in apps/api.
+- Obsessions keep a history (`obsession_history`, 0011): setting a different track closes the open period and opens
+  a new one; setting the same track again changes nothing.
 - Artist-level stats count a joint credit ("A & B", "A feat. B") for each artist: core's `splitArtistCredit` decides
   the split, `artist_credits` (0005) stores it for joint credits only, written in the insert batch; queries go through
   `packages/db-d1/src/artists.ts`. Tracks and albums keep the credit as written. After changing the split rules,
