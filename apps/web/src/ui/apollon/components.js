@@ -6,6 +6,7 @@
  */
 import * as React from "react";
 import { A } from "./link.tsx";
+import { t as tr } from "./i18n.ts";
 import { dayKey, fmtAgo, fmtDate, fmtDay, fmtIso, fmtNum } from "./format.ts";
 
 var h = React.createElement;
@@ -398,7 +399,7 @@ function ListeningBanner(p) {
 function SiteHeader(p) {
   var links = p.links || [
     { label: "Musique", href: "#" },
-    { label: "Graphiques", href: "#" },
+    { label: tr("Graphiques"), href: "#" },
   ];
   return h(
     "header",
@@ -411,7 +412,7 @@ function SiteHeader(p) {
     p.brand ? h(A, { className: "ap-site__mark", href: p.homeHref || "#" }, p.brand) : null,
     h(
       "nav",
-      { className: "ap-site__links", "aria-label": "Navigation principale" },
+      { className: "ap-site__links", "aria-label": tr("Navigation principale") },
       links.map(function (l, i) {
         return h(
           A,
@@ -428,7 +429,7 @@ function SiteHeader(p) {
         {
           type: "button",
           className: "ap-site__icon",
-          "aria-label": "Rechercher",
+          "aria-label": tr("Rechercher"),
           onClick: p.onSearch,
         },
         icons.search(),
@@ -438,7 +439,7 @@ function SiteHeader(p) {
             h(
               A,
               { key: "in", href: p.loginHref || "#", className: "ap-site__login" },
-              "Se connecter",
+              tr("Se connecter"),
             ),
             p.signupOpen !== false
               ? h(
@@ -448,7 +449,7 @@ function SiteHeader(p) {
                     href: p.signupHref || "#",
                     className: "ap-btn ap-btn--primary ap-btn--sm",
                   },
-                  "Créer un compte",
+                  tr("Créer un compte"),
                 )
               : null,
           ]
@@ -504,7 +505,7 @@ function ProfileHeader(p) {
               ? h(
                   "div",
                   { className: "ap-banner__since" },
-                  p.userName + " scrobble depuis le " + fmtDate(p.createdAt),
+                  p.userName + tr(" scrobble depuis le ") + fmtDate(p.createdAt),
                 )
               : null,
           ),
@@ -548,7 +549,7 @@ function ProfileHeader(p) {
             h(
               "div",
               null,
-              h("div", { className: "ap-label" }, p.topLabel || "Top titre"),
+              h("div", { className: "ap-label" }, p.topLabel || tr("Top titre")),
               h("div", { className: "ap-banner__toptitle" }, t.track),
               h("div", { className: "ap-banner__topartist" }, t.artist),
             ),
@@ -562,7 +563,7 @@ function ProfileHeader(p) {
                     {
                       type: "button",
                       className: "ap-banner__play",
-                      "aria-label": "Écouter " + t.track,
+                      "aria-label": tr("Écouter ") + t.track,
                       onClick: p.onTopPlay,
                     },
                     icons.play(),
@@ -623,7 +624,12 @@ function Button(p) {
 function PlayButton(p) {
   return h(
     "button",
-    { type: "button", className: "ap-play", "aria-label": p.label || "Lire", onClick: p.onClick },
+    {
+      type: "button",
+      className: "ap-play",
+      "aria-label": p.label || tr("Lire"),
+      onClick: p.onClick,
+    },
     icons.play(),
   );
 }
@@ -635,7 +641,7 @@ function LoveButton(p) {
       type: "button",
       className: "ap-love",
       "aria-pressed": on ? "true" : "false",
-      "aria-label": on ? "Retirer des coups de cœur" : "Ajouter aux coups de cœur",
+      "aria-label": on ? "Retirer des coups de cœur" : tr("Ajouter aux coups de cœur"),
       onClick: function () {
         if (p.onToggle) p.onToggle(!on);
       },
@@ -722,7 +728,7 @@ function SectionHeader(p) {
             "select",
             {
               value: value,
-              "aria-label": "Période",
+              "aria-label": tr("Période"),
               onChange: function (e) {
                 st[1](e.target.value);
                 if (p.onPeriodChange) p.onPeriodChange(e.target.value);
@@ -770,11 +776,11 @@ function TrackRow(p) {
             href: p.playHref,
             target: "_blank",
             rel: "noopener",
-            "aria-label": "Lire " + l.track,
+            "aria-label": tr("Lire ") + l.track,
           },
           icons.play(),
         )
-      : h(PlayButton, { onClick: p.onPlay, label: "Lire " + l.track }),
+      : h(PlayButton, { onClick: p.onPlay, label: tr("Lire ") + l.track }),
     h(Cover, { src: p.coverUrl, seed: l.album || l.artist || l.track }),
     p.readOnly
       ? p.loved
@@ -782,7 +788,7 @@ function TrackRow(p) {
             "span",
             {
               className: "ap-love",
-              "aria-label": "Coup de cœur",
+              "aria-label": tr("Coup de cœur"),
               style: { color: "var(--gold-text)", cursor: "default" },
             },
             icons.heart(true),
@@ -798,7 +804,7 @@ function TrackRow(p) {
           "div",
           { className: "ap-row__time" },
           h("span", { className: "ap-eq", "aria-hidden": "true" }, h("i"), h("i"), h("i")),
-          "En cours d'écoute",
+          tr("En cours d'écoute"),
         )
       : h("div", { className: "ap-row__time" }, fmtAgo(l.listenedAt, p.now)),
     p.trailing ? h("div", { className: "ap-row__trail" }, p.trailing) : null,
@@ -866,7 +872,7 @@ function TopChart(p) {
     items.reduce(function (m, i) {
       return Math.max(m, i.listenCount || 0);
     }, 0) || 1;
-  var unit = p.unit || "scrobbles";
+  var unit = p.unit || tr("scrobbles");
   return h(
     "ol",
     { className: "ap-root ap-chart" },
@@ -938,7 +944,11 @@ function ArtworkGrid(p) {
           h("div", { className: "ap-tile__name" }, it.name),
           it.sub ? h("div", { className: "ap-tile__sub" }, it.sub) : null,
           it.listenCount != null
-            ? h("div", { className: "ap-tile__sub" }, plural(it.listenCount, "écoute", "écoutes"))
+            ? h(
+                "div",
+                { className: "ap-tile__sub" },
+                plural(it.listenCount, tr("écoute"), tr("écoutes")),
+              )
             : null,
         ),
       );
@@ -1042,8 +1052,8 @@ function ObsessionCard(p) {
   var o = p.obsession;
   if (!o)
     return h(ActionCard, {
-      title: "Définir une nouvelle obsession",
-      hint: "Le titre qui vous suit en ce moment.",
+      title: tr("Définir une nouvelle obsession"),
+      hint: tr("Le titre qui vous suit en ce moment."),
       art: "obsession",
       onClick: p.onSet,
     });
@@ -1057,14 +1067,16 @@ function ObsessionCard(p) {
       h(
         "div",
         { className: "ap-label" },
-        p.userName ? "L'obsession de " + p.userName : "Votre obsession",
+        p.userName ? tr("L'obsession de ") + p.userName : tr("Votre obsession"),
       ),
       h("div", { className: "ap-card__title", style: { marginTop: "4px" } }, o.track),
       h("div", { style: { fontSize: "16px", lineHeight: "22px" } }, o.artist),
-      o.since ? h("div", { className: "ap-card__since" }, "depuis le " + fmtDate(o.since)) : null,
+      o.since
+        ? h("div", { className: "ap-card__since" }, tr("depuis le ") + fmtDate(o.since))
+        : null,
     ),
     p.onClear
-      ? h(Button, { variant: "secondary", size: "sm", onClick: p.onClear }, "Retirer")
+      ? h(Button, { variant: "secondary", size: "sm", onClick: p.onClear }, tr("Retirer"))
       : null,
   );
 }
@@ -1231,12 +1243,12 @@ function EntityHero(p) {
                       rel: "noopener",
                     },
                     icons.play(),
-                    KIND_PLAY[kind],
+                    tr(KIND_PLAY[kind]),
                   )
                 : h(
                     Button,
                     { key: "p", variant: "light", icon: "play", onClick: p.onPlay },
-                    KIND_PLAY[kind],
+                    tr(KIND_PLAY[kind]),
                   ),
               kind === "track" && !p.readOnly
                 ? h(IconButton, {
@@ -2072,7 +2084,7 @@ function ReportNav(p) {
           {
             type: "button",
             className: "ap-rpnav__arrow",
-            "aria-label": "Période précédente",
+            "aria-label": tr("Période précédente"),
             onClick: p.onPrev,
           },
           icons.left(),
@@ -2083,7 +2095,7 @@ function ReportNav(p) {
           {
             type: "button",
             className: "ap-rpnav__arrow",
-            "aria-label": "Période suivante",
+            "aria-label": tr("Période suivante"),
             disabled: !p.onNext,
             onClick: p.onNext,
           },
@@ -2127,7 +2139,7 @@ function ReportHero(p) {
       h(
         "rect",
         { key: "p" + i, className: "prev", x: x0 + bw, y: ch - hp, width: bw, height: hp },
-        h("title", null, d.label + " (avant) : " + d.previous),
+        h("title", null, d.label + tr(" (avant) : ") + d.previous),
       ),
     );
     bars.push(
@@ -2154,7 +2166,7 @@ function ReportHero(p) {
               p.deltaPercent >= 0 ? icons.up() : icons.down(),
               Math.abs(Math.round(p.deltaPercent)) +
                 " % " +
-                (p.deltaLabel || "par rapport à la semaine passée"),
+                (p.deltaLabel || tr("par rapport à la semaine passée")),
             )
           : null,
         p.deltaPercent == null && p.deltaLabel
@@ -2163,7 +2175,7 @@ function ReportHero(p) {
         h(
           "div",
           { className: "ap-rphero__count" },
-          fmtNum(p.count) + " " + (p.unit || "scrobbles"),
+          fmtNum(p.count) + " " + (p.unit || tr("scrobbles")),
         ),
       ),
       h(
@@ -2176,13 +2188,13 @@ function ReportHero(p) {
             "span",
             null,
             h("i", { style: { background: "var(--band-ink)" } }),
-            p.currentLabel || "Cette semaine",
+            p.currentLabel || tr("Cette semaine"),
           ),
           h(
             "span",
             null,
             h("i", { style: { background: "var(--band-prev)" } }),
-            p.previousLabel || "Semaine précédente",
+            p.previousLabel || tr("Semaine précédente"),
           ),
         ),
         h(
@@ -2190,7 +2202,7 @@ function ReportHero(p) {
           {
             viewBox: "0 0 " + W + " " + H,
             role: "img",
-            "aria-label": "Écoutes par jour, comparées à la période précédente",
+            "aria-label": tr("Écoutes par jour, comparées à la période précédente"),
           },
           bars,
         ),
@@ -2206,7 +2218,7 @@ function CategoryTile(p) {
   return h(
     "div",
     { className: "ap-root ap-cat ap-chamfer ap-cat--" + k },
-    h("div", { className: "ap-cat__label" }, p.label || CAT[k]),
+    h("div", { className: "ap-cat__label" }, p.label || tr(CAT[k])),
     h(
       "div",
       { className: "ap-cat__row" },
@@ -2339,7 +2351,7 @@ function CompareBars(p) {
         h(
           "div",
           null,
-          h("div", { className: "ap-cmp__k" }, r.label || CAT[r.kind]),
+          h("div", { className: "ap-cmp__k" }, r.label || tr(CAT[r.kind])),
           h("div", { className: "ap-cmp__v" }, fmtNum(r.current)),
         ),
         h(
@@ -2639,9 +2651,9 @@ function SiteFooter(p) {
         p.lang !== false
           ? h(LangSelect, { value: p.lang || undefined, defaultValue: "fr", onChange: p.onLang })
           : null,
-        h("span", null, "Fuseau horaire : ", h("strong", null, p.timeZone || "Europe/Paris")),
-        p.version ? h("span", null, "Version " + p.version) : null,
-        h("span", null, "Scrobbler auto-hébergé, compatible ListenBrainz"),
+        h("span", null, tr("Fuseau horaire : "), h("strong", null, p.timeZone || "Europe/Paris")),
+        p.version ? h("span", null, tr("Version ") + p.version) : null,
+        h("span", null, tr("Scrobbler auto-hébergé, compatible ListenBrainz")),
         null,
       ),
     ),
@@ -2692,7 +2704,11 @@ function AuthLayout(p) {
     h(
       "div",
       { className: "ap-auth__brand" },
-      h("div", { className: "ap-auth__quote" }, p.quote || "Votre historique d'écoute, chez vous."),
+      h(
+        "div",
+        { className: "ap-auth__quote" },
+        p.quote || tr("Votre historique d'écoute, chez vous."),
+      ),
       h(
         "svg",
         { viewBox: "0 0 400 112", className: "ap-auth__bars", "aria-hidden": "true" },
@@ -2756,7 +2772,11 @@ function LandingHero(p) {
     h(
       "div",
       { className: "ap-land__in" },
-      h("h1", { className: "ap-land__title" }, p.title || "Votre historique d'écoute, chez vous."),
+      h(
+        "h1",
+        { className: "ap-land__title" },
+        p.title || tr("Votre historique d'écoute, chez vous."),
+      ),
       p.lead ? h("p", { className: "ap-land__lead" }, p.lead) : null,
       h("div", { className: "ap-land__cta" }, p.actions),
     ),
@@ -2796,29 +2816,35 @@ function ApiKeyList(p) {
         "div",
         { className: "ap-keys__hint" },
         p.hint ||
-          "Une clé par lecteur ou par appareil : vous pouvez en révoquer une sans toucher aux autres.",
+          tr(
+            "Une clé par lecteur ou par appareil : vous pouvez en révoquer une sans toucher aux autres.",
+          ),
       ),
       h(
         Button,
         { variant: "secondary", size: "sm", icon: "plus", onClick: p.onCreate },
-        "Nouvelle clé",
+        tr("Nouvelle clé"),
       ),
     ),
     p.revealed
       ? h(
           "div",
           { className: "ap-keyreveal", role: "status" },
-          h("div", { className: "ap-keyreveal__t" }, "Clé « " + p.revealed.name + " » créée"),
+          h(
+            "div",
+            { className: "ap-keyreveal__t" },
+            tr("Clé « ") + p.revealed.name + tr(" » créée"),
+          ),
           h(
             "div",
             { className: "ap-keyreveal__row" },
             h("div", { className: "ap-keyreveal__key" }, p.revealed.key),
-            h(Button, { variant: "primary", onClick: p.onCopy }, "Copier"),
+            h(Button, { variant: "primary", onClick: p.onCopy }, tr("Copier")),
           ),
           h(
             "div",
             { className: "ap-keyreveal__x" },
-            "Copiez-la maintenant : elle ne sera plus affichée en entier.",
+            tr("Copiez-la maintenant : elle ne sera plus affichée en entier."),
           ),
         )
       : null,
@@ -2839,12 +2865,12 @@ function ApiKeyList(p) {
               h(
                 "div",
                 { className: "ap-key__meta" },
-                "Créée le " +
+                tr("Créée le ") +
                   fmtDate(k.createdAt) +
                   " · " +
                   (k.lastUsedAt
-                    ? "dernière utilisation " + fmtAgo(k.lastUsedAt, p.now)
-                    : "jamais utilisée"),
+                    ? tr("dernière utilisation ") + fmtAgo(k.lastUsedAt, p.now)
+                    : tr("jamais utilisée")),
               ),
               h(
                 "div",
@@ -2858,7 +2884,7 @@ function ApiKeyList(p) {
                       if (p.onRevoke) p.onRevoke(k);
                     },
                   },
-                  "Révoquer",
+                  tr("Révoquer"),
                 ),
               ),
             );
@@ -2866,9 +2892,9 @@ function ApiKeyList(p) {
         )
       : h(EmptyState, {
           icon: "plus",
-          title: "Aucune clé d'API",
-          text: "Créez une clé et collez-la dans votre lecteur pour envoyer vos écoutes.",
-          actionLabel: "Créer une clé",
+          title: tr("Aucune clé d'API"),
+          text: tr("Créez une clé et collez-la dans votre lecteur pour envoyer vos écoutes."),
+          actionLabel: tr("Créer une clé"),
           onAction: p.onCreate,
         }),
   );
@@ -2977,7 +3003,7 @@ function LaurelBadge(p) {
             ? h(
                 "div",
                 { className: "ap-laurel__when" },
-                l.earnedAt ? "Obtenu le " + fmtDate(l.earnedAt) : "Obtenu",
+                l.earnedAt ? tr("Obtenu le ") + fmtDate(l.earnedAt) : tr("Obtenu"),
               )
             : h(
                 "div",
@@ -3021,7 +3047,7 @@ function LaurelStrip(p) {
       ? h(
           A,
           { className: "ap-link", href: p.href || "#" },
-          fmtNum(p.total) + " lauriers obtenus",
+          fmtNum(p.total) + tr(" lauriers obtenus"),
           icons.more(),
         )
       : null,
@@ -3059,10 +3085,10 @@ function AppearancePicker(p) {
   return h(
     "div",
     { className: "ap-root ap-appear" },
-    h("div", { className: "ap-field__label" }, "Thème"),
+    h("div", { className: "ap-field__label" }, tr("Thème")),
     h(
       "div",
-      { className: "ap-appear__row", role: "radiogroup", "aria-label": "Thème" },
+      { className: "ap-appear__row", role: "radiogroup", "aria-label": tr("Thème") },
       THEMES.map(function (t) {
         return h(
           "button",
@@ -3082,15 +3108,21 @@ function AppearancePicker(p) {
             accent: accent,
             style: accentVars(accent, t.value === "system" ? "light" : t.value),
           }),
-          h("span", { className: "ap-choice__l" }, t.label),
+          h("span", { className: "ap-choice__l" }, tr(t.label)),
         );
       }),
     ),
-    h("div", { className: "ap-field__label", style: { marginTop: "24px" } }, "Couleur du profil"),
+    h(
+      "div",
+      { className: "ap-field__label", style: { marginTop: "24px" } },
+      tr("Couleur du profil"),
+    ),
     h(
       "div",
       { className: "ap-field__hint", style: { marginTop: "-4px", marginBottom: "8px" } },
-      "Les visiteurs voient votre profil dans cette couleur. Trois couleurs d'Apollon, ou la vôtre.",
+      tr(
+        "Les visiteurs voient votre profil dans cette couleur. Trois couleurs d'Apollon, ou la vôtre.",
+      ),
     ),
     h(AccentPicker, {
       value: p.accent,
@@ -3135,7 +3167,7 @@ function SearchResults(p) {
           ? h("div", { className: "ap-media__sub" }, h(Highlight, { text: sub, query: q }))
           : null,
       ),
-      h("span", { className: "ap-media__trail" }, plural(count, "écoute", "écoutes")),
+      h("span", { className: "ap-media__trail" }, plural(count, tr("écoute"), tr("écoutes"))),
     );
   };
   var block = function (k, title, items, render) {
@@ -3147,7 +3179,7 @@ function SearchResults(p) {
       h("h3", { className: "ap-sres__h" }, title, h("span", null, items.length)),
       items.length
         ? items.map(render)
-        : h("div", { className: "ap-sres__none" }, "Aucun résultat."),
+        : h("div", { className: "ap-sres__none" }, tr("Aucun résultat.")),
     );
   };
   var cov =
@@ -3164,13 +3196,15 @@ function SearchResults(p) {
   if (!total)
     return h(EmptyState, {
       icon: "search",
-      title: "Rien pour « " + q + " »",
-      text: "La recherche porte sur les noms d'artistes, d'albums et de titres de votre bibliothèque. Vérifiez l'orthographe ou essayez un seul mot.",
+      title: tr("Rien pour « ") + q + " »",
+      text: tr(
+        "La recherche porte sur les noms d'artistes, d'albums et de titres de votre bibliothèque. Vérifiez l'orthographe ou essayez un seul mot.",
+      ),
     });
   return h(
     "div",
     { className: "ap-root ap-sres" },
-    block("artists", "Artistes", d.artists || [], function (a, i) {
+    block("artists", tr("Artistes"), d.artists || [], function (a, i) {
       return row(
         "a" + i,
         a.artist,
@@ -3181,7 +3215,7 @@ function SearchResults(p) {
         link(a, "artists"),
       );
     }),
-    block("albums", "Albums", d.albums || [], function (a, i) {
+    block("albums", tr("Albums"), d.albums || [], function (a, i) {
       return row(
         "b" + i,
         a.album,
@@ -3192,7 +3226,7 @@ function SearchResults(p) {
         link(a, "albums"),
       );
     }),
-    block("tracks", "Titres", d.tracks || [], function (t, i) {
+    block("tracks", tr("Titres"), d.tracks || [], function (t, i) {
       return row(
         "t" + i,
         t.track,
@@ -3291,7 +3325,7 @@ function AccentPicker(p) {
     { className: "ap-root" },
     h(
       "div",
-      { className: "ap-appear__row", role: "radiogroup", "aria-label": "Couleur du profil" },
+      { className: "ap-appear__row", role: "radiogroup", "aria-label": tr("Couleur du profil") },
       ACCENT_PRESETS.map(function (a) {
         return h(
           "button",
@@ -3309,8 +3343,8 @@ function AccentPicker(p) {
           h(
             "span",
             null,
-            h("span", { className: "ap-choice__l" }, a.label),
-            h("span", { className: "ap-choice__n" }, a.note),
+            h("span", { className: "ap-choice__l" }, tr(a.label)),
+            h("span", { className: "ap-choice__n" }, tr(a.note)),
           ),
         );
       }),
@@ -3330,7 +3364,7 @@ function AccentPicker(p) {
           h("input", {
             type: "color",
             value: v,
-            "aria-label": "Couleur personnalisée",
+            "aria-label": tr("Couleur personnalisée"),
             onChange: function (e) {
               set(e.target.value);
             },
@@ -3339,7 +3373,7 @@ function AccentPicker(p) {
         h(
           "span",
           null,
-          h("span", { className: "ap-choice__l" }, "Personnalisée"),
+          h("span", { className: "ap-choice__l" }, tr("Personnalisée")),
           h("span", { className: "ap-choice__n" }, isPreset ? "choisir une couleur" : v),
         ),
       ),
@@ -3348,9 +3382,9 @@ function AccentPicker(p) {
       ? h(
           "div",
           { className: "ap-accentprev", style: accentVars(v, p.theme || "light") },
-          h(Button, { variant: "primary", size: "sm" }, "C'est mon obsession"),
-          h("span", { className: "ap-link" }, "Plus de titres", icons.more()),
-          h("span", { className: "ap-accentprev__tab" }, "Aperçu"),
+          h(Button, { variant: "primary", size: "sm" }, tr("C'est mon obsession")),
+          h("span", { className: "ap-link" }, tr("Plus de titres"), icons.more()),
+          h("span", { className: "ap-accentprev__tab" }, tr("Aperçu")),
           h(LoveButton, { loved: true }),
         )
       : null,
@@ -3371,7 +3405,7 @@ function MobileTabBar(p) {
     active = p.active || items[0].value;
   return h(
     "nav",
-    { className: "ap-root ap-tabbar", "aria-label": "Navigation" },
+    { className: "ap-root ap-tabbar", "aria-label": tr("Navigation") },
     items.map(function (t) {
       return h(
         A,
@@ -3401,19 +3435,25 @@ function MiniNowPlaying(p) {
       h("div", { className: "ap-mininp__t" }, t.track),
       h("div", { className: "ap-mininp__a" }, t.artist),
     ),
-    h("span", { className: "ap-eq", "aria-label": "En cours d'écoute" }, h("i"), h("i"), h("i")),
+    h(
+      "span",
+      { className: "ap-eq", "aria-label": tr("En cours d'écoute") },
+      h("i"),
+      h("i"),
+      h("i"),
+    ),
     p.loved !== undefined ? h(LoveButton, { loved: p.loved, onToggle: p.onToggleLove }) : null,
   );
 }
 /* Full-screen menu opened by the burger of SiteHeader on phones. visitor: no account section. */
 function MobileMenu(p) {
   var links = p.links || [
-    "Aperçu",
-    "Rapports",
-    "Bibliothèque",
-    "Coups de cœur",
-    "Obsessions",
-    "Lauriers",
+    tr("Aperçu"),
+    tr("Rapports"),
+    tr("Bibliothèque"),
+    tr("Coups de cœur"),
+    tr("Obsessions"),
+    tr("Lauriers"),
   ];
   return h(
     "div",
@@ -3424,7 +3464,12 @@ function MobileMenu(p) {
       h("span", { className: "ap-mmenu__label" }, "Menu"),
       h(
         "button",
-        { type: "button", className: "ap-mmenu__x", "aria-label": "Fermer", onClick: p.onClose },
+        {
+          type: "button",
+          className: "ap-mmenu__x",
+          "aria-label": tr("Fermer"),
+          onClick: p.onClose,
+        },
         icons.close(),
       ),
     ),
@@ -3465,7 +3510,7 @@ function MobileMenu(p) {
     h(
       "div",
       { className: "ap-mmenu__lang" },
-      h("span", null, "Langue"),
+      h("span", null, tr("Langue")),
       h(LangSelect, { value: p.lang, defaultValue: "fr", onChange: p.onLang }),
     ),
     p.visitor
@@ -3476,19 +3521,19 @@ function MobileMenu(p) {
             ? h(
                 A,
                 { className: "ap-btn ap-btn--primary", href: p.signupHref || "#" },
-                "Créer un compte",
+                tr("Créer un compte"),
               )
             : null,
-          h(A, { className: "ap-btn ap-btn--light", href: p.loginHref || "#" }, "Se connecter"),
+          h(A, { className: "ap-btn ap-btn--light", href: p.loginHref || "#" }, tr("Se connecter")),
         )
       : h(
           "ul",
           { className: "ap-mmenu__list ap-mmenu__list--sm" },
           (
             p.accountLinks || [
-              { label: "Réglages" },
-              { label: "Clés d'API" },
-              { label: "Se déconnecter" },
+              { label: tr("Réglages") },
+              { label: tr("Clés d'API") },
+              { label: tr("Se déconnecter") },
             ]
           ).map(function (l) {
             return h(
@@ -3524,7 +3569,7 @@ function LangSelect(p) {
       "select",
       {
         value: v,
-        "aria-label": "Langue",
+        "aria-label": tr("Langue"),
         onChange: function (e) {
           st[1](e.target.value);
           if (p.onChange) p.onChange(e.target.value);
