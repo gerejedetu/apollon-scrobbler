@@ -6,6 +6,7 @@
  */
 import type {
   ActivityQuery,
+  AlbumRun,
   AlbumTrack,
   Bucket,
   BucketCount,
@@ -135,6 +136,13 @@ export interface InsightsRepository {
   diversity(query: InsightQuery): Promise<Diversity>;
   /** A session ends after `gapSeconds` without a listen. */
   sessions(query: InsightQuery & { gapSeconds: number }): Promise<SessionStats>;
+  /**
+   * Albums played through: runs of consecutive listens of one album (no other album in between, gaps under
+   * `gapSeconds`) with at least `minTracks` distinct tracks. Longest first, then most recent.
+   */
+  albumRuns(
+    query: InsightQuery & { gapSeconds: number; minTracks: number; limit: number },
+  ): Promise<{ total: number; items: AlbumRun[] }>;
   /** Tracks played several times in a row, longest runs first. */
   repeats(query: InsightQuery & { limit: number }): Promise<Repeat[]>;
   /** The n-th listen of all time for each n (absent when the user has fewer listens). */

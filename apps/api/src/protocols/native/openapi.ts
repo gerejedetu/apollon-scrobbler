@@ -322,6 +322,40 @@ const insightPaths = {
       },
     },
   ),
+  "/users/{userName}/stats/album-sessions": insight(
+    "Albums played through in one go",
+    "Runs of consecutive listens of one album with at least minTracks distinct tracks.",
+    [
+      range,
+      q("minTracks", { type: "integer", minimum: 2, maximum: 100, default: 5 }),
+      q("gapMinutes", { type: "integer", minimum: 5, maximum: 1440, default: 30 }),
+      limitParam(10),
+    ],
+    {
+      ...rangeProps,
+      gapMinutes: { type: "integer" },
+      minTracks: { type: "integer" },
+      total: { type: "integer", description: "Every run in the range, beyond the ones listed." },
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            artistName: { type: "string" },
+            releaseName: { type: "string" },
+            releaseMbid: { type: ["string", "null"] },
+            trackCount: {
+              type: "integer",
+              description: "Distinct tracks of the album in the run.",
+            },
+            listenCount: { type: "integer" },
+            startedAt: { type: "integer" },
+            endedAt: { type: "integer" },
+          },
+        },
+      },
+    },
+  ),
   "/users/{userName}/stats/repeats": insight(
     "Tracks played back to back",
     "Each track's longest run of consecutive plays (2 or more), longest first, then most recent.",

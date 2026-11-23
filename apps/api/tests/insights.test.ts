@@ -286,6 +286,19 @@ describe("pages and evolution (17-26)", () => {
     expect(s.longest).toMatchObject({ listenCount: 12 });
   });
 
+  test("albums played through in one go", async () => {
+    const r = await get("/stats/album-sessions?minTracks=2");
+    // Nov 16 evening: Digital Love x3 then One More Time, all from Discovery, minutes apart.
+    expect(r.total).toBe(1);
+    expect(r.items[0]).toMatchObject({
+      artistName: "Daft Punk",
+      releaseName: "Discovery",
+      trackCount: 2,
+      listenCount: 4,
+    });
+    expect((await get("/stats/album-sessions?minTracks=3")).total).toBe(0);
+  });
+
   test("23 back-to-back repeats", async () => {
     const r = await get("/stats/repeats");
     expect(r.items[0]).toMatchObject({

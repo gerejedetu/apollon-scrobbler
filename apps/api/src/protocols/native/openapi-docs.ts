@@ -275,6 +275,12 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     description:
       "Listening sessions: listens are grouped into one session as long as they are less than `gapMinutes` apart (30 by default). Returns the number of sessions, their average length in listens and in time, and the longest one.",
   },
+  "GET /users/{userName}/stats/album-sessions": {
+    operationId: "getAlbumSessions",
+    tag: "Insights",
+    description:
+      'Albums listened to in one go: runs of consecutive listens of one album (nothing else in between, no silence longer than `gapMinutes`) covering at least `minTracks` distinct tracks. Longest runs first, then most recent; `total` counts them all. Album track lists are not known, so "the whole album" is approximated by `minTracks`.',
+  },
   "GET /users/{userName}/stats/repeats": {
     operationId: "getRepeats",
     tag: "Insights",
@@ -349,6 +355,7 @@ export const PARAMETERS: Record<string, string> = {
   minListens: "Minimum number of listens over all time for something to count as a favourite.",
   gapMinutes: "Silence, in minutes, after which a new session starts.",
   q: "Text to look for in artist, album and track names.",
+  minTracks: "Fewest distinct tracks of one album, back to back, for a run to count.",
 };
 
 type Json = Record<string, unknown>;
