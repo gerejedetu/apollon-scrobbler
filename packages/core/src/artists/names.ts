@@ -8,6 +8,18 @@ const NATIVE =
   /[\p{Script=Hangul}\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Cyrillic}\p{Script=Greek}\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Thai}]/u;
 const LATIN = /\p{Script=Latin}/u;
 
+/**
+ * YouTube Music shows "Song • STAYC" or "Video • STAYC" under a title, and some scrobblers take the whole
+ * line as the artist. The type label is never part of a name.
+ */
+const SERVICE_LABEL =
+  /^(?:song|video|single|ep|album|playlist|titre|vidéo|chanson|canción|lied)\s*[•·]\s*/i;
+
+export function withoutServiceLabel(name: string): string {
+  const stripped = name.replace(SERVICE_LABEL, "").trim();
+  return stripped || name;
+}
+
 /** Whether a name has letters of a non-Latin script: only such names can need renaming. */
 export function hasNativeScript(name: string): boolean {
   return NATIVE.test(name);
