@@ -61,3 +61,22 @@ describe("FavouriteService", () => {
     );
   });
 });
+
+test("obsession history: each new obsession closes the previous one; setting the same track again does not", async () => {
+  const repos = fakeRepositories();
+  let now = 1000;
+  const s = new FavouriteService(repos.favourites, () => now);
+  await s.setObsession(user, { artist: "Air", track: "La femme d'argent" });
+  now = 2000;
+  await s.setObsession(user, { artist: "Air", track: "La femme d'argent" });
+  now = 3000;
+  await s.setObsession(user, { artist: "STAYC", track: "ASAP" });
+  now = 4000;
+  await s.clearObsession(user);
+  const { items, total } = await s.obsessionHistory(user);
+  expect(total).toBe(2);
+  expect(items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([
+    ["ASAP", 3000, 4000],
+    ["La femme d'argent", 1000, 3000],
+  ]);
+});

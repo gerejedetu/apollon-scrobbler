@@ -757,6 +757,47 @@ const baseDocument = {
         },
       },
     },
+    "/users/{userName}/obsessions": {
+      get: {
+        summary: "Every obsession a user has had",
+        parameters: [
+          userName,
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+          },
+          { name: "offset", in: "query", schema: { type: "integer", minimum: 0, default: 0 } },
+        ],
+        responses: {
+          "200": ok("Obsession history", {
+            type: "object",
+            properties: {
+              userName: { type: "string" },
+              total: { type: "integer" },
+              items: {
+                type: "array",
+                items: {
+                  allOf: [
+                    ref("Favourite"),
+                    {
+                      type: "object",
+                      properties: {
+                        until: {
+                          type: ["integer", "null"],
+                          description: "When it was replaced or cleared; null while current.",
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          }),
+          "404": errors["404"],
+        },
+      },
+    },
     "/instance": {
       get: {
         summary: "Instance settings",

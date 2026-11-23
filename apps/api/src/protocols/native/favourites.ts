@@ -46,6 +46,16 @@ export const favouriteRoutes = new Hono<AppEnv>()
     const t = await c.var.services.favourites.obsession(user);
     return c.json({ userName: user.name, obsession: t ? presentFavourite(t, "since") : null });
   })
+  .get("/users/:userName/obsessions", async (c) => {
+    const user = await readableUser(c, c.req.param("userName"));
+    const { limit, offset } = c.req.query();
+    const page = await c.var.services.favourites.obsessionHistory(user, { limit, offset });
+    return c.json({
+      userName: user.name,
+      total: page.total,
+      items: page.items.map((p) => ({ ...presentFavourite(p, "since"), until: p.endedAt })),
+    });
+  })
   .put("/me/obsession", async (c) => {
     const user = await requireUserOrSession(c);
     await c.var.services.favourites.setObsession(user, asRef(await jsonBody(c)));

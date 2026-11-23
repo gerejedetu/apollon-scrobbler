@@ -19,6 +19,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
 
   const loved = new Map<string, FavouriteTrack>();
   const obsessions = new Map<number, FavouriteTrack>();
+  const history: (FavouriteTrack & { userId: number; endedAt: number | null })[] = [];
   const lovedKey = (userId: number, artist: string, track: string) =>
     `${userId}\u0000${artist}\u0000${track}`;
   return {
@@ -37,9 +38,29 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           .sort((a, b) => b.at - a.at);
         return { items: mine.slice(offset, offset + limit), total: mine.length };
       },
-      async setObsession(userId, t) {
-        if (t) obsessions.set(userId, t);
-        else obsessions.delete(userId);
+      async setObsession(userId, t, at) {
+        const current = obsessions.get(userId);
+        if (
+          t &&
+          current &&
+          current.artistName === t.artistName &&
+          current.trackName === t.trackName
+        ) {
+          obsessions.set(userId, t);
+          return;
+        }
+        for (const p of history) if (p.userId === userId && p.endedAt === null) p.endedAt = at;
+        if (t) {
+          obsessions.set(userId, t);
+          history.push({ ...t, userId, endedAt: null });
+        } else obsessions.delete(userId);
+      },
+      async obsessionHistory(userId, limit, offset) {
+        const mine = history.filter((p) => p.userId === userId).reverse();
+        return {
+          items: mine.slice(offset, offset + limit).map(({ userId: _u, ...p }) => p),
+          total: mine.length,
+        };
       },
       async obsession(userId) {
         return obsessions.get(userId) ?? null;
