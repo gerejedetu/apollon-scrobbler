@@ -3660,7 +3660,6 @@ function AccountMenu(p) {
         },
       },
       h(Avatar, { name: p.userName, src: p.avatarUrl }),
-      icons.chevron(),
     ),
     open
       ? h(

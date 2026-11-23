@@ -731,8 +731,9 @@
   align-items: flex-end;
   gap: 2px;
   height: 52px;
-  width: 132px;
-  flex: none;
+  /* Gives up its width before the title does when the column is narrow. */
+  flex: 0 100 132px;
+  min-width: 48px;
   justify-content: flex-end;
 }
 .ap-report__bars span {
@@ -2806,7 +2807,7 @@ svg.ap-album__img {
   bottom: 0;
   width: 46%;
   height: 100%;
-  opacity: 0.55;
+  opacity: 0.22;
   -webkit-mask-image: linear-gradient(to right, transparent, #000 55%);
   mask-image: linear-gradient(to right, transparent, #000 55%);
 }
@@ -2821,17 +2822,38 @@ svg.ap-hero__cover {
 }
 .ap-lbanner rect {
   fill: var(--report-track);
+  opacity: 0.7;
 }
 .ap-lbanner rect.is-peak {
   fill: var(--gold-500);
-  opacity: 0.9;
+  opacity: 0.3;
 }
 .ap-lbanner .ap-lbanner__line {
   fill: var(--gold-500);
-  opacity: 0.6;
+  opacity: 0.4;
 }
 .ap-banner__inner {
   z-index: 1;
+}
+/* Overlay over the drawn or photo banner: keeps the name and the top track readable */
+.ap-banner::after,
+.ap-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--report-bg) 35%, transparent),
+    color-mix(in srgb, var(--report-bg) 15%, transparent) 45%,
+    color-mix(in srgb, var(--report-bg) 55%, transparent)
+  );
+}
+.ap-hero__inner {
+  z-index: 1;
+}
+.ap-hero__cover {
+  z-index: 2;
 }
 
 /* ===== Lauriers ===== */
@@ -3553,7 +3575,7 @@ svg.ap-hero__cover {
   .ap-tile:first-child {
     grid-column: span 2;
     grid-row: auto;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 1;
   }
   .ap-tile__name {
     font-size: 16px;
@@ -3687,7 +3709,7 @@ svg.ap-hero__cover {
   }
   .ap-hero__gen {
     width: 70%;
-    opacity: 0.35;
+    opacity: 0.18;
   }
   .ap-hero--cover .ap-hero__inner {
     padding-top: calc(var(--space-6) + 168px);
@@ -4083,11 +4105,12 @@ svg.ap-hero__cover {
 }
 .ap-ov__cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
 }
 .ap-ov__reports {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
 .ap-root .ap-ov__media {
@@ -4095,11 +4118,6 @@ svg.ap-hero__cover {
 }
 .ap-root .ap-ov__media:hover .ap-media__title {
   color: var(--gold-text);
-}
-@media (max-width: 720px) {
-  .ap-ov__cards {
-    grid-template-columns: 1fr;
-  }
 }
 /* Page titles set by the mockups inline, and the library's small layout bits. */
 .ap-root .ap-pagetitle {
@@ -4340,6 +4358,7 @@ svg.ap-hero__cover {
   white-space: nowrap;
 }
 .ap-report > div:first-child {
+  flex: 1 1 auto;
   min-width: 0;
 }
 .ap-media__trail {
@@ -4375,10 +4394,6 @@ svg.ap-hero__cover {
 .ap-acct__btn[aria-expanded="true"] .ap-avatar {
   outline: 2px solid var(--gold-500);
   outline-offset: 2px;
-}
-.ap-acct__btn > .ap-icon {
-  width: 14px;
-  height: 14px;
 }
 .ap-acct__pop {
   position: absolute;
@@ -4643,9 +4658,6 @@ svg.ap-hero__cover {
 }
 
 @media (max-width: 720px) {
-  .ap-acct__btn > .ap-icon {
-    display: none;
-  }
   .ap-acct__pop {
     position: fixed;
     left: var(--space-4);
@@ -4715,4 +4727,21 @@ svg.ap-hero__cover {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* Reports between phone and wide desktop (phones already stack, see above): the hero, the three category columns and the paired panels
+   stack instead of squeezing three columns into a tablet-width window. */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .ap-rphero .ap-rp__wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+  .ap-rp__grid3:has(> .ap-rp__col),
+  .ap-rp__grid2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* A full-width #1 picture stays a banner, not a screen-high square. */
+  .ap-feat__img {
+    aspect-ratio: 16 / 9;
+  }
 }
