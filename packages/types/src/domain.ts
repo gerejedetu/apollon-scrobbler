@@ -157,6 +157,11 @@ export interface ArtistQuery {
 }
 
 /** A track the user loves, or their current obsession. `at` is when it was set (Unix seconds). */
+/** A past or current obsession: `at` is when it started, `endedAt` when it was replaced (null while current). */
+export interface ObsessionPeriod extends FavouriteTrack {
+  endedAt: number | null;
+}
+
 export interface FavouriteTrack {
   artistName: string;
   trackName: string;

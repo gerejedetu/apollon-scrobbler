@@ -114,6 +114,12 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     tag: "Favourites",
     description: "A user's current obsession, or `obsession: null`.",
   },
+  "GET /users/{userName}/obsessions": {
+    operationId: "listObsessions",
+    tag: "Favourites",
+    description:
+      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period.",
+  },
   "GET /instance": {
     operationId: "getInstance",
     tag: "Account",

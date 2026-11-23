@@ -16,6 +16,7 @@ import type {
   EntityDetail,
   EntityKey,
   FavouriteTrack,
+  ObsessionPeriod,
   Forgotten,
   InsightEntity,
   InsightQuery,
@@ -159,9 +160,15 @@ export interface FavouriteRepository {
     limit: number,
     offset: number,
   ): Promise<{ items: FavouriteTrack[]; total: number }>;
-  /** Replaces the obsession, or clears it with null. */
-  setObsession(userId: UserId, track: FavouriteTrack | null): Promise<void>;
+  /** Replaces the obsession, or clears it with null, closing the current period of the history. */
+  setObsession(userId: UserId, track: FavouriteTrack | null, at: number): Promise<void>;
   obsession(userId: UserId): Promise<FavouriteTrack | null>;
+  /** Every obsession, newest first. */
+  obsessionHistory(
+    userId: UserId,
+    limit: number,
+    offset: number,
+  ): Promise<{ items: ObsessionPeriod[]; total: number }>;
 }
 
 /** Instance-wide settings and the facts they depend on. Every method is one indexed read or write. */

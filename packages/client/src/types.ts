@@ -316,6 +316,13 @@ export interface LovedPage {
   items: Favourite[];
 }
 
+/** GET /v1/users/{userName}/obsessions */
+export interface ObsessionHistory {
+  userName: string;
+  total: number;
+  items: (Favourite & { until: number | null })[];
+}
+
 /** What identifies a track for loving it or making it the obsession. */
 export interface TrackRef {
   artist: string;

@@ -69,11 +69,18 @@ export class FavouriteService {
   }
 
   async setObsession(user: User, ref: TrackRef): Promise<void> {
-    return this.favourites.setObsession(user.id, this.toFavourite(ref));
+    const t = this.toFavourite(ref);
+    return this.favourites.setObsession(user.id, t, t.at);
   }
 
   clearObsession(user: User): Promise<void> {
-    return this.favourites.setObsession(user.id, null);
+    return this.favourites.setObsession(user.id, null, this.clock());
+  }
+
+  obsessionHistory(user: User, query: { limit?: unknown; offset?: unknown } = {}) {
+    const limit = Math.min(Math.max(Number(query.limit ?? 50) || 50, 1), MAX_LOVED_PAGE);
+    const offset = Math.max(Number(query.offset ?? 0) || 0, 0);
+    return this.favourites.obsessionHistory(user.id, limit, offset);
   }
 
   obsession(user: User): Promise<FavouriteTrack | null> {
