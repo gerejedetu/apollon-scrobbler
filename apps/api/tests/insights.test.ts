@@ -288,8 +288,14 @@ describe("pages and evolution (17-26)", () => {
 
   test("albums played through in one go", async () => {
     const r = await get("/stats/album-sessions?minTracks=2");
-    // Nov 16 evening: Digital Love x3 then One More Time, all from Discovery, minutes apart.
-    expect(r.total).toBe(1);
+    // Nov 16 evening: Digital Love x3 then One More Time from Discovery; a year earlier, Roads then Glory Box
+    // from Dummy. Same length: the most recent first.
+    expect(r.total).toBe(2);
+    expect(r.items[1]).toMatchObject({
+      artistName: "Portishead",
+      releaseName: "Dummy",
+      trackCount: 2,
+    });
     expect(r.items[0]).toMatchObject({
       artistName: "Daft Punk",
       releaseName: "Discovery",
