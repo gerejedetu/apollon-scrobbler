@@ -331,8 +331,14 @@ export interface ObsessionHistory {
   userName: string;
   total: number;
   /** The obsession kept longest (the current one counts up to now). */
-  longest: (Favourite & { until: number | null }) | null;
-  items: (Favourite & { until: number | null })[];
+  longest: ObsessionPeriod | null;
+  items: ObsessionPeriod[];
+}
+
+/** One period of the obsession history; `until` is null for the current one. */
+export interface ObsessionPeriod extends Favourite {
+  id: number;
+  until: number | null;
 }
 
 /** What identifies a track for loving it or making it the obsession. */

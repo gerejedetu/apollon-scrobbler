@@ -19,7 +19,8 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
 
   const loved = new Map<string, FavouriteTrack>();
   const obsessions = new Map<number, FavouriteTrack>();
-  const history: (FavouriteTrack & { userId: number; endedAt: number | null })[] = [];
+  const history: (FavouriteTrack & { id: number; userId: number; endedAt: number | null })[] = [];
+  let nextPeriodId = 1;
   const lovedKey = (userId: number, artist: string, track: string) =>
     `${userId}\u0000${artist}\u0000${track}`;
   return {
@@ -49,11 +50,36 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           obsessions.set(userId, t);
           return;
         }
-        for (const p of history) if (p.userId === userId && p.endedAt === null) p.endedAt = at;
-        if (t) {
-          obsessions.set(userId, t);
-          history.push({ ...t, userId, endedAt: null });
-        } else obsessions.delete(userId);
+        // Same rules as the SQL adapter: under a minute leaves no trace, coming back within 10 min resumes.
+        for (let i = history.length - 1; i >= 0; i--) {
+          const p = history[i]!;
+          if (p.userId !== userId || p.endedAt !== null) continue;
+          if (at - p.at < 60) history.splice(i, 1);
+          else p.endedAt = at;
+        }
+        if (!t) {
+          obsessions.delete(userId);
+          return;
+        }
+        obsessions.set(userId, t);
+        const last = history.filter((p) => p.userId === userId).at(-1);
+        if (
+          last &&
+          last.artistName === t.artistName &&
+          last.trackName === t.trackName &&
+          last.endedAt !== null &&
+          last.endedAt >= at - 600
+        ) {
+          last.endedAt = null;
+          return;
+        }
+        history.push({ ...t, id: nextPeriodId++, userId, endedAt: null });
+      },
+      async deleteObsessionPeriod(userId, id) {
+        const i = history.findIndex((p) => p.userId === userId && p.id === id);
+        if (i < 0) return false;
+        history.splice(i, 1);
+        return true;
       },
       async obsessionHistory(userId, limit, offset, now) {
         const mine = history.filter((p) => p.userId === userId).reverse();

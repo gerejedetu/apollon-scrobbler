@@ -83,6 +83,14 @@ export class FavouriteService {
     return this.favourites.obsessionHistory(user.id, limit, offset, this.clock());
   }
 
+  async deleteObsessionPeriod(user: User, id: unknown): Promise<void> {
+    const n = Number(id);
+    if (!Number.isInteger(n) || n < 1) throw ApiError.badRequest("Invalid obsession id.");
+    if (!(await this.favourites.deleteObsessionPeriod(user.id, n))) {
+      throw ApiError.notFound("No such obsession in your history.");
+    }
+  }
+
   obsession(user: User): Promise<FavouriteTrack | null> {
     return this.favourites.obsession(user.id);
   }

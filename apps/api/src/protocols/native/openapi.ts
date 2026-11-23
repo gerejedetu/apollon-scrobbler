@@ -760,6 +760,19 @@ const baseDocument = {
         responses: { "204": ok("Cleared"), "401": errors["401"] },
       },
     },
+    "/me/obsessions/{id}": {
+      delete: {
+        summary: "Remove a period from the obsession history",
+        security: secured,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        responses: {
+          "204": ok("Removed"),
+          "400": errors["400"],
+          "401": errors["401"],
+          "404": errors["404"],
+        },
+      },
+    },
     "/users/{userName}/loved": {
       get: {
         summary: "A user's loved tracks, newest first",
@@ -906,7 +919,13 @@ const baseDocument = {
                   {
                     allOf: [
                       ref("Favourite"),
-                      { type: "object", properties: { until: { type: ["integer", "null"] } } },
+                      {
+                        type: "object",
+                        properties: {
+                          id: { type: "integer" },
+                          until: { type: ["integer", "null"] },
+                        },
+                      },
                     ],
                   },
                   { type: "null" },
@@ -921,6 +940,7 @@ const baseDocument = {
                     {
                       type: "object",
                       properties: {
+                        id: { type: "integer", description: "To delete this period." },
                         until: {
                           type: ["integer", "null"],
                           description: "When it was replaced or cleared; null while current.",
