@@ -4166,3 +4166,17 @@ svg.ap-hero__cover {
 .ap-rp__gap {
   height: var(--space-16);
 }
+.ap-wr__grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-12);
+}
+.ap-wr__grid3--tight {
+  gap: var(--space-6);
+}
+@media (max-width: 720px) {
+  .ap-wr__grid3 {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+}

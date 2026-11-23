@@ -20,10 +20,13 @@ import { Route as ReglagesImportRouteImport } from './routes/reglages/import'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
 import { Route as UUserNameRouteRouteImport } from './routes/u/$userName/route'
 import { Route as UUserNameProfileRouteRouteImport } from './routes/u/$userName/_profile/route'
-import { Route as UUserNameBilanRouteImport } from './routes/u/$userName/bilan'
 import { Route as UUserNameRechercheRouteImport } from './routes/u/$userName/recherche'
+import { Route as UUserNameRetrospectiveRouteImport } from './routes/u/$userName/retrospective'
 import { Route as UUserNameProfileIndexRouteImport } from './routes/u/$userName/_profile/index'
+import { Route as UUserNameProfileCoupsDeCoeurRouteImport } from './routes/u/$userName/_profile/coups-de-coeur'
 import { Route as UUserNameProfileHistoriqueRouteImport } from './routes/u/$userName/_profile/historique'
+import { Route as UUserNameProfileLauriersRouteImport } from './routes/u/$userName/_profile/lauriers'
+import { Route as UUserNameProfileObsessionsRouteImport } from './routes/u/$userName/_profile/obsessions'
 import { Route as UUserNameProfileRapportsRouteImport } from './routes/u/$userName/_profile/rapports'
 import { Route as UUserNameArtistesArtistRouteImport } from './routes/u/$userName/artistes/$artist'
 import { Route as UUserNameProfileTopsKindRouteImport } from './routes/u/$userName/_profile/tops/$kind'
@@ -84,14 +87,14 @@ const UUserNameProfileRouteRoute = UUserNameProfileRouteRouteImport.update({
   id: '/_profile',
   getParentRoute: () => UUserNameRouteRoute,
 } as any)
-const UUserNameBilanRoute = UUserNameBilanRouteImport.update({
-  id: '/bilan',
-  path: '/bilan',
-  getParentRoute: () => UUserNameRouteRoute,
-} as any)
 const UUserNameRechercheRoute = UUserNameRechercheRouteImport.update({
   id: '/recherche',
   path: '/recherche',
+  getParentRoute: () => UUserNameRouteRoute,
+} as any)
+const UUserNameRetrospectiveRoute = UUserNameRetrospectiveRouteImport.update({
+  id: '/retrospective',
+  path: '/retrospective',
   getParentRoute: () => UUserNameRouteRoute,
 } as any)
 const UUserNameProfileIndexRoute = UUserNameProfileIndexRouteImport.update({
@@ -99,10 +102,28 @@ const UUserNameProfileIndexRoute = UUserNameProfileIndexRouteImport.update({
   path: '/',
   getParentRoute: () => UUserNameProfileRouteRoute,
 } as any)
+const UUserNameProfileCoupsDeCoeurRoute =
+  UUserNameProfileCoupsDeCoeurRouteImport.update({
+    id: '/coups-de-coeur',
+    path: '/coups-de-coeur',
+    getParentRoute: () => UUserNameProfileRouteRoute,
+  } as any)
 const UUserNameProfileHistoriqueRoute =
   UUserNameProfileHistoriqueRouteImport.update({
     id: '/historique',
     path: '/historique',
+    getParentRoute: () => UUserNameProfileRouteRoute,
+  } as any)
+const UUserNameProfileLauriersRoute =
+  UUserNameProfileLauriersRouteImport.update({
+    id: '/lauriers',
+    path: '/lauriers',
+    getParentRoute: () => UUserNameProfileRouteRoute,
+  } as any)
+const UUserNameProfileObsessionsRoute =
+  UUserNameProfileObsessionsRouteImport.update({
+    id: '/obsessions',
+    path: '/obsessions',
     getParentRoute: () => UUserNameProfileRouteRoute,
   } as any)
 const UUserNameProfileRapportsRoute =
@@ -146,9 +167,12 @@ export interface FileRoutesByFullPath {
   '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
-  '/u/$userName/bilan': typeof UUserNameBilanRoute
   '/u/$userName/recherche': typeof UUserNameRechercheRoute
+  '/u/$userName/retrospective': typeof UUserNameRetrospectiveRoute
+  '/u/$userName/coups-de-coeur': typeof UUserNameProfileCoupsDeCoeurRoute
   '/u/$userName/historique': typeof UUserNameProfileHistoriqueRoute
+  '/u/$userName/lauriers': typeof UUserNameProfileLauriersRoute
+  '/u/$userName/obsessions': typeof UUserNameProfileObsessionsRoute
   '/u/$userName/rapports': typeof UUserNameProfileRapportsRoute
   '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
   '/u/$userName/': typeof UUserNameProfileIndexRoute
@@ -166,9 +190,12 @@ export interface FileRoutesByTo {
   '/reglages/import': typeof ReglagesImportRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages': typeof ReglagesIndexRoute
-  '/u/$userName/bilan': typeof UUserNameBilanRoute
   '/u/$userName/recherche': typeof UUserNameRechercheRoute
+  '/u/$userName/retrospective': typeof UUserNameRetrospectiveRoute
+  '/u/$userName/coups-de-coeur': typeof UUserNameProfileCoupsDeCoeurRoute
   '/u/$userName/historique': typeof UUserNameProfileHistoriqueRoute
+  '/u/$userName/lauriers': typeof UUserNameProfileLauriersRoute
+  '/u/$userName/obsessions': typeof UUserNameProfileObsessionsRoute
   '/u/$userName/rapports': typeof UUserNameProfileRapportsRoute
   '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
   '/u/$userName/tops/$kind': typeof UUserNameProfileTopsKindRoute
@@ -188,9 +215,12 @@ export interface FileRoutesById {
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/_profile': typeof UUserNameProfileRouteRouteWithChildren
-  '/u/$userName/bilan': typeof UUserNameBilanRoute
   '/u/$userName/recherche': typeof UUserNameRechercheRoute
+  '/u/$userName/retrospective': typeof UUserNameRetrospectiveRoute
+  '/u/$userName/_profile/coups-de-coeur': typeof UUserNameProfileCoupsDeCoeurRoute
   '/u/$userName/_profile/historique': typeof UUserNameProfileHistoriqueRoute
+  '/u/$userName/_profile/lauriers': typeof UUserNameProfileLauriersRoute
+  '/u/$userName/_profile/obsessions': typeof UUserNameProfileObsessionsRoute
   '/u/$userName/_profile/rapports': typeof UUserNameProfileRapportsRoute
   '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
   '/u/$userName/_profile/': typeof UUserNameProfileIndexRoute
@@ -211,9 +241,12 @@ export interface FileRouteTypes {
     | '/reglages/import'
     | '/reglages/tokens'
     | '/reglages/'
-    | '/u/$userName/bilan'
     | '/u/$userName/recherche'
+    | '/u/$userName/retrospective'
+    | '/u/$userName/coups-de-coeur'
     | '/u/$userName/historique'
+    | '/u/$userName/lauriers'
+    | '/u/$userName/obsessions'
     | '/u/$userName/rapports'
     | '/u/$userName/artistes/$artist'
     | '/u/$userName/'
@@ -231,9 +264,12 @@ export interface FileRouteTypes {
     | '/reglages/import'
     | '/reglages/tokens'
     | '/reglages'
-    | '/u/$userName/bilan'
     | '/u/$userName/recherche'
+    | '/u/$userName/retrospective'
+    | '/u/$userName/coups-de-coeur'
     | '/u/$userName/historique'
+    | '/u/$userName/lauriers'
+    | '/u/$userName/obsessions'
     | '/u/$userName/rapports'
     | '/u/$userName/artistes/$artist'
     | '/u/$userName/tops/$kind'
@@ -252,9 +288,12 @@ export interface FileRouteTypes {
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/_profile'
-    | '/u/$userName/bilan'
     | '/u/$userName/recherche'
+    | '/u/$userName/retrospective'
+    | '/u/$userName/_profile/coups-de-coeur'
     | '/u/$userName/_profile/historique'
+    | '/u/$userName/_profile/lauriers'
+    | '/u/$userName/_profile/obsessions'
     | '/u/$userName/_profile/rapports'
     | '/u/$userName/artistes/$artist'
     | '/u/$userName/_profile/'
@@ -352,18 +391,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserNameProfileRouteRouteImport
       parentRoute: typeof UUserNameRouteRoute
     }
-    '/u/$userName/bilan': {
-      id: '/u/$userName/bilan'
-      path: '/bilan'
-      fullPath: '/u/$userName/bilan'
-      preLoaderRoute: typeof UUserNameBilanRouteImport
-      parentRoute: typeof UUserNameRouteRoute
-    }
     '/u/$userName/recherche': {
       id: '/u/$userName/recherche'
       path: '/recherche'
       fullPath: '/u/$userName/recherche'
       preLoaderRoute: typeof UUserNameRechercheRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
+    '/u/$userName/retrospective': {
+      id: '/u/$userName/retrospective'
+      path: '/retrospective'
+      fullPath: '/u/$userName/retrospective'
+      preLoaderRoute: typeof UUserNameRetrospectiveRouteImport
       parentRoute: typeof UUserNameRouteRoute
     }
     '/u/$userName/_profile/': {
@@ -373,11 +412,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserNameProfileIndexRouteImport
       parentRoute: typeof UUserNameProfileRouteRoute
     }
+    '/u/$userName/_profile/coups-de-coeur': {
+      id: '/u/$userName/_profile/coups-de-coeur'
+      path: '/coups-de-coeur'
+      fullPath: '/u/$userName/coups-de-coeur'
+      preLoaderRoute: typeof UUserNameProfileCoupsDeCoeurRouteImport
+      parentRoute: typeof UUserNameProfileRouteRoute
+    }
     '/u/$userName/_profile/historique': {
       id: '/u/$userName/_profile/historique'
       path: '/historique'
       fullPath: '/u/$userName/historique'
       preLoaderRoute: typeof UUserNameProfileHistoriqueRouteImport
+      parentRoute: typeof UUserNameProfileRouteRoute
+    }
+    '/u/$userName/_profile/lauriers': {
+      id: '/u/$userName/_profile/lauriers'
+      path: '/lauriers'
+      fullPath: '/u/$userName/lauriers'
+      preLoaderRoute: typeof UUserNameProfileLauriersRouteImport
+      parentRoute: typeof UUserNameProfileRouteRoute
+    }
+    '/u/$userName/_profile/obsessions': {
+      id: '/u/$userName/_profile/obsessions'
+      path: '/obsessions'
+      fullPath: '/u/$userName/obsessions'
+      preLoaderRoute: typeof UUserNameProfileObsessionsRouteImport
       parentRoute: typeof UUserNameProfileRouteRoute
     }
     '/u/$userName/_profile/rapports': {
@@ -435,14 +495,20 @@ const ReglagesRouteRouteWithChildren = ReglagesRouteRoute._addFileChildren(
 )
 
 interface UUserNameProfileRouteRouteChildren {
+  UUserNameProfileCoupsDeCoeurRoute: typeof UUserNameProfileCoupsDeCoeurRoute
   UUserNameProfileHistoriqueRoute: typeof UUserNameProfileHistoriqueRoute
+  UUserNameProfileLauriersRoute: typeof UUserNameProfileLauriersRoute
+  UUserNameProfileObsessionsRoute: typeof UUserNameProfileObsessionsRoute
   UUserNameProfileRapportsRoute: typeof UUserNameProfileRapportsRoute
   UUserNameProfileIndexRoute: typeof UUserNameProfileIndexRoute
   UUserNameProfileTopsKindRoute: typeof UUserNameProfileTopsKindRoute
 }
 
 const UUserNameProfileRouteRouteChildren: UUserNameProfileRouteRouteChildren = {
+  UUserNameProfileCoupsDeCoeurRoute: UUserNameProfileCoupsDeCoeurRoute,
   UUserNameProfileHistoriqueRoute: UUserNameProfileHistoriqueRoute,
+  UUserNameProfileLauriersRoute: UUserNameProfileLauriersRoute,
+  UUserNameProfileObsessionsRoute: UUserNameProfileObsessionsRoute,
   UUserNameProfileRapportsRoute: UUserNameProfileRapportsRoute,
   UUserNameProfileIndexRoute: UUserNameProfileIndexRoute,
   UUserNameProfileTopsKindRoute: UUserNameProfileTopsKindRoute,
@@ -455,8 +521,8 @@ const UUserNameProfileRouteRouteWithChildren =
 
 interface UUserNameRouteRouteChildren {
   UUserNameProfileRouteRoute: typeof UUserNameProfileRouteRouteWithChildren
-  UUserNameBilanRoute: typeof UUserNameBilanRoute
   UUserNameRechercheRoute: typeof UUserNameRechercheRoute
+  UUserNameRetrospectiveRoute: typeof UUserNameRetrospectiveRoute
   UUserNameArtistesArtistRoute: typeof UUserNameArtistesArtistRoute
   UUserNameAlbumsArtistAlbumRoute: typeof UUserNameAlbumsArtistAlbumRoute
   UUserNameTitresArtistTrackRoute: typeof UUserNameTitresArtistTrackRoute
@@ -464,8 +530,8 @@ interface UUserNameRouteRouteChildren {
 
 const UUserNameRouteRouteChildren: UUserNameRouteRouteChildren = {
   UUserNameProfileRouteRoute: UUserNameProfileRouteRouteWithChildren,
-  UUserNameBilanRoute: UUserNameBilanRoute,
   UUserNameRechercheRoute: UUserNameRechercheRoute,
+  UUserNameRetrospectiveRoute: UUserNameRetrospectiveRoute,
   UUserNameArtistesArtistRoute: UUserNameArtistesArtistRoute,
   UUserNameAlbumsArtistAlbumRoute: UUserNameAlbumsArtistAlbumRoute,
   UUserNameTitresArtistTrackRoute: UUserNameTitresArtistTrackRoute,

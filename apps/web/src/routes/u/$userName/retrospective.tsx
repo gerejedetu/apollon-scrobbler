@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "../../../api/index.ts";
-import { WrappedPage } from "../../../features/wrapped/index.ts";
+import { WrappedReview } from "../../../features/apollon/index.ts";
 import { utcOffset } from "../../../lib/timezone.ts";
 import { m } from "../../../paraglide/messages.js";
 import { pageTitle } from "../../../ui/brand/index.ts";
 
-export const Route = createFileRoute("/u/$userName/bilan")({
+export const Route = createFileRoute("/u/$userName/retrospective")({
   validateSearch: (search: Record<string, unknown>): { annee?: number } => {
     const year = Number(search.annee);
     return { annee: Number.isInteger(year) && year > 1900 && year < 3000 ? year : undefined };
@@ -34,7 +34,11 @@ export const Route = createFileRoute("/u/$userName/bilan")({
   component: () => {
     const { wrapped, firstYear } = Route.useLoaderData();
     return (
-      <WrappedPage userName={Route.useParams().userName} wrapped={wrapped} firstYear={firstYear} />
+      <WrappedReview
+        userName={Route.useParams().userName}
+        wrapped={wrapped}
+        firstYear={firstYear}
+      />
     );
   },
 });
