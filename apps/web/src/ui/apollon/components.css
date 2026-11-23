@@ -4096,3 +4096,28 @@ svg.ap-hero__cover {
     grid-template-columns: 1fr;
   }
 }
+/* Page titles set by the mockups inline, and the library's small layout bits. */
+.ap-root .ap-pagetitle {
+  font: 700 32px/38px var(--font-sans);
+  margin: 0 0 var(--space-6);
+}
+[data-theme="marble"] .ap-root .ap-pagetitle {
+  font-family: var(--font-display);
+}
+.ap-lib__gap {
+  height: var(--space-8);
+}
+.ap-lib__date {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+.ap-lib__date .ap-field {
+  flex: 1;
+}
+@media (max-width: 720px) {
+  .ap-root .ap-pagetitle {
+    font-size: 26px;
+    line-height: 32px;
+  }
+}
