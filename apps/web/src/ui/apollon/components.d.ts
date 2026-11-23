@@ -632,3 +632,49 @@ export declare const icons: {
   search: IconFn;
   [name: string]: IconFn | undefined;
 };
+
+// ---- Account & settings (design system update) ----
+export type SettingsSection = "profile" | "appearance" | "keys" | "import" | "instance";
+export declare const AccountMenu: (p: Extra) => React.JSX.Element;
+export declare const SettingsLayout: (
+  p: {
+    active?: SettingsSection;
+    owner?: boolean;
+    lead?: string;
+    footer?: React.ReactNode;
+    hrefFor?: (section: SettingsSection) => string;
+    children?: React.ReactNode;
+  } & Extra,
+) => React.JSX.Element;
+export interface ImportFile {
+  name: string;
+  size?: string;
+  listens?: number;
+  from?: number;
+  to?: number;
+}
+export declare const ImportPanel: (
+  p: {
+    state?: "idle" | "ready" | "importing" | "done" | "error";
+    file?: ImportFile;
+    progress?: {
+      sent: number;
+      total: number;
+      added?: number;
+      duplicates?: number;
+      skipped?: number;
+    };
+    sources?: ("lastfm" | "listenbrainz" | "apollon")[];
+    accept?: string;
+    error?: string;
+    doneHref?: string;
+    onFile?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onDrop?: (e: React.DragEvent<HTMLElement>) => void;
+    onStart?: () => void;
+    onClear?: () => void;
+    onCancel?: () => void;
+  } & Extra,
+) => React.JSX.Element;
+export declare const ExportPanel: (
+  p: { listenCount?: number; onExport?: () => void; busy?: boolean } & Extra,
+) => React.JSX.Element;

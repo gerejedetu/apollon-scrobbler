@@ -5,6 +5,42 @@
 import { getLocale } from "../../paraglide/runtime.js";
 
 const EN: Record<string, string> = {
+  "Voir mon profil": "See my profile",
+  Apparence: "Appearance",
+  "Importer et exporter": "Import and export",
+  "Sections des réglages": "Settings sections",
+  Source: "Source",
+  "Fichier CSV exporté depuis Last.fm (outils d'export type lastfm-to-csv).":
+    "A CSV file exported from Last.fm (export tools such as lastfm-to-csv).",
+  "L'export JSON de votre compte (ListenBrainz › Réglages › Exporter).":
+    "Your account's JSON export (ListenBrainz › Settings › Export).",
+  "Un export d'une autre instance Apollon (JSON).":
+    "An export from another Apollon instance (JSON).",
+  "Déposez votre fichier ici": "Drop your file here",
+  "ou ": "or ",
+  "choisissez-le": "choose it",
+  " · JSON ou CSV, jusqu'à 200 Mo": " · JSON or CSV, up to 200 MB",
+  " trouvées": " found",
+  "du ": "from ",
+  "Retirer le fichier": "Remove the file",
+  "Importer ": "Import ",
+  "Changer de fichier": "Change file",
+  "Import en cours… ": "Importing… ",
+  "Envoi par lots. Gardez cet onglet ouvert jusqu'à la fin. Les doublons sont ignorés.":
+    "Sent in batches. Keep this tab open until it ends. Duplicates are skipped.",
+  Annuler: "Cancel",
+  "Import terminé": "Import finished",
+  Ajoutées: "Added",
+  "Déjà présentes": "Already there",
+  Ignorées: "Skipped",
+  "Voir mes rapports": "See my reports",
+  "Importer un autre fichier": "Import another file",
+  "Ce fichier n'a pas pu être lu.": "This file could not be read.",
+  Réessayer: "Try again",
+  "un fichier JSON compatible ListenBrainz, réimportable ici ou ailleurs.":
+    "a ListenBrainz-compatible JSON file, to import here or elsewhere.",
+  "Préparation…": "Preparing…",
+  Télécharger: "Download",
   " (avant) : ": " (before): ",
   " (du ": " (from ",
   " au ": " to ",
