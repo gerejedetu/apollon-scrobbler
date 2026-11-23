@@ -18,3 +18,4 @@ export { Reports } from "./Reports.tsx";
 export { type Laurel, loadLaurels } from "./laurels.ts";
 export { LaurelsPage, LovedPage, ObsessionsPage } from "./ProfileTabs.tsx";
 export { WrappedReview } from "./Wrapped.tsx";
+export { SettingsPage } from "./Settings.tsx";
