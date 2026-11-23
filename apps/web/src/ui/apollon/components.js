@@ -723,6 +723,20 @@ function LibraryTabs(p) {
     "div",
     { className: "ap-root ap-tabs", role: "tablist" },
     tabs.map(function (t) {
+      // With an href, a tab is a page of the library (a link).
+      if (t.href)
+        return h(
+          A,
+          {
+            key: t.value,
+            href: t.href,
+            role: "tab",
+            className: "ap-tab",
+            "aria-selected": t.value === value ? "true" : "false",
+          },
+          t.icon && icons[t.icon] ? icons[t.icon]() : null,
+          t.label,
+        );
       return h(
         "button",
         {
@@ -887,7 +901,8 @@ function TrackList(p) {
     }
     out.push(
       h(TrackRow, {
-        key: l.id,
+        // An id names a track entry, not one play: the time makes the key unique.
+        key: l.listenedAt + "/" + l.id,
         listen: l,
         now: p.now,
         readOnly: p.readOnly,
@@ -1787,11 +1802,10 @@ function RankedList(p) {
 }
 
 /* =================== Forms & feedback =================== */
-var fieldId = 0;
 function TextField(p) {
-  var id = React.useMemo(function () {
-    return p.id || "ap-f" + ++fieldId;
-  }, []);
+  // useId: the same id on the server render and in the browser (a counter would differ).
+  var autoId = React.useId();
+  var id = p.id || "ap-f" + autoId.replace(/:/g, "");
   return h(
     "div",
     { className: "ap-root ap-field" },
@@ -1816,6 +1830,11 @@ function TextField(p) {
         value: p.value,
         onChange: p.onChange,
         autoComplete: p.autoComplete,
+        required: p.required,
+        minLength: p.minLength,
+        maxLength: p.maxLength,
+        autoFocus: p.autoFocus,
+        enterKeyHint: p.enterKeyHint,
         "aria-invalid": p.error ? "true" : undefined,
       }),
     ),
@@ -1836,9 +1855,7 @@ function SearchField(p) {
   );
 }
 function Select(p) {
-  var id = React.useMemo(function () {
-    return "ap-s" + ++fieldId;
-  }, []);
+  var id = "ap-s" + React.useId().replace(/:/g, "");
   return h(
     "div",
     { className: "ap-root ap-field" },

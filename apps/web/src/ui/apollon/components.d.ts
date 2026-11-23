@@ -49,7 +49,7 @@ export interface LoveButtonProps {
   onToggle?: (next: boolean) => void;
 }
 export interface LibraryTabsProps {
-  tabs?: { value: string; label: string; icon?: string }[];
+  tabs?: { value: string; label: string; icon?: string; href?: string }[];
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
