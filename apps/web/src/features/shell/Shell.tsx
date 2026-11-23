@@ -131,23 +131,48 @@ export function Shell({
       <SiteFooter
         columns={[
           {
-            title: m.ds_footer_account(),
-            links: visitor
-              ? [
+            title: m.ds_footer_instance(),
+            links: [
+              { label: m.ds_footer_about(), href: "/" },
+              { label: m.ds_footer_version(), href: `${SOURCE_URL}/commits/main` },
+            ],
+          },
+          {
+            title: m.ds_footer_help(),
+            links: [
+              {
+                label: m.ds_footer_connect_player(),
+                href: visitor ? "/connexion" : "/reglages#cles",
+              },
+              {
+                label: m.ds_footer_import_lastfm(),
+                href: visitor ? "/connexion" : "/reglages/import",
+              },
+              { label: m.ds_footer_api(), href: "/v1/docs" },
+            ],
+          },
+          visitor
+            ? {
+                title: m.ds_footer_join(),
+                links: [
                   { label: m.signin_submit(), href: "/connexion" },
                   ...(signupOpen ? [{ label: m.signin_create(), href: "/inscription" }] : []),
-                ]
-              : [
+                ],
+              }
+            : {
+                title: m.ds_footer_account(),
+                links: [
                   { label: m.account_settings(), href: "/reglages" },
-                  { label: m.settings_tokens(), href: "/reglages/tokens" },
+                  { label: m.settings_tokens(), href: "/reglages#cles" },
                   { label: m.settings_import(), href: "/reglages/import" },
                 ],
-          },
+              },
           {
             title: m.ds_footer_project(),
             links: [
               { label: m.ds_footer_source(), href: SOURCE_URL },
-              { label: m.ds_footer_api(), href: "/v1/docs" },
+              { label: m.ds_footer_issue(), href: `${SOURCE_URL}/issues` },
+              { label: m.ds_footer_notes(), href: `${SOURCE_URL}/commits/main` },
             ],
           },
         ]}
