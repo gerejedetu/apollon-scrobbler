@@ -6,7 +6,12 @@ import type {
   ListenRepository,
   PlayingNowRepository,
 } from "../ports/index.ts";
-import { bilingualParts, canonicalArtist, hasNativeScript } from "../artists/names.ts";
+import {
+  bilingualParts,
+  canonicalArtist,
+  hasNativeScript,
+  withoutServiceLabel,
+} from "../artists/names.ts";
 import {
   canonicalAlbum,
   editionBase,
@@ -125,6 +130,12 @@ export class ListenService {
   async submit(user: User, body: unknown): Promise<SubmitResult> {
     const submission = validateSubmission(body);
     const now = this.clock();
+    // "Song • STAYC" -> "STAYC": a service's type label is never part of the artist's name.
+    for (const l of submission.listens) {
+      const artist = withoutServiceLabel(l.trackMetadata.artist_name);
+      if (artist !== l.trackMetadata.artist_name)
+        l.trackMetadata = { ...l.trackMetadata, artist_name: artist };
+    }
     const renamed = await this.canonicalNames(
       user,
       submission.listens.map((l) => l.trackMetadata.artist_name),
