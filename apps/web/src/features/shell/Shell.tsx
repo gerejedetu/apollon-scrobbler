@@ -148,7 +148,6 @@ export function Shell({
                 label: m.ds_footer_import_lastfm(),
                 href: visitor ? "/connexion" : "/reglages/import",
               },
-              { label: m.ds_footer_api(), href: "/v1/docs" },
             ],
           },
           visitor
