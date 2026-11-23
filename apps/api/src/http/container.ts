@@ -17,24 +17,22 @@ import { LibsqlDriver } from "@scrobbler/db-libsql";
 import type { Context, MiddlewareHandler } from "hono";
 import type { AppEnv, Bindings } from "../env.ts";
 
-/** One libSQL client per isolate (HTTP, no socket to keep), reused across requests. */
-let turso: { url: string; driver: LibsqlDriver } | undefined;
-
 /**
  * The SQL database: Turso when TURSO_DATABASE_URL is set, else the D1 binding. Both speak the same
  * D1-shaped API, so repositories and Better Auth are identical on either.
+ *
+ * The libSQL client is created per request, never shared by the isolate: it holds a concurrency queue
+ * and pending HTTP calls, and a Workers request awaiting I/O started by another request is canceled as
+ * "hung" (it happened under concurrent page loads). Creating it costs no connection: it only speaks HTTP.
  */
 function database(env: Bindings): D1Like {
   if (env.TURSO_DATABASE_URL) {
-    if (turso?.url !== env.TURSO_DATABASE_URL) {
-      const client = createClient({
-        url: env.TURSO_DATABASE_URL,
-        authToken: env.TURSO_AUTH_TOKEN,
-        intMode: "number",
-      });
-      turso = { url: env.TURSO_DATABASE_URL, driver: new LibsqlDriver(client) };
-    }
-    return turso.driver;
+    const client = createClient({
+      url: env.TURSO_DATABASE_URL,
+      authToken: env.TURSO_AUTH_TOKEN,
+      intMode: "number",
+    });
+    return new LibsqlDriver(client);
   }
   if (!env.DB) throw new Error("No database: set TURSO_DATABASE_URL or bind a D1 database as DB.");
   return env.DB;
