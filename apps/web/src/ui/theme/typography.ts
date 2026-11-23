@@ -1,12 +1,13 @@
 /** Three families: Archivo (wide for page titles, narrow for figures), Instrument Serif italic, Inter for text. */
 export const fonts = {
-  body: { value: "Inter, system-ui, sans-serif" },
-  display: { value: "Archivo, sans-serif" },
-  serif: { value: "'Instrument Serif', serif" },
+  body: { value: "var(--font-sans)" },
+  display: { value: "var(--font-sans)" },
+  serif: { value: "var(--font-display)" },
 };
 
+/** Barlow (every text) and Cormorant Garamond (Marbre headings), from the design system. */
 export const fontsHref =
-  "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap";
+  "https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap";
 
 const wide = { fontFamily: "display", fontStretch: "125%", fontWeight: "800" };
 const narrow = { fontFamily: "display", fontStretch: "62%", fontWeight: "800" };

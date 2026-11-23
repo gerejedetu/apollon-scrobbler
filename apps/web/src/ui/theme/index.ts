@@ -5,12 +5,13 @@ export { fontsHref } from "./typography.ts";
 export { textStyles };
 
 /** Corner radii: covers are always square, fields 4, buttons 6, cards 8, pills round. */
+/** Corners from the design system: 3px at most, nothing round. */
 const radii = {
-  cover: { value: "0" },
-  field: { value: "4px" },
-  button: { value: "6px" },
-  card: { value: "8px" },
-  pill: { value: "999px" },
+  cover: { value: "var(--radius-0)" },
+  field: { value: "var(--radius-2)" },
+  button: { value: "var(--radius-3)" },
+  card: { value: "var(--radius-3)" },
+  pill: { value: "var(--radius-3)" },
 };
 
 export const tokens = { fonts, radii };
