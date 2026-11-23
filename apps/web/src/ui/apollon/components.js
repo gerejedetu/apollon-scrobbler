@@ -3175,10 +3175,10 @@ function SearchResults(p) {
   var d = p.data || {},
     q = d.query || p.query || "",
     only = p.only;
-  var row = function (key, title, sub, count, seed, cover) {
+  var row = function (key, title, sub, count, seed, cover, href) {
     return h(
       A,
-      { key: key, href: "#", className: "ap-sres__row" },
+      { key: key, href: href || "#", className: "ap-sres__row" },
       h(Cover, { src: cover, seed: seed }),
       h(
         "div",
@@ -3208,6 +3208,11 @@ function SearchResults(p) {
     function () {
       return undefined;
     };
+  var link =
+    p.hrefFor ||
+    function () {
+      return undefined;
+    };
   var total = (d.artists || []).length + (d.albums || []).length + (d.tracks || []).length;
   if (!total)
     return h(EmptyState, {
@@ -3219,10 +3224,26 @@ function SearchResults(p) {
     "div",
     { className: "ap-root ap-sres" },
     block("artists", "Artistes", d.artists || [], function (a, i) {
-      return row("a" + i, a.artist, null, a.listenCount, a.artist, cov(a));
+      return row(
+        "a" + i,
+        a.artist,
+        null,
+        a.listenCount,
+        a.artist,
+        cov(a, "artists"),
+        link(a, "artists"),
+      );
     }),
     block("albums", "Albums", d.albums || [], function (a, i) {
-      return row("b" + i, a.album, a.artist, a.listenCount, a.album, cov(a));
+      return row(
+        "b" + i,
+        a.album,
+        a.artist,
+        a.listenCount,
+        a.album,
+        cov(a, "albums"),
+        link(a, "albums"),
+      );
     }),
     block("tracks", "Titres", d.tracks || [], function (t, i) {
       return row(
@@ -3231,7 +3252,8 @@ function SearchResults(p) {
         t.artist + (t.album ? " · " + t.album : ""),
         t.listenCount,
         t.album || t.artist,
-        cov(t),
+        cov(t, "tracks"),
+        link(t, "tracks"),
       );
     }),
   );

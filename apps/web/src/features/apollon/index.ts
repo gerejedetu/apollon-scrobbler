@@ -5,3 +5,4 @@ export { Overview } from "./Overview.tsx";
 export { ListenMenu } from "./ListenMenu.tsx";
 export { MenuButton, type MenuItem } from "./MenuButton.tsx";
 export { LibraryListens, LibraryTop, TOP_PAGE } from "./Library.tsx";
+export { SearchPage, type SearchOnly } from "./Search.tsx";
