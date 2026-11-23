@@ -33,7 +33,12 @@ export function MenuButton({
         {icons.dots()}
       </button>
       <Portal>
-        <div {...api.getPositionerProps()} className="ap-root" style={{ zIndex: 40 }}>
+        {/* Keep Zag's positioning styles: only add the stacking order. */}
+        <div
+          {...api.getPositionerProps()}
+          className="ap-root"
+          style={{ ...api.getPositionerProps().style, zIndex: 40 }}
+        >
           <div {...api.getContentProps()} style={{ outline: "none" }}>
             <Menu
               items={items.map((i) =>
