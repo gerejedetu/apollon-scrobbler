@@ -37,6 +37,52 @@ function Icon(p) {
   );
 }
 var icons = {
+  upload: function () {
+    return h(Icon, null, h("path", { d: "M8 10.5V2.5M4.5 6 8 2.5 11.5 6M2.5 10.5v3h11v-3" }));
+  },
+  download: function () {
+    return h(Icon, null, h("path", { d: "M8 2.5v8M4.5 7 8 10.5 11.5 7M2.5 10.5v3h11v-3" }));
+  },
+  gear: function () {
+    return h(
+      Icon,
+      null,
+      h("rect", { x: 5.5, y: 5.5, width: 5, height: 5 }),
+      h("path", {
+        d: "M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4",
+      }),
+    );
+  },
+  key: function () {
+    return h(
+      Icon,
+      null,
+      h("rect", { x: 1.5, y: 5.5, width: 5, height: 5 }),
+      h("path", { d: "M6.5 8h8M12 8v2.5M14.5 8v2" }),
+    );
+  },
+  palette: function () {
+    return h(
+      Icon,
+      null,
+      h("rect", { x: 2, y: 2, width: 5, height: 5 }),
+      h("rect", { x: 9, y: 2, width: 5, height: 5 }),
+      h("rect", { x: 2, y: 9, width: 5, height: 5 }),
+      h("rect", { x: 9, y: 9, width: 5, height: 5 }),
+    );
+  },
+  server: function () {
+    return h(
+      Icon,
+      null,
+      h("rect", { x: 2, y: 2.5, width: 12, height: 4.5 }),
+      h("rect", { x: 2, y: 9, width: 12, height: 4.5 }),
+      h("path", { d: "M4.5 4.75h1M4.5 11.25h1" }),
+    );
+  },
+  logout: function () {
+    return h(Icon, null, h("path", { d: "M6.5 2.5h-4v11h4M10 5l3 3-3 3M13 8H6" }));
+  },
   heart: function (on) {
     return h(
       Icon,
@@ -405,65 +451,70 @@ function SiteHeader(p) {
     "header",
     { className: "ap-root ap-site" },
     h(
-      "button",
-      { type: "button", className: "ap-site__burger", "aria-label": "Menu", onClick: p.onMenu },
-      icons.menu(),
-    ),
-    p.brand ? h(A, { className: "ap-site__mark", href: p.homeHref || "#" }, p.brand) : null,
-    h(
-      "nav",
-      { className: "ap-site__links", "aria-label": tr("Navigation principale") },
-      links.map(function (l, i) {
-        return h(
-          A,
-          { key: i, href: l.href, "aria-current": l.current ? "page" : undefined },
-          l.label,
-        );
-      }),
-    ),
-    h(
       "div",
-      { className: "ap-site__nav" },
+      { className: "ap-site__in" },
       h(
         "button",
-        {
-          type: "button",
-          className: "ap-site__icon",
-          "aria-label": tr("Rechercher"),
-          onClick: p.onSearch,
-        },
-        icons.search(),
+        { type: "button", className: "ap-site__burger", "aria-label": "Menu", onClick: p.onMenu },
+        icons.menu(),
       ),
-      p.visitor
-        ? [
-            h(
-              A,
-              { key: "in", href: p.loginHref || "#", className: "ap-site__login" },
-              tr("Se connecter"),
-            ),
-            p.signupOpen !== false
-              ? h(
-                  A,
-                  {
-                    key: "up",
-                    href: p.signupHref || "#",
-                    className: "ap-btn ap-btn--primary ap-btn--sm",
-                  },
-                  tr("Créer un compte"),
-                )
-              : null,
-          ]
-        : p.accountHref
-          ? h(
-              A,
-              { href: p.accountHref, className: "ap-site__account", "aria-label": p.accountLabel },
-              h(Avatar, { name: p.userName, src: p.avatarUrl }),
-            )
-          : h(Avatar, { name: p.userName, src: p.avatarUrl }),
+      p.brand ? h(A, { className: "ap-site__mark", href: p.homeHref || "#" }, p.brand) : null,
+      h(
+        "nav",
+        { className: "ap-site__links", "aria-label": tr("Navigation principale") },
+        links.map(function (l, i) {
+          return h(
+            A,
+            { key: i, href: l.href, "aria-current": l.current ? "page" : undefined },
+            l.label,
+          );
+        }),
+      ),
+      h(
+        "div",
+        { className: "ap-site__nav" },
+        h(
+          "button",
+          {
+            type: "button",
+            className: "ap-site__icon",
+            "aria-label": tr("Rechercher"),
+            onClick: p.onSearch,
+          },
+          icons.search(),
+        ),
+        p.visitor
+          ? [
+              h(
+                A,
+                { key: "in", href: p.loginHref || "#", className: "ap-site__login" },
+                tr("Se connecter"),
+              ),
+              p.signupOpen !== false
+                ? h(
+                    A,
+                    {
+                      key: "up",
+                      href: p.signupHref || "#",
+                      className: "ap-btn ap-btn--primary ap-btn--sm",
+                    },
+                    tr("Créer un compte"),
+                  )
+                : null,
+            ]
+          : h(AccountMenu, {
+              userName: p.userName,
+              avatarUrl: p.avatarUrl,
+              owner: p.owner,
+              defaultOpen: p.menuOpen,
+              onSelect: p.onAccount,
+              profileHref: p.profileHref,
+              hrefFor: p.sectionHref,
+            }),
+      ),
     ),
   );
 }
-
 var PROFILE_TABS = [
   "Aperçu",
   "Rapports",
@@ -3552,6 +3603,428 @@ function MobileMenu(p) {
   );
 }
 
+/* =================== Account & settings =================== */
+var SETTINGS_SECTIONS = [
+  { value: "profile", label: "Profil", icon: "user" },
+  { value: "appearance", label: "Apparence", icon: "palette" },
+  { value: "keys", label: "Clés d'API", icon: "key" },
+  { value: "import", label: "Importer et exporter", icon: "upload" },
+  { value: "instance", label: "Instance", icon: "server", owner: true },
+];
+function sectionsFor(owner) {
+  return SETTINGS_SECTIONS.filter(function (x) {
+    return !x.owner || owner;
+  });
+}
+/* Avatar button of the top bar: opens a dropdown with the profile link and every settings section.
+   App additions: entries are links when hrefFor/profileHref are given; a click outside or Escape closes it. */
+function AccountMenu(p) {
+  var st = React.useState(!!p.defaultOpen),
+    open = st[0];
+  var root = React.useRef(null);
+  React.useEffect(
+    function () {
+      if (!open) return undefined;
+      var away = function (e) {
+        if (root.current && !root.current.contains(e.target)) st[1](false);
+      };
+      var esc = function (e) {
+        if (e.key === "Escape") st[1](false);
+      };
+      document.addEventListener("mousedown", away);
+      document.addEventListener("keydown", esc);
+      return function () {
+        document.removeEventListener("mousedown", away);
+        document.removeEventListener("keydown", esc);
+      };
+    },
+    [open],
+  );
+  var pick = function (v) {
+    st[1](false);
+    if (p.onSelect) p.onSelect(v);
+  };
+  return h(
+    "div",
+    { className: "ap-root ap-acct", ref: root },
+    h(
+      "button",
+      {
+        type: "button",
+        className: "ap-acct__btn",
+        "aria-haspopup": "menu",
+        "aria-expanded": String(open),
+        "aria-label": tr("Compte"),
+        onClick: function () {
+          st[1](!open);
+        },
+      },
+      h(Avatar, { name: p.userName, src: p.avatarUrl }),
+      icons.chevron(),
+    ),
+    open
+      ? h(
+          "div",
+          { className: "ap-acct__pop", role: "menu" },
+          h(
+            A,
+            {
+              href: p.profileHref || "#",
+              className: "ap-acct__who",
+              role: "menuitem",
+              onClick: function () {
+                pick("me");
+              },
+            },
+            h(Avatar, { name: p.userName, src: p.avatarUrl }),
+            h(
+              "span",
+              null,
+              h("span", { className: "ap-acct__name" }, p.userName),
+              h("span", { className: "ap-acct__sub" }, tr("Voir mon profil")),
+            ),
+          ),
+          h("div", { className: "ap-acct__h" }, tr("Réglages")),
+          sectionsFor(p.owner === true).map(function (x) {
+            return p.hrefFor
+              ? h(
+                  A,
+                  {
+                    key: x.value,
+                    href: p.hrefFor(x.value),
+                    role: "menuitem",
+                    className: "ap-acct__item",
+                    onClick: function () {
+                      pick(x.value);
+                    },
+                  },
+                  icons[x.icon](),
+                  tr(x.label),
+                )
+              : h(
+                  "button",
+                  {
+                    key: x.value,
+                    type: "button",
+                    role: "menuitem",
+                    className: "ap-acct__item",
+                    onClick: function () {
+                      pick(x.value);
+                    },
+                  },
+                  icons[x.icon](),
+                  tr(x.label),
+                );
+          }),
+          h("hr"),
+          h(
+            "button",
+            {
+              type: "button",
+              role: "menuitem",
+              className: "ap-acct__item",
+              onClick: function () {
+                pick("logout");
+              },
+            },
+            icons.logout(),
+            tr("Se déconnecter"),
+          ),
+        )
+      : null,
+  );
+}
+/* Settings split into sections: nav on the left (tabs on phones), one section at a time on the right.
+   App addition: hrefFor gives each section its own address. */
+function SettingsLayout(p) {
+  var secs = sectionsFor(p.owner === true),
+    active = p.active || secs[0].value;
+  var cur =
+    secs.filter(function (x) {
+      return x.value === active;
+    })[0] || secs[0];
+  return h(
+    "div",
+    { className: "ap-root ap-settings" },
+    h("h1", { className: "ap-settings__title" }, tr("Réglages")),
+    h(
+      "div",
+      { className: "ap-settings__grid" },
+      h(
+        "nav",
+        { className: "ap-settings__nav", "aria-label": tr("Sections des réglages") },
+        secs.map(function (x) {
+          return h(
+            A,
+            {
+              key: x.value,
+              href: p.hrefFor ? p.hrefFor(x.value) : "#" + x.value,
+              "aria-current": x.value === active ? "page" : undefined,
+              onClick: function () {
+                if (p.onSection) p.onSection(x.value);
+              },
+            },
+            icons[x.icon](),
+            tr(x.label),
+          );
+        }),
+      ),
+      h(
+        "section",
+        { className: "ap-settings__body", "aria-labelledby": "ap-set-h" },
+        h("h2", { id: "ap-set-h", className: "ap-settings__h" }, tr(cur.label)),
+        p.lead ? h("p", { className: "ap-settings__lead" }, p.lead) : null,
+        h("div", { className: "ap-stack ap-stack--sm" }, p.children),
+        p.footer ? h("div", { className: "ap-settings__foot" }, p.footer) : null,
+      ),
+    ),
+  );
+}
+var IMPORT_SOURCES = [
+  {
+    value: "lastfm",
+    label: "Last.fm",
+    hint: "Fichier CSV exporté depuis Last.fm (outils d'export type lastfm-to-csv).",
+  },
+  {
+    value: "listenbrainz",
+    label: "ListenBrainz",
+    hint: "L'export JSON de votre compte (ListenBrainz › Réglages › Exporter).",
+  },
+  { value: "apollon", label: "Apollon", hint: "Un export d'une autre instance Apollon (JSON)." },
+];
+/* Import in place: pick the source, drop the file, follow the progress, read the result. No second page.
+   state: "idle" | "ready" | "importing" | "done" | "error"; progress {sent, total, added, duplicates}.
+   App additions: `sources` limits the choice, `accept` the file types, `doneHref` links the result. */
+function ImportPanel(p) {
+  var sources = p.sources
+    ? IMPORT_SOURCES.filter(function (x) {
+        return p.sources.indexOf(x.value) !== -1;
+      })
+    : IMPORT_SOURCES;
+  var ss = React.useState(p.source || sources[0].value),
+    src = ss[0];
+  var state = p.state || "idle",
+    f = p.file,
+    pr = p.progress || {};
+  var s =
+    sources.filter(function (x) {
+      return x.value === src;
+    })[0] || sources[0];
+  var pct = pr.total ? Math.round((pr.sent / pr.total) * 100) : 0;
+  return h(
+    "div",
+    { className: "ap-root ap-import" },
+    h(
+      "div",
+      { className: "ap-field" },
+      h("span", { className: "ap-field__label" }, tr("Source")),
+      h(
+        "div",
+        { className: "ap-appear__row", role: "radiogroup", "aria-label": tr("Source") },
+        sources.map(function (x) {
+          return h(
+            "button",
+            {
+              key: x.value,
+              type: "button",
+              role: "radio",
+              "aria-checked": String(x.value === src),
+              className: "ap-choice ap-choice--src",
+              onClick: function () {
+                ss[1](x.value);
+                if (p.onSource) p.onSource(x.value);
+              },
+            },
+            h("span", { className: "ap-choice__l" }, x.label),
+          );
+        }),
+      ),
+      h("span", { className: "ap-field__hint" }, tr(s.hint)),
+    ),
+    state === "idle"
+      ? h(
+          "label",
+          {
+            className: "ap-drop",
+            onDragOver: function (e) {
+              e.preventDefault();
+            },
+            onDrop: p.onDrop,
+          },
+          h("input", { type: "file", accept: p.accept || ".json,.csv,.jsonl", onChange: p.onFile }),
+          h("span", { className: "ap-empty__art" }, icons.upload()),
+          h("span", { className: "ap-drop__t" }, tr("Déposez votre fichier ici")),
+          h(
+            "span",
+            { className: "ap-drop__x" },
+            tr("ou "),
+            h("span", { className: "ap-link" }, tr("choisissez-le")),
+            tr(" · JSON ou CSV, jusqu'à 200 Mo"),
+          ),
+        )
+      : null,
+    state !== "idle" && f
+      ? h(
+          "div",
+          { className: "ap-filecard" },
+          h("span", { className: "ap-filecard__icon" }, icons.note()),
+          h(
+            "div",
+            { className: "ap-filecard__body" },
+            h("div", { className: "ap-filecard__name" }, f.name),
+            h(
+              "div",
+              { className: "ap-filecard__meta" },
+              [
+                f.size,
+                f.listens != null
+                  ? plural(f.listens, tr("écoute"), tr("écoutes")) + tr(" trouvées")
+                  : null,
+                f.from && f.to ? tr("du ") + fmtDate(f.from) + tr(" au ") + fmtDate(f.to) : null,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            ),
+          ),
+          state === "ready"
+            ? h(IconButton, { icon: "close", label: tr("Retirer le fichier"), onClick: p.onClear })
+            : null,
+        )
+      : null,
+    state === "ready"
+      ? h(
+          "div",
+          { className: "ap-import__acts" },
+          h(
+            Button,
+            { variant: "primary", icon: "upload", onClick: p.onStart },
+            tr("Importer ") +
+              (f && f.listens != null ? plural(f.listens, tr("écoute"), tr("écoutes")) : ""),
+          ),
+          h(Button, { variant: "secondary", onClick: p.onClear }, tr("Changer de fichier")),
+        )
+      : null,
+    state === "importing"
+      ? h(
+          "div",
+          { className: "ap-import__prog", role: "status" },
+          h(
+            "div",
+            { className: "ap-import__row" },
+            h(
+              "span",
+              null,
+              tr("Import en cours… "),
+              h("strong", null, fmtNum(pr.sent) + " / " + fmtNum(pr.total)),
+            ),
+            h("span", null, pct + "\u202f%"),
+          ),
+          h(
+            "div",
+            { className: "ap-progress ap-progress--lg" },
+            h("span", { style: { width: pct + "%" } }),
+          ),
+          h(
+            "div",
+            { className: "ap-field__hint" },
+            p.progressHint ||
+              tr(
+                "Envoi par lots. Gardez cet onglet ouvert jusqu'à la fin. Les doublons sont ignorés.",
+              ),
+          ),
+          p.onCancel
+            ? h(
+                "div",
+                { className: "ap-import__acts" },
+                h(Button, { variant: "secondary", size: "sm", onClick: p.onCancel }, tr("Annuler")),
+              )
+            : null,
+        )
+      : null,
+    state === "done"
+      ? h(
+          "div",
+          { className: "ap-import__done", role: "status" },
+          h("div", { className: "ap-import__donet" }, icons.check(), tr("Import terminé")),
+          h(
+            "div",
+            { className: "ap-stats" },
+            h(
+              "div",
+              null,
+              h("div", { className: "ap-label" }, tr("Ajoutées")),
+              h("div", { className: "ap-stats__value" }, fmtNum(pr.added)),
+            ),
+            h(
+              "div",
+              null,
+              h("div", { className: "ap-label" }, tr("Déjà présentes")),
+              h("div", { className: "ap-stats__value" }, fmtNum(pr.duplicates)),
+            ),
+            pr.skipped
+              ? h(
+                  "div",
+                  null,
+                  h("div", { className: "ap-label" }, tr("Ignorées")),
+                  h("div", { className: "ap-stats__value" }, fmtNum(pr.skipped)),
+                )
+              : null,
+          ),
+          h(
+            "div",
+            { className: "ap-import__acts" },
+            p.doneHref
+              ? h(
+                  A,
+                  { className: "ap-btn ap-btn--primary", href: p.doneHref },
+                  tr("Voir mes rapports"),
+                )
+              : null,
+            h(
+              Button,
+              { variant: "secondary", onClick: p.onClear },
+              tr("Importer un autre fichier"),
+            ),
+          ),
+        )
+      : null,
+    state === "error"
+      ? h(
+          "div",
+          { className: "ap-import__err", role: "alert" },
+          icons.info(),
+          p.error || tr("Ce fichier n'a pas pu être lu."),
+          p.onClear
+            ? h(Button, { variant: "secondary", size: "sm", onClick: p.onClear }, tr("Réessayer"))
+            : null,
+        )
+      : null,
+  );
+}
+function ExportPanel(p) {
+  return h(
+    "div",
+    { className: "ap-root ap-export" },
+    h(
+      "div",
+      { className: "ap-export__body" },
+      h("div", { className: "ap-export__t" }, tr("Exporter mes écoutes")),
+      h(
+        "div",
+        { className: "ap-field__hint" },
+        (p.listenCount != null ? plural(p.listenCount, tr("écoute"), tr("écoutes")) + " · " : "") +
+          tr("un fichier JSON compatible ListenBrainz, réimportable ici ou ailleurs."),
+      ),
+    ),
+    h(
+      Button,
+      { variant: "secondary", icon: "download", onClick: p.onExport, disabled: p.busy },
+      p.busy ? tr("Préparation…") : tr("Télécharger"),
+    ),
+  );
+}
+
 /* =================== Language =================== */
 var LANGS = [
   { value: "fr", label: "Français" },
@@ -3584,6 +4057,10 @@ function LangSelect(p) {
 }
 
 export {
+  AccountMenu,
+  SettingsLayout,
+  ImportPanel,
+  ExportPanel,
   SiteHeader,
   ProfileHeader,
   StatInline,

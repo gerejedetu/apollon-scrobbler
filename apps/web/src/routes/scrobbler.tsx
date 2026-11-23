@@ -18,7 +18,7 @@ function Scrobbler() {
   return (
     <Shell viewer={me} profile={{ userName: me.userName, accent: me.accent ?? null }}>
       <Page>
-        <div className="ap-settings ap-stack">
+        <div className="ap-narrow ap-stack">
           <ScrobblePage userName={me.userName} />
         </div>
       </Page>

@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** API keys now live on the settings page. */
+/** The former address of the API keys. */
 export const Route = createFileRoute("/reglages/tokens")({
   beforeLoad: () => {
-    throw redirect({ to: "/reglages", hash: "cles", replace: true });
+    throw redirect({ to: "/reglages/cles", replace: true });
   },
 });

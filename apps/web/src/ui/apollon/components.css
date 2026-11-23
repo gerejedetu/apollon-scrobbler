@@ -46,13 +46,18 @@
 
 /* SiteHeader — the black bar */
 .ap-site {
+  display: block;
+  background: var(--chrome);
+  color: var(--on-chrome);
+}
+.ap-site__in {
+  max-width: 1120px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   gap: var(--space-6);
   height: var(--space-16);
   padding: 0 var(--space-8);
-  background: var(--chrome);
-  color: var(--on-chrome);
 }
 .ap-root .ap-site__mark {
   font-size: 30px;
@@ -3340,7 +3345,7 @@ svg.ap-hero__cover {
   .ap-has-tabbar.ap-has-mininp {
     padding-bottom: calc(121px + env(safe-area-inset-bottom, 0px));
   }
-  .ap-site {
+  .ap-site__in {
     height: 56px;
     padding: 0 var(--space-4);
     gap: var(--space-3);
@@ -4189,18 +4194,18 @@ svg.ap-hero__cover {
   width: 100%;
   margin-top: var(--space-2);
 }
-.ap-settings {
+.ap-narrow {
   max-width: 760px;
 }
-.ap-settings__newkey {
+.ap-keys__new {
   display: flex;
   gap: var(--space-2);
   align-items: flex-end;
 }
-.ap-settings__newkey .ap-field {
+.ap-keys__new .ap-field {
   flex: 1;
 }
-.ap-settings__note {
+.ap-note {
   margin: 0;
   font-size: 14px;
   line-height: 20px;
@@ -4239,5 +4244,453 @@ svg.ap-hero__cover {
   .ap-auth {
     min-height: 100dvh;
     grid-template-rows: auto 1fr;
+  }
+}
+
+/* ===== From the design system's update (account menu, settings sections, import/export, long names) ===== */
+/* ===== Long names: never run under a count. One line + … (two lines on big tiles) ===== */
+.ap-feat__cap {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.ap-feat__title,
+.ap-feat__sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-tile__text {
+  width: 100%;
+  min-width: 0;
+}
+.ap-tile__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.ap-tile__sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-obstile__text {
+  min-width: 0;
+}
+.ap-obstile__t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.ap-obstile__a,
+.ap-obstile__d {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-ranked li {
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+}
+.ap-ranked__t,
+.ap-ranked__s {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-ranked__c {
+  white-space: nowrap;
+}
+.ap-mile {
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+}
+.ap-mile > div {
+  min-width: 0;
+}
+.ap-mile__title,
+.ap-mile__sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-mile__date,
+.ap-media__trail,
+.ap-chart__bar > span,
+.ap-feat__count,
+.ap-row__time,
+.ap-key__meta {
+  white-space: nowrap;
+}
+.ap-key__name {
+  min-width: 0;
+  overflow: hidden;
+}
+.ap-key__name,
+.ap-rmini__t,
+.ap-rmini__s,
+.ap-album__meta,
+.ap-cat__label,
+.ap-rstat__label,
+.ap-report__title,
+.ap-report__sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-report > div:first-child {
+  min-width: 0;
+}
+.ap-media__trail {
+  flex: none;
+}
+.ap-mmenu__lang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid #2c2e33;
+  font-size: 17px;
+  color: var(--on-chrome-muted);
+}
+
+/* ===== Account dropdown (avatar) ===== */
+.ap-acct {
+  position: relative;
+}
+.ap-acct__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--on-chrome-muted);
+  cursor: pointer;
+}
+.ap-acct__btn:hover {
+  color: var(--on-chrome);
+}
+.ap-acct__btn[aria-expanded="true"] .ap-avatar {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+}
+.ap-acct__btn > .ap-icon {
+  width: 14px;
+  height: 14px;
+}
+.ap-acct__pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 950;
+  width: 280px;
+  padding: var(--space-2) 0;
+  background: var(--surface-100);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-overlay);
+  font-size: 16px;
+}
+.ap-root .ap-acct__who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.ap-acct__who:hover {
+  background: var(--surface-200);
+}
+.ap-acct__name {
+  display: block;
+  font-weight: 700;
+}
+.ap-acct__sub {
+  display: block;
+  font-size: 14px;
+  color: var(--gold-text);
+}
+.ap-acct__h {
+  font: 700 12px/16px var(--font-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  padding: var(--space-3) var(--space-4) var(--space-1);
+}
+.ap-acct__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 16px/24px var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+.ap-acct__item:hover {
+  background: var(--surface-200);
+}
+.ap-acct__item .ap-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--ink-muted);
+}
+.ap-acct__pop hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--space-1) 0;
+}
+
+/* ===== Settings layout ===== */
+.ap-settings__title {
+  font: 700 32px/38px var(--font-sans);
+  margin: 0 0 var(--space-8);
+}
+.ap-settings__grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--space-12);
+  align-items: start;
+}
+.ap-settings__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: var(--space-6);
+}
+.ap-root .ap-settings__nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-3);
+  color: var(--ink-muted);
+  font: 500 16px/24px var(--font-sans);
+  border-left: 3px solid transparent;
+}
+.ap-root .ap-settings__nav a:hover {
+  background: var(--surface-200);
+  color: var(--ink);
+}
+.ap-root .ap-settings__nav a[aria-current="page"] {
+  background: var(--gold-tint);
+  color: var(--ink);
+  font-weight: 700;
+  border-left-color: var(--gold-500);
+  border-radius: 0 var(--radius-3) var(--radius-3) 0;
+}
+.ap-settings__nav .ap-icon {
+  width: 18px;
+  height: 18px;
+}
+.ap-settings__body {
+  max-width: 720px;
+}
+.ap-settings__h {
+  font: 700 24px/30px var(--font-sans);
+  margin: 0 0 var(--space-2);
+}
+.ap-settings__lead {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ink-muted);
+  margin: 0 0 var(--space-6);
+}
+.ap-settings__foot {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}
+
+/* ===== Import / export ===== */
+.ap-import {
+  display: grid;
+  gap: var(--space-6);
+}
+.ap-choice--src {
+  padding: var(--space-3) var(--space-5, 20px);
+}
+.ap-drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-8) var(--space-6);
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius-3);
+  background: var(--surface-200);
+  text-align: center;
+  cursor: pointer;
+}
+.ap-drop:hover,
+.ap-drop:focus-within {
+  border-color: var(--gold-mark);
+  background: var(--gold-tint);
+}
+.ap-drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ap-drop .ap-empty__art {
+  margin-bottom: var(--space-3);
+}
+.ap-drop__t {
+  font: 700 18px/24px var(--font-sans);
+}
+.ap-drop__x {
+  font-size: 15px;
+  color: var(--ink-muted);
+}
+.ap-filecard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-3);
+}
+.ap-filecard__icon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--surface-300);
+  color: var(--ink-muted);
+}
+.ap-filecard__body {
+  flex: 1;
+  min-width: 0;
+}
+.ap-filecard__name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-filecard__meta {
+  font-size: 14px;
+  color: var(--ink-subtle);
+}
+.ap-import__acts {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.ap-import__prog {
+  display: grid;
+  gap: var(--space-2);
+}
+.ap-import__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+}
+.ap-progress--lg {
+  height: 10px;
+}
+.ap-import__done {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5, 20px);
+  background: var(--laurel-tint);
+  border-radius: var(--radius-3);
+}
+.ap-import__donet {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: 700 18px/24px var(--font-sans);
+  color: var(--laurel-text);
+}
+.ap-import__err {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--danger-tint);
+  color: var(--danger);
+  border-radius: var(--radius-3);
+}
+.ap-export {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-3);
+}
+.ap-export__body {
+  flex: 1;
+  min-width: 0;
+}
+.ap-export__t {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+@media (max-width: 720px) {
+  .ap-acct__btn > .ap-icon {
+    display: none;
+  }
+  .ap-acct__pop {
+    position: fixed;
+    left: var(--space-4);
+    right: var(--space-4);
+    top: 64px;
+    width: auto;
+  }
+  .ap-settings__title {
+    font-size: 26px;
+    line-height: 32px;
+    margin-bottom: var(--space-4);
+  }
+  .ap-settings__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+  .ap-settings__nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: var(--space-2);
+    margin: 0 calc(-1 * var(--space-4));
+    padding: 0 var(--space-4) var(--space-2);
+    border-bottom: 1px solid var(--line);
+    scrollbar-width: none;
+  }
+  .ap-root .ap-settings__nav a {
+    flex: none;
+    border-left: 0;
+    padding: var(--space-2) var(--space-3);
+    white-space: nowrap;
+  }
+  .ap-root .ap-settings__nav a[aria-current="page"] {
+    border-radius: var(--radius-3);
+    box-shadow: inset 0 -3px 0 var(--gold-500);
+  }
+  .ap-settings__nav .ap-icon {
+    display: none;
+  }
+  .ap-settings__foot .ap-btn,
+  .ap-import__acts .ap-btn {
+    flex: 1;
+  }
+  .ap-export {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
