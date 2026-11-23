@@ -20,6 +20,7 @@ function presentMe(user: User, owner: boolean) {
     listenCount: user.listenCount,
     createdAt: user.createdAt,
     private: user.isPrivate,
+    accent: user.accent,
     owner,
   };
 }
@@ -39,9 +40,22 @@ export const nativeRoutes = new Hono<AppEnv>()
       string,
       unknown
     >;
-    const updated =
-      "private" in changes ? await c.var.services.users.setPrivate(user, changes.private) : user;
+    let updated = user;
+    if ("private" in changes)
+      updated = await c.var.services.users.setPrivate(updated, changes.private);
+    if ("accent" in changes)
+      updated = await c.var.services.users.setAccent(updated, changes.accent);
     return c.json(presentMe(updated, await c.var.services.instance.isOwner(updated)));
+  })
+  // A profile's public card: what any visitor's page header needs (404 for private and unknown users).
+  .get("/users/:userName", async (c) => {
+    const user = await readableUser(c, c.req.param("userName"));
+    return c.json({
+      userName: user.name,
+      createdAt: user.createdAt,
+      listenCount: user.listenCount,
+      accent: user.accent,
+    });
   })
   .get("/instance", async (c) => c.json(await c.var.services.instance.settings()))
   .patch("/instance", async (c) => {

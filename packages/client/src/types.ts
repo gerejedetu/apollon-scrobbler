@@ -20,6 +20,16 @@ export interface Me {
   private: boolean;
   /** The instance owner (first account): the only one who can open or close sign-up. */
   owner?: boolean;
+  /** Profile accent colour, `#rrggbb`, or null for the default. */
+  accent?: string | null;
+}
+
+/** GET /v1/users/{userName}: a profile's public card. */
+export interface Profile {
+  userName: string;
+  createdAt: number;
+  listenCount: number;
+  accent: string | null;
 }
 
 /** GET /v1/instance */
@@ -320,6 +330,8 @@ export interface LovedPage {
 export interface ObsessionHistory {
   userName: string;
   total: number;
+  /** The obsession kept longest (the current one counts up to now). */
+  longest: (Favourite & { until: number | null }) | null;
   items: (Favourite & { until: number | null })[];
 }
 
@@ -356,4 +368,24 @@ export interface SearchResults {
     mbids: { release: string | null };
     listenCount: number;
   }[];
+}
+
+/** GET /v1/users/{userName}/stats/album-sessions */
+export interface AlbumSessions {
+  range: string;
+  from: number;
+  to: number;
+  gapMinutes: number;
+  minTracks: number;
+  total: number;
+  items: {
+    artistName: string;
+    releaseName: string;
+    releaseMbid: string | null;
+    trackCount: number;
+    listenCount: number;
+    startedAt: number;
+    endedAt: number;
+  }[];
+  lastUpdated: number;
 }

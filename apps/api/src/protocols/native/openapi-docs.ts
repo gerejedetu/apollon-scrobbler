@@ -76,7 +76,7 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "updateMe",
     tag: "Account",
     description:
-      "Changes settings of the signed-in user. Only the fields sent are changed. `private: true` hides the profile: its listens, now playing and every statistic answer 404 to anyone but the owner, as if the user did not exist.",
+      "Changes settings of the signed-in user. Only the fields sent are changed. `accent` sets the profile colour (`#rrggbb`, or null for the default). `private: true` hides the profile: its listens, now playing and every statistic answer 404 to anyone but the owner, as if the user did not exist.",
     requestExample: { private: true },
   },
   "PUT /me/loved": {
@@ -114,6 +114,12 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     tag: "Favourites",
     description: "A user's current obsession, or `obsession: null`.",
   },
+  "GET /users/{userName}": {
+    operationId: "getProfile",
+    tag: "Account",
+    description:
+      "What any visitor's page header needs about a profile: name, member since, listen count and accent colour. Private and unknown profiles answer 404 to everyone but their owner.",
+  },
   "GET /users/{userName}/search": {
     operationId: "searchLibrary",
     tag: "Pages",
@@ -124,7 +130,7 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "listObsessions",
     tag: "Favourites",
     description:
-      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period.",
+      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period. `longest` is the one kept longest, the current one counting up to now.",
   },
   "GET /instance": {
     operationId: "getInstance",

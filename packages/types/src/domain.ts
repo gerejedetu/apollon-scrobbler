@@ -16,6 +16,8 @@ export interface User {
   isPrivate: boolean;
   /** Increases with every change to the user's listens; stats caches are keyed by it. */
   dataVersion: number;
+  /** Profile accent colour, `#rrggbb`, or null for the default. */
+  accent: string | null;
 }
 
 /** A listen validated by core and ready to be stored. */

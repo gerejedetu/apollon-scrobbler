@@ -10,6 +10,7 @@ const user: User = {
   listenCount: 0,
   isPrivate: false,
   dataVersion: 0,
+  accent: null,
 };
 const MBID = "8F3471B5-7E6A-48DA-86A9-C1C07A0F47AE";
 

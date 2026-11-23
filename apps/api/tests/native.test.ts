@@ -524,3 +524,24 @@ describe("obsession history", () => {
     expect(h.body.items[1]).toMatchObject({ track: "One", until: expect.any(Number) });
   });
 });
+
+describe("profile accent and public card", () => {
+  test("PATCH /me sets or resets the accent; the public card shows it", async () => {
+    const set = await api.json("/v1/me", send("PATCH", { accent: "#7C3AED" }));
+    expect(set.body.accent).toBe("#7c3aed");
+    expect((await api.json("/v1/users/alice")).body).toMatchObject({
+      userName: "Alice",
+      accent: "#7c3aed",
+    });
+    expect((await api.json("/v1/me", send("PATCH", { accent: "violet" }))).status).toBe(400);
+    expect((await api.json("/v1/me", send("PATCH", { accent: null }))).body.accent).toBeNull();
+    await api.json("/v1/me", send("PATCH", { private: true }));
+    expect((await api.json("/v1/users/alice")).status).toBe(404);
+  });
+
+  test("the obsession history names the longest one", async () => {
+    await api.request("/v1/me/obsession", send("PUT", { artist: "Air", track: "One" }));
+    const h = await api.json("/v1/users/alice/obsessions");
+    expect(h.body.longest).toMatchObject({ track: "One", until: null });
+  });
+});

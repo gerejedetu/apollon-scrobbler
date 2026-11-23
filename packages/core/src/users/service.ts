@@ -46,6 +46,19 @@ export class UserService {
     return updated;
   }
 
+  /** Sets the profile's accent colour (`#rrggbb`), or resets it with null. */
+  async setAccent(user: User, accent: unknown): Promise<User> {
+    if (accent !== null && (typeof accent !== "string" || !/^#[0-9a-f]{6}$/i.test(accent))) {
+      throw ApiError.badRequest("accent must be a colour like #7c3aed, or null.");
+    }
+    const updated = await this.users.setAccent(
+      user.id,
+      accent === null ? null : accent.toLowerCase(),
+    );
+    if (!updated) throw ApiError.notFound(`Cannot find user: ${user.name}`);
+    return updated;
+  }
+
   async requireByAuthId(authUserId: string): Promise<User> {
     const user = await this.users.findByAuthId(authUserId);
     if (!user) throw ApiError.notFound("This account has no scrobbler profile.");
