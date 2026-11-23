@@ -4189,3 +4189,20 @@ svg.ap-hero__cover {
   width: 100%;
   margin-top: var(--space-2);
 }
+.ap-settings {
+  max-width: 760px;
+}
+.ap-settings__newkey {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+.ap-settings__newkey .ap-field {
+  flex: 1;
+}
+.ap-settings__note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-subtle);
+}

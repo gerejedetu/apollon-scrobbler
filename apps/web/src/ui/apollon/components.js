@@ -1781,6 +1781,7 @@ function TextField(p) {
         onChange: p.onChange,
         autoComplete: p.autoComplete,
         required: p.required,
+        readOnly: p.readOnly,
         minLength: p.minLength,
         maxLength: p.maxLength,
         autoFocus: p.autoFocus,

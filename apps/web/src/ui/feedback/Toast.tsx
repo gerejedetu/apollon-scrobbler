@@ -1,15 +1,20 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import { css } from "styled-system/css";
-import { CloseIcon } from "../icons.tsx";
-import { m } from "../../paraglide/messages.js";
+import { Toast, ToastRegion } from "../apollon/index.ts";
 
-type Show = (message: string) => void;
+type Kind = "success" | "error" | "info";
+type Show = (message: string, kind?: Kind) => void;
 const ToastContext = createContext<Show>(() => {});
 
-/** The violet pill of the design ("Écoute supprimée."), bottom centre, gone after 4 s or on close. */
+/**
+ * Notices after an action ("Réglages enregistrés.", "Écoute supprimée."): the design system's Toast in its
+ * ToastRegion, bottom centre, gone after 4 s or on close. One region, mounted once at the root.
+ */
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [message, setMessage] = useState<{ text: string; id: number } | null>(null);
-  const show = useCallback<Show>((text) => setMessage({ text, id: Date.now() }), []);
+  const [message, setMessage] = useState<{ text: string; kind: Kind; id: number } | null>(null);
+  const show = useCallback<Show>(
+    (text, kind = "success") => setMessage({ text, kind, id: Date.now() }),
+    [],
+  );
   useEffect(() => {
     if (!message) return;
     const timer = setTimeout(() => setMessage(null), 4000);
@@ -18,55 +23,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={show}>
       {children}
-      <div
-        role="status"
-        aria-live="polite"
-        className={css({
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: "24px",
-          display: "flex",
-          justifyContent: "center",
-          pointerEvents: "none",
-          zIndex: 30,
-        })}
-      >
+      <ToastRegion>
         {message ? (
-          <span
+          <Toast
             key={message.id}
-            className={css({
-              pointerEvents: "auto",
-              height: "36px",
-              px: "14px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              borderRadius: "pill",
-              bg: "violet",
-              color: "page",
-              fontSize: "13px",
-              fontWeight: "500",
-            })}
-          >
-            {message.text}
-            <button
-              type="button"
-              aria-label={m.close()}
-              onClick={() => setMessage(null)}
-              className={css({
-                border: 0,
-                bg: "transparent",
-                color: "page",
-                p: 0,
-                display: "flex",
-              })}
-            >
-              <CloseIcon />
-            </button>
-          </span>
+            kind={message.kind}
+            message={message.text}
+            onClose={() => setMessage(null)}
+          />
         ) : null}
-      </div>
+      </ToastRegion>
     </ToastContext.Provider>
   );
 }
