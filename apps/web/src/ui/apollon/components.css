@@ -4694,3 +4694,16 @@ svg.ap-hero__cover {
     align-items: stretch;
   }
 }
+
+/* Titles drawn as links still cut with "…": a link is inline, and an ellipsis needs a block. */
+.ap-root a.ap-chart__title,
+.ap-root a.ap-row__title {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-chart__row > div {
+  min-width: 0;
+}
