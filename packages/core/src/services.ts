@@ -15,6 +15,7 @@ import {
   systemClock,
   type TokenVerifier,
 } from "./ports/index.ts";
+import { SearchService } from "./search/service.ts";
 import { StatsService } from "./stats/service.ts";
 import { UserService } from "./users/service.ts";
 
@@ -41,6 +42,7 @@ export interface Services {
   insights: InsightsService;
   favourites: FavouriteService;
   instance: InstanceService;
+  search: SearchService;
 }
 
 export function createServices(
@@ -71,5 +73,6 @@ export function createServices(
     ),
     favourites: new FavouriteService(repos.favourites, clock),
     instance: new InstanceService(repos.instance, options.signupForceClosed),
+    search: new SearchService(repos.search),
   };
 }

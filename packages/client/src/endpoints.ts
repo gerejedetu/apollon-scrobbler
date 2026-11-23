@@ -33,6 +33,10 @@ export function createEndpoints(http: Http) {
         ),
       obsession: (name: string) =>
         http.get<{ userName: string; obsession: T.Favourite | null }>(`${user(name)}/obsession`),
+      search: (name: string, q: { q: string; limit?: number }) =>
+        http.get<T.SearchResults>(`${user(name)}/search`, q),
+      obsessions: (name: string, q: { limit?: number; offset?: number } = {}) =>
+        http.get<T.ObsessionHistory>(`${user(name)}/obsessions`, q),
       setObsession: (track: T.TrackRef) => http.put<void>(`${v1}/me/obsession`, track),
       clearObsession: () => http.delete<void>(`${v1}/me/obsession`),
     },

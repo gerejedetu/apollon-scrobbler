@@ -71,17 +71,65 @@ export function d1Favourites(db: D1Like): FavouriteRepository {
       };
     },
 
-    async setObsession(userId, t) {
+    async setObsession(userId, t, at) {
+      // Setting the same track again keeps its period open (no new history row).
+      const same = t
+        ? await db
+            .prepare(
+              "SELECT 1 AS same FROM obsessions WHERE user_id = ?1 AND artist_name = ?2 AND track_name = ?3",
+            )
+            .bind(userId, t.artistName, t.trackName)
+            .first<{ same: number }>()
+        : null;
+      const close = db
+        .prepare(
+          "UPDATE obsession_history SET ended_at = ?2 WHERE user_id = ?1 AND ended_at IS NULL",
+        )
+        .bind(userId, at);
       if (!t) {
-        await db.prepare("DELETE FROM obsessions WHERE user_id = ?1").bind(userId).run();
+        await db.batch([
+          db.prepare("DELETE FROM obsessions WHERE user_id = ?1").bind(userId),
+          close,
+        ]);
         return;
       }
-      await db
+      const set = db
         .prepare(
           `INSERT OR REPLACE INTO obsessions (user_id, ${COLUMNS}, set_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
         )
-        .bind(userId, ...values(t))
-        .run();
+        .bind(userId, ...values(t));
+      if (same) {
+        await set.run();
+        return;
+      }
+      await db.batch([
+        close,
+        set,
+        db
+          .prepare(
+            `INSERT INTO obsession_history (user_id, ${COLUMNS}, started_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
+          )
+          .bind(userId, ...values(t)),
+      ]);
+    },
+
+    async obsessionHistory(userId, limit, offset) {
+      const [rows, total] = await db.batch([
+        db
+          .prepare(
+            `SELECT ${COLUMNS}, started_at AS at, ended_at FROM obsession_history WHERE user_id = ?1
+             ORDER BY started_at DESC, id DESC LIMIT ?2 OFFSET ?3`,
+          )
+          .bind(userId, limit, offset),
+        db.prepare("SELECT count(*) AS n FROM obsession_history WHERE user_id = ?1").bind(userId),
+      ]);
+      return {
+        items: ((rows?.results ?? []) as (Row & { ended_at: number | null })[]).map((r) => ({
+          ...toTrack(r),
+          endedAt: r.ended_at,
+        })),
+        total: ((total?.results[0] ?? { n: 0 }) as { n: number }).n,
+      };
     },
 
     async obsession(userId) {

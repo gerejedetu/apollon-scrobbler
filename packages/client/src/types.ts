@@ -316,6 +316,13 @@ export interface LovedPage {
   items: Favourite[];
 }
 
+/** GET /v1/users/{userName}/obsessions */
+export interface ObsessionHistory {
+  userName: string;
+  total: number;
+  items: (Favourite & { until: number | null })[];
+}
+
 /** What identifies a track for loving it or making it the obsession. */
 export interface TrackRef {
   artist: string;
@@ -329,4 +336,24 @@ export interface OAuthClientPublic {
   client_id: string;
   client_name?: string | null;
   client_uri?: string | null;
+}
+
+/** GET /v1/users/{userName}/search */
+export interface SearchResults {
+  userName: string;
+  query: string;
+  artists: { artist: string; listenCount: number }[];
+  albums: {
+    artist: string;
+    album: string;
+    mbids: { release: string | null };
+    listenCount: number;
+  }[];
+  tracks: {
+    artist: string;
+    track: string;
+    album: string | null;
+    mbids: { release: string | null };
+    listenCount: number;
+  }[];
 }

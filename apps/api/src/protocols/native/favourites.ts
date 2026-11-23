@@ -1,4 +1,4 @@
-/** Loved tracks and the current obsession (see core's FavouriteService). */
+/** Loved tracks, the obsession and its history (see core's FavouriteService), and library search. */
 import type { TrackRef } from "@scrobbler/core";
 import type { FavouriteTrack } from "@scrobbler/types";
 import { Hono } from "hono";
@@ -45,6 +45,38 @@ export const favouriteRoutes = new Hono<AppEnv>()
     const user = await readableUser(c, c.req.param("userName"));
     const t = await c.var.services.favourites.obsession(user);
     return c.json({ userName: user.name, obsession: t ? presentFavourite(t, "since") : null });
+  })
+  .get("/users/:userName/search", async (c) => {
+    const user = await readableUser(c, c.req.param("userName"));
+    const r = await c.var.services.search.search(user, c.req.query());
+    return c.json({
+      userName: user.name,
+      query: r.query,
+      artists: r.artists.map((a) => ({ artist: a.artistName, listenCount: a.listenCount })),
+      albums: r.albums.map((a) => ({
+        artist: a.artistName,
+        album: a.releaseName,
+        mbids: { release: a.releaseMbid },
+        listenCount: a.listenCount,
+      })),
+      tracks: r.tracks.map((t) => ({
+        artist: t.artistName,
+        track: t.trackName,
+        album: t.releaseName,
+        mbids: { release: t.releaseMbid },
+        listenCount: t.listenCount,
+      })),
+    });
+  })
+  .get("/users/:userName/obsessions", async (c) => {
+    const user = await readableUser(c, c.req.param("userName"));
+    const { limit, offset } = c.req.query();
+    const page = await c.var.services.favourites.obsessionHistory(user, { limit, offset });
+    return c.json({
+      userName: user.name,
+      total: page.total,
+      items: page.items.map((p) => ({ ...presentFavourite(p, "since"), until: p.endedAt })),
+    });
   })
   .put("/me/obsession", async (c) => {
     const user = await requireUserOrSession(c);

@@ -114,6 +114,18 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     tag: "Favourites",
     description: "A user's current obsession, or `obsession: null`.",
   },
+  "GET /users/{userName}/search": {
+    operationId: "searchLibrary",
+    tag: "Pages",
+    description:
+      "Artists, albums and tracks of the user's own listens whose name contains `q` (case-insensitive for Latin letters). Names that start with `q` come first, then the most listened. Up to `limit` of each.",
+  },
+  "GET /users/{userName}/obsessions": {
+    operationId: "listObsessions",
+    tag: "Favourites",
+    description:
+      "Every obsession the user has had, newest first: each with when it started (`since`) and when it was replaced or cleared (`until`, null for the current one). Setting the same track again does not start a new period.",
+  },
   "GET /instance": {
     operationId: "getInstance",
     tag: "Account",
@@ -336,6 +348,7 @@ export const PARAMETERS: Record<string, string> = {
   months: "How long without a listen counts as forgotten, in months (30 days each).",
   minListens: "Minimum number of listens over all time for something to count as a favourite.",
   gapMinutes: "Silence, in minutes, after which a new session starts.",
+  q: "Text to look for in artist, album and track names.",
 };
 
 type Json = Record<string, unknown>;
