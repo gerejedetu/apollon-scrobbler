@@ -5,17 +5,21 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 import { api, isNotFound } from "../../../api/index.ts";
+import { loadInstance } from "../../../auth/instance.ts";
 import { HiddenProfile, RouteError } from "../../../features/errors/index.ts";
-import { AppHeader, MobileTabBar } from "../../../features/navigation/index.ts";
-import { Page } from "../../../ui/layout/index.ts";
+import { Shell } from "../../../features/shell/index.ts";
 
-/** A user's pages (library, history, stats) share the app header; the viewer may be anyone. */
+/** A user's pages share the frame and the owner's colour; the viewer may be anyone. */
 export const Route = createFileRoute("/u/$userName")({
-  // One cheap call tells whether the profile can be read; the API 404s for private and unknown ones alike,
-  // and this route's error screen then covers every page of the profile.
+  // The public card tells whether the profile can be read: the API 404s for private and unknown ones
+  // alike, and this route's error screen then covers every page of the profile.
   loader: async ({ params }) => {
     try {
-      return await api.listens.nowPlaying(params.userName);
+      const [profile, instance] = await Promise.all([
+        api.me.profile(params.userName),
+        loadInstance(),
+      ]);
+      return { profile, signupOpen: instance.signupOpen };
     } catch (e) {
       // Router's notFound survives server rendering (an ApiError would arrive as a plain Error).
       if (isNotFound(e)) throw notFound();
@@ -31,9 +35,9 @@ export const Route = createFileRoute("/u/$userName")({
 function Hidden() {
   const { viewer } = Route.useRouteContext();
   return (
-    <Page header={<AppHeader userName={viewer?.userName ?? null} />}>
+    <Shell viewer={viewer}>
       <HiddenProfile signedIn={viewer !== null} />
-    </Page>
+    </Shell>
   );
 }
 
@@ -41,24 +45,22 @@ function Hidden() {
 function UserError(props: ErrorComponentProps) {
   const { viewer } = Route.useRouteContext();
   return (
-    <Page header={<AppHeader userName={viewer?.userName ?? null} />}>
+    <Shell viewer={viewer}>
       {isNotFound(props.error) ? (
         <HiddenProfile signedIn={viewer !== null} />
       ) : (
         <RouteError {...props} />
       )}
-    </Page>
+    </Shell>
   );
 }
 
 function UserPages() {
   const { viewer } = Route.useRouteContext();
+  const { profile, signupOpen } = Route.useLoaderData();
   return (
-    <Page
-      header={<AppHeader userName={viewer?.userName ?? null} />}
-      tabBar={viewer ? <MobileTabBar userName={viewer.userName} /> : undefined}
-    >
+    <Shell viewer={viewer} profile={profile} signupOpen={signupOpen}>
       <Outlet />
-    </Page>
+    </Shell>
   );
 }
