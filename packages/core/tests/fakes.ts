@@ -19,6 +19,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
 
   const loved = new Map<string, FavouriteTrack>();
   const obsessions = new Map<number, FavouriteTrack>();
+  const history: (FavouriteTrack & { userId: number; endedAt: number | null })[] = [];
   const lovedKey = (userId: number, artist: string, track: string) =>
     `${userId}\u0000${artist}\u0000${track}`;
   return {
@@ -37,9 +38,29 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
           .sort((a, b) => b.at - a.at);
         return { items: mine.slice(offset, offset + limit), total: mine.length };
       },
-      async setObsession(userId, t) {
-        if (t) obsessions.set(userId, t);
-        else obsessions.delete(userId);
+      async setObsession(userId, t, at) {
+        const current = obsessions.get(userId);
+        if (
+          t &&
+          current &&
+          current.artistName === t.artistName &&
+          current.trackName === t.trackName
+        ) {
+          obsessions.set(userId, t);
+          return;
+        }
+        for (const p of history) if (p.userId === userId && p.endedAt === null) p.endedAt = at;
+        if (t) {
+          obsessions.set(userId, t);
+          history.push({ ...t, userId, endedAt: null });
+        } else obsessions.delete(userId);
+      },
+      async obsessionHistory(userId, limit, offset) {
+        const mine = history.filter((p) => p.userId === userId).reverse();
+        return {
+          items: mine.slice(offset, offset + limit).map(({ userId: _u, ...p }) => p),
+          total: mine.length,
+        };
       },
       async obsession(userId) {
         return obsessions.get(userId) ?? null;
@@ -159,6 +180,34 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
       },
     },
     // Insights are SQL-heavy: they are tested against the real schema in db-d1 and apps/api, not faked here.
+    search: {
+      // Simple stand-in for the SQL (which is tested in db-d1 and apps/api): substring match, most listened first.
+      async search(userId, text, limit) {
+        const has = (v: string | null) =>
+          v !== null && v.toLowerCase().includes(text.toLowerCase());
+        const tally = (keys: string[]) => {
+          const m = new Map<string, number>();
+          for (const k of keys) m.set(k, (m.get(k) ?? 0) + 1);
+          return [...m].sort((a, b) => b[1] - a[1]).slice(0, limit);
+        };
+        const mine = listens.filter((l) => l.userId === userId);
+        return {
+          artists: tally(mine.filter((l) => has(l.artistName)).map((l) => l.artistName)).map(
+            ([artistName, listenCount]) => ({
+              artistName,
+              listenCount,
+            }),
+          ),
+          albums: [],
+          tracks: tally(
+            mine.filter((l) => has(l.trackName)).map((l) => `${l.artistName}\u0000${l.trackName}`),
+          ).map(([k, listenCount]) => {
+            const [artistName, trackName] = k.split("\u0000") as [string, string];
+            return { artistName, trackName, releaseName: null, releaseMbid: null, listenCount };
+          }),
+        };
+      },
+    },
     artists: {
       async known(userId, names) {
         return new Set(

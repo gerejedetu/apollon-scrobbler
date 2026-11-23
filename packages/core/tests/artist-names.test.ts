@@ -48,3 +48,15 @@ describe("bilingual artist names", () => {
     expect(canonicalArtist("Air", new Set(), new Map())).toEqual({ artist: "Air", learn: [] });
   });
 });
+
+describe("service labels", () => {
+  test("a YouTube Music type label is not part of the artist's name", async () => {
+    const { withoutServiceLabel } = await import("../src/index.ts");
+    expect(withoutServiceLabel("Song • STAYC")).toBe("STAYC");
+    expect(withoutServiceLabel("Video • Heize")).toBe("Heize");
+    expect(withoutServiceLabel("Titre · Angèle")).toBe("Angèle");
+    expect(withoutServiceLabel("STAYC")).toBe("STAYC");
+    expect(withoutServiceLabel("Songhoy Blues")).toBe("Songhoy Blues");
+    expect(withoutServiceLabel("Song •")).toBe("Song •");
+  });
+});

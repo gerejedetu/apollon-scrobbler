@@ -441,13 +441,20 @@ describe("favourites", () => {
     expect((await repos.favourites.loved(userId, 10, 0)).total).toBe(1);
   });
 
-  test("obsession: set, replace, clear", async () => {
+  test("obsession: set, replace, clear, and the history keeps every period", async () => {
     expect(await repos.favourites.obsession(userId)).toBeNull();
-    await repos.favourites.setObsession(userId, t("One", 1));
-    await repos.favourites.setObsession(userId, t("Two", 2));
+    await repos.favourites.setObsession(userId, t("One", 1), 1);
+    await repos.favourites.setObsession(userId, t("One", 1), 1); // same track: same period
+    await repos.favourites.setObsession(userId, t("Two", 2), 2);
     expect((await repos.favourites.obsession(userId))?.trackName).toBe("Two");
-    await repos.favourites.setObsession(userId, null);
+    await repos.favourites.setObsession(userId, null, 3);
     expect(await repos.favourites.obsession(userId)).toBeNull();
+    const history = await repos.favourites.obsessionHistory(userId, 10, 0);
+    expect(history.total).toBe(2);
+    expect(history.items.map((p) => [p.trackName, p.at, p.endedAt])).toEqual([
+      ["Two", 2, 3],
+      ["One", 1, 2],
+    ]);
   });
 });
 

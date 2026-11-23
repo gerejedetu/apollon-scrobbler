@@ -7,6 +7,7 @@ import { d1Insights } from "./repositories/insights.ts";
 import { d1Instance } from "./repositories/instance.ts";
 import { d1Listens } from "./repositories/listens.ts";
 import { d1PlayingNow } from "./repositories/playing-now.ts";
+import { d1Search } from "./repositories/search.ts";
 import { d1Stats } from "./repositories/stats.ts";
 import { d1Users } from "./repositories/users.ts";
 
@@ -24,5 +25,6 @@ export function createD1Repositories(db: D1Like): Repositories {
     insights: d1Insights(db),
     instance: d1Instance(db),
     artists: d1Artists(db),
+    search: d1Search(db),
   };
 }

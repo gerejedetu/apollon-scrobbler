@@ -157,6 +157,11 @@ export interface ArtistQuery {
 }
 
 /** A track the user loves, or their current obsession. `at` is when it was set (Unix seconds). */
+/** A past or current obsession: `at` is when it started, `endedAt` when it was replaced (null while current). */
+export interface ObsessionPeriod extends FavouriteTrack {
+  endedAt: number | null;
+}
+
 export interface FavouriteTrack {
   artistName: string;
   trackName: string;
@@ -164,4 +169,22 @@ export interface FavouriteTrack {
   recordingMbid: string | null;
   releaseMbid: string | null;
   at: number;
+}
+
+/** What a search over one user's library finds, most listened first (names starting with the text first). */
+export interface SearchResults {
+  artists: { artistName: string; listenCount: number }[];
+  albums: {
+    artistName: string;
+    releaseName: string;
+    releaseMbid: string | null;
+    listenCount: number;
+  }[];
+  tracks: {
+    artistName: string;
+    trackName: string;
+    releaseName: string | null;
+    releaseMbid: string | null;
+    listenCount: number;
+  }[];
 }
