@@ -4009,3 +4009,32 @@ svg.ap-hero__cover {
   font-size: 17px;
   color: var(--on-chrome-muted);
 }
+
+/* App additions (not in the design system's bundle): the avatar as the account link, and "Se déconnecter"
+   as a button in the phone menu, drawn like its neighbouring links. */
+.ap-root .ap-site__account {
+  display: block;
+  border-radius: var(--radius-3);
+}
+.ap-root .ap-mmenu__btn {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  font: 400 17px/24px var(--font-sans);
+  color: var(--on-chrome-muted);
+  text-align: left;
+  cursor: pointer;
+}
+/* The app's page frame: header, content, footer. */
+.ap-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.ap-shell__main {
+  flex: 1;
+  min-width: 0;
+}

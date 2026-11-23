@@ -399,10 +399,26 @@ function GenArt(p) {
     k,
   );
 }
+/* An image that gives way to `fallback` (the generated cover) when it fails to load: the app's /covers
+   answers 404 for a sleeve nobody has. */
+function Img(p) {
+  var st = React.useState(false);
+  if (!p.src || st[0]) return p.fallback || null;
+  return h("img", {
+    className: p.className,
+    src: p.src,
+    alt: "",
+    loading: "lazy",
+    onError: function () {
+      st[1](true);
+    },
+  });
+}
 function Cover(p) {
-  if (p.src) return h("img", { className: "ap-cover", src: p.src, alt: "" });
-  if (p.seed) return h(GenArt, { className: "ap-cover", seed: p.seed });
-  return h("div", { className: "ap-cover", "aria-hidden": "true" }, icons.note());
+  var fallback = p.seed
+    ? h(GenArt, { className: "ap-cover", seed: p.seed })
+    : h("div", { className: "ap-cover", "aria-hidden": "true" }, icons.note());
+  return p.src ? h(Img, { className: "ap-cover", src: p.src, fallback: fallback }) : fallback;
 }
 function Avatar(p) {
   if (p.src) return h("img", { className: "ap-avatar", src: p.src, alt: "" });
@@ -501,7 +517,13 @@ function SiteHeader(p) {
                 )
               : null,
           ]
-        : h(Avatar, { name: p.userName, src: p.avatarUrl }),
+        : p.accountHref
+          ? h(
+              A,
+              { href: p.accountHref, className: "ap-site__account", "aria-label": p.accountLabel },
+              h(Avatar, { name: p.userName, src: p.avatarUrl }),
+            )
+          : h(Avatar, { name: p.userName, src: p.avatarUrl }),
     ),
   );
 }
@@ -556,6 +578,18 @@ function ProfileHeader(p) {
           "nav",
           { className: "ap-banner__tabs" },
           tabs.map(function (tab) {
+            // A tab is a label (the design's buttons) or { label, href } (a page of the profile).
+            if (typeof tab === "object")
+              return h(
+                A,
+                {
+                  key: tab.href,
+                  href: tab.href,
+                  className: "ap-banner__tab",
+                  "aria-current": tab.label === active ? "page" : undefined,
+                },
+                tab.label,
+              );
             return h(
               "button",
               {
@@ -889,9 +923,10 @@ function ArtworkGrid(p) {
       return h(
         A,
         { key: i, className: "ap-tile", href: it.href || "#" },
-        it.imageUrl
-          ? h("img", { src: it.imageUrl, alt: "" })
-          : h(GenArt, { className: "ap-tile__gen", seed: it.name }),
+        h(Img, {
+          src: it.imageUrl,
+          fallback: h(GenArt, { className: "ap-tile__gen", seed: it.name }),
+        }),
         h("div", { className: "ap-tile__scrim" }),
         h(
           "div",
@@ -1227,9 +1262,14 @@ function EntityHero(p) {
       ),
     ),
     kind !== "artist" && p.coverUrl !== false
-      ? p.coverUrl
-        ? h("img", { className: "ap-hero__cover", src: p.coverUrl, alt: "" })
-        : h(GenArt, { className: "ap-hero__cover", seed: p.coverSeed || p.album || p.title })
+      ? h(Img, {
+          className: "ap-hero__cover",
+          src: p.coverUrl,
+          fallback: h(GenArt, {
+            className: "ap-hero__cover",
+            seed: p.coverSeed || p.album || p.title,
+          }),
+        })
       : null,
   );
 }
@@ -1293,9 +1333,11 @@ function AlbumGrid(p) {
       return h(
         A,
         { key: i, href: a.href || "#" },
-        a.coverUrl
-          ? h("img", { className: "ap-album__img", src: a.coverUrl, alt: "" })
-          : h(GenArt, { className: "ap-album__img", seed: a.title }),
+        h(Img, {
+          className: "ap-album__img",
+          src: a.coverUrl,
+          fallback: h(GenArt, { className: "ap-album__img", seed: a.title }),
+        }),
         h("div", { className: "ap-album__title" }, a.title),
         a.artist
           ? h("div", { className: "ap-album__meta", style: { color: "var(--ink)" } }, a.artist)
@@ -3369,7 +3411,11 @@ function MobileMenu(p) {
           { key: i },
           h(
             A,
-            { href: o.href || "#", "aria-current": o.label === p.active ? "page" : undefined },
+            {
+              href: o.href || "#",
+              "aria-current": o.label === p.active ? "page" : undefined,
+              onClick: p.onClose,
+            },
             o.label,
             icons.more(),
           ),
@@ -3386,14 +3432,36 @@ function MobileMenu(p) {
       ? h(
           "div",
           { className: "ap-mmenu__acts" },
-          h(Button, { variant: "primary" }, "Créer un compte"),
-          h(Button, { variant: "light" }, "Se connecter"),
+          p.signupOpen !== false
+            ? h(
+                A,
+                { className: "ap-btn ap-btn--primary", href: p.signupHref || "#" },
+                "Créer un compte",
+              )
+            : null,
+          h(A, { className: "ap-btn ap-btn--light", href: p.loginHref || "#" }, "Se connecter"),
         )
       : h(
           "ul",
           { className: "ap-mmenu__list ap-mmenu__list--sm" },
-          ["Réglages", "Clés d'API", "Se déconnecter"].map(function (l) {
-            return h("li", { key: l }, h(A, { href: "#" }, l));
+          (
+            p.accountLinks || [
+              { label: "Réglages" },
+              { label: "Clés d'API" },
+              { label: "Se déconnecter" },
+            ]
+          ).map(function (l) {
+            return h(
+              "li",
+              { key: l.label },
+              l.onClick
+                ? h(
+                    "button",
+                    { type: "button", className: "ap-mmenu__btn", onClick: l.onClick },
+                    l.label,
+                  )
+                : h(A, { href: l.href || "#", onClick: p.onClose }, l.label),
+            );
           }),
         ),
   );
