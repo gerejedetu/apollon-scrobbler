@@ -4207,9 +4207,22 @@ svg.ap-hero__cover {
   color: var(--ink-subtle);
 }
 /* Long names in search results shrink with an ellipsis instead of widening the page. */
-.ap-sres__row { min-width: 0; }
-.ap-sres__row .ap-media__body { flex: 1; min-width: 0; }
+.ap-sres__row {
+  min-width: 0;
+}
+.ap-sres__row .ap-media__body {
+  flex: 1;
+  min-width: 0;
+}
 .ap-sres__row .ap-media__title,
-.ap-sres__row .ap-media__sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ap-sres { grid-template-columns: minmax(0, 1fr); }
-.ap-sres__block { min-width: 0; }
+.ap-sres__row .ap-media__sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-sres {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ap-sres__block {
+  min-width: 0;
+}
