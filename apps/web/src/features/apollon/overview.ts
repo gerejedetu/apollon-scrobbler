@@ -1,7 +1,6 @@
 import { api, type Range } from "../../api/index.ts";
 import { utcOffset } from "../../lib/timezone.ts";
 import { loadFavourites } from "../favourites/index.ts";
-import { loadLaurels } from "./laurels.ts";
 
 /** The periods of the three tops of the overview, each its own (search: artistes, albums, titres). */
 export interface OverviewPeriods {
@@ -28,7 +27,6 @@ export async function loadOverview(userName: string, periods: OverviewPeriods) {
     thisWeek,
     thisYear,
     onRepeat,
-    laurels,
   ] = await Promise.all([
     api.stats.summary(userName, { range: "all_time", utcOffset: offset }),
     api.listens.list(userName, { limit: 10 }),
@@ -44,7 +42,6 @@ export async function loadOverview(userName: string, periods: OverviewPeriods) {
     api.stats.activity(userName, { range: "this_week", granularity: "day", utcOffset: offset }),
     api.stats.activity(userName, { range: "this_year", granularity: "month", utcOffset: offset }),
     api.stats.onRepeat(userName, { limit: 4 }),
-    loadLaurels(userName).catch(() => []),
   ]);
   // The streak strip shows the last 28 days, which can straddle two months.
   const days = [...(lastMonth.days ?? []), ...(thisMonth.days ?? [])].slice(-28);
@@ -69,7 +66,6 @@ export async function loadOverview(userName: string, periods: OverviewPeriods) {
       year: { from: thisYear.from, bars: (thisYear.periods ?? []).map((p) => p.listenCount) },
     },
     onRepeat,
-    laurels,
   };
 }
 
