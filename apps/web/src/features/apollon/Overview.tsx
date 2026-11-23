@@ -9,6 +9,7 @@ import {
   Columns,
   MediaRow,
   MoreLink,
+  LaurelStrip,
   ObsessionCard,
   Page,
   ReportCard,
@@ -198,6 +199,16 @@ export function Overview({
       }}
       days={data.days}
     />,
+    data.laurels.length ? (
+      <section key="laurels">
+        <SectionHeader title={m.ds_tab_laurels()} size="sm" showPeriod={false} />
+        <LaurelStrip
+          items={data.laurels}
+          total={data.laurels.filter((l) => !l.progress).length}
+          href={`${root}/lauriers`}
+        />
+      </section>
+    ) : null,
     <section key="reports">
       <SectionHeader title={m.ds_listening_reports()} size="sm" showPeriod={false} />
       <div className="ap-ov__reports">

@@ -16,7 +16,11 @@ import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as ReglagesRouteRouteImport } from './routes/reglages/route'
 import { Route as ScrobblerRouteImport } from './routes/scrobbler'
 import { Route as ReglagesIndexRouteImport } from './routes/reglages/index'
+import { Route as ReglagesApparenceRouteImport } from './routes/reglages/apparence'
+import { Route as ReglagesClesRouteImport } from './routes/reglages/cles'
 import { Route as ReglagesImportRouteImport } from './routes/reglages/import'
+import { Route as ReglagesInstanceRouteImport } from './routes/reglages/instance'
+import { Route as ReglagesProfilRouteImport } from './routes/reglages/profil'
 import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
 import { Route as UUserNameRouteRouteImport } from './routes/u/$userName/route'
 import { Route as UUserNameProfileRouteRouteImport } from './routes/u/$userName/_profile/route'
@@ -68,9 +72,29 @@ const ReglagesIndexRoute = ReglagesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ReglagesRouteRoute,
 } as any)
+const ReglagesApparenceRoute = ReglagesApparenceRouteImport.update({
+  id: '/apparence',
+  path: '/apparence',
+  getParentRoute: () => ReglagesRouteRoute,
+} as any)
+const ReglagesClesRoute = ReglagesClesRouteImport.update({
+  id: '/cles',
+  path: '/cles',
+  getParentRoute: () => ReglagesRouteRoute,
+} as any)
 const ReglagesImportRoute = ReglagesImportRouteImport.update({
   id: '/import',
   path: '/import',
+  getParentRoute: () => ReglagesRouteRoute,
+} as any)
+const ReglagesInstanceRoute = ReglagesInstanceRouteImport.update({
+  id: '/instance',
+  path: '/instance',
+  getParentRoute: () => ReglagesRouteRoute,
+} as any)
+const ReglagesProfilRoute = ReglagesProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
   getParentRoute: () => ReglagesRouteRoute,
 } as any)
 const ReglagesTokensRoute = ReglagesTokensRouteImport.update({
@@ -164,7 +188,11 @@ export interface FileRoutesByFullPath {
   '/inscription': typeof InscriptionRoute
   '/scrobbler': typeof ScrobblerRoute
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
+  '/reglages/apparence': typeof ReglagesApparenceRoute
+  '/reglages/cles': typeof ReglagesClesRoute
   '/reglages/import': typeof ReglagesImportRoute
+  '/reglages/instance': typeof ReglagesInstanceRoute
+  '/reglages/profil': typeof ReglagesProfilRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/recherche': typeof UUserNameRechercheRoute
@@ -187,7 +215,11 @@ export interface FileRoutesByTo {
   '/inscription': typeof InscriptionRoute
   '/scrobbler': typeof ScrobblerRoute
   '/u/$userName': typeof UUserNameProfileIndexRoute
+  '/reglages/apparence': typeof ReglagesApparenceRoute
+  '/reglages/cles': typeof ReglagesClesRoute
   '/reglages/import': typeof ReglagesImportRoute
+  '/reglages/instance': typeof ReglagesInstanceRoute
+  '/reglages/profil': typeof ReglagesProfilRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages': typeof ReglagesIndexRoute
   '/u/$userName/recherche': typeof UUserNameRechercheRoute
@@ -211,7 +243,11 @@ export interface FileRoutesById {
   '/inscription': typeof InscriptionRoute
   '/scrobbler': typeof ScrobblerRoute
   '/u/$userName': typeof UUserNameRouteRouteWithChildren
+  '/reglages/apparence': typeof ReglagesApparenceRoute
+  '/reglages/cles': typeof ReglagesClesRoute
   '/reglages/import': typeof ReglagesImportRoute
+  '/reglages/instance': typeof ReglagesInstanceRoute
+  '/reglages/profil': typeof ReglagesProfilRoute
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/_profile': typeof UUserNameProfileRouteRouteWithChildren
@@ -238,7 +274,11 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/scrobbler'
     | '/u/$userName'
+    | '/reglages/apparence'
+    | '/reglages/cles'
     | '/reglages/import'
+    | '/reglages/instance'
+    | '/reglages/profil'
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/recherche'
@@ -261,7 +301,11 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/scrobbler'
     | '/u/$userName'
+    | '/reglages/apparence'
+    | '/reglages/cles'
     | '/reglages/import'
+    | '/reglages/instance'
+    | '/reglages/profil'
     | '/reglages/tokens'
     | '/reglages'
     | '/u/$userName/recherche'
@@ -284,7 +328,11 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/scrobbler'
     | '/u/$userName'
+    | '/reglages/apparence'
+    | '/reglages/cles'
     | '/reglages/import'
+    | '/reglages/instance'
+    | '/reglages/profil'
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/_profile'
@@ -363,11 +411,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReglagesIndexRouteImport
       parentRoute: typeof ReglagesRouteRoute
     }
+    '/reglages/apparence': {
+      id: '/reglages/apparence'
+      path: '/apparence'
+      fullPath: '/reglages/apparence'
+      preLoaderRoute: typeof ReglagesApparenceRouteImport
+      parentRoute: typeof ReglagesRouteRoute
+    }
+    '/reglages/cles': {
+      id: '/reglages/cles'
+      path: '/cles'
+      fullPath: '/reglages/cles'
+      preLoaderRoute: typeof ReglagesClesRouteImport
+      parentRoute: typeof ReglagesRouteRoute
+    }
     '/reglages/import': {
       id: '/reglages/import'
       path: '/import'
       fullPath: '/reglages/import'
       preLoaderRoute: typeof ReglagesImportRouteImport
+      parentRoute: typeof ReglagesRouteRoute
+    }
+    '/reglages/instance': {
+      id: '/reglages/instance'
+      path: '/instance'
+      fullPath: '/reglages/instance'
+      preLoaderRoute: typeof ReglagesInstanceRouteImport
+      parentRoute: typeof ReglagesRouteRoute
+    }
+    '/reglages/profil': {
+      id: '/reglages/profil'
+      path: '/profil'
+      fullPath: '/reglages/profil'
+      preLoaderRoute: typeof ReglagesProfilRouteImport
       parentRoute: typeof ReglagesRouteRoute
     }
     '/reglages/tokens': {
@@ -479,13 +555,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface ReglagesRouteRouteChildren {
+  ReglagesApparenceRoute: typeof ReglagesApparenceRoute
+  ReglagesClesRoute: typeof ReglagesClesRoute
   ReglagesImportRoute: typeof ReglagesImportRoute
+  ReglagesInstanceRoute: typeof ReglagesInstanceRoute
+  ReglagesProfilRoute: typeof ReglagesProfilRoute
   ReglagesTokensRoute: typeof ReglagesTokensRoute
   ReglagesIndexRoute: typeof ReglagesIndexRoute
 }
 
 const ReglagesRouteRouteChildren: ReglagesRouteRouteChildren = {
+  ReglagesApparenceRoute: ReglagesApparenceRoute,
+  ReglagesClesRoute: ReglagesClesRoute,
   ReglagesImportRoute: ReglagesImportRoute,
+  ReglagesInstanceRoute: ReglagesInstanceRoute,
+  ReglagesProfilRoute: ReglagesProfilRoute,
   ReglagesTokensRoute: ReglagesTokensRoute,
   ReglagesIndexRoute: ReglagesIndexRoute,
 }
