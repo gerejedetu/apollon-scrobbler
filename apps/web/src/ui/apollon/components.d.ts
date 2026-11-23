@@ -558,7 +558,8 @@ export interface SearchData {
 export interface SearchResultsProps {
   data: SearchData;
   only?: "artists" | "albums" | "tracks";
-  coverFor?: (item: any) => string | undefined;
+  coverFor?: (item: any, kind: any) => string | undefined;
+  hrefFor?: (item: any, kind: any) => string | undefined;
 }
 // ObsessionTile also takes: longest?: boolean, now?: number; obsession.until (null while current) comes from GET /users/{u}/obsessions
 export interface AccentPickerProps {

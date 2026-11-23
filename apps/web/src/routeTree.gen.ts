@@ -21,6 +21,7 @@ import { Route as ReglagesTokensRouteImport } from './routes/reglages/tokens'
 import { Route as UUserNameRouteRouteImport } from './routes/u/$userName/route'
 import { Route as UUserNameProfileRouteRouteImport } from './routes/u/$userName/_profile/route'
 import { Route as UUserNameBilanRouteImport } from './routes/u/$userName/bilan'
+import { Route as UUserNameRechercheRouteImport } from './routes/u/$userName/recherche'
 import { Route as UUserNameStatsRouteImport } from './routes/u/$userName/stats'
 import { Route as UUserNameProfileIndexRouteImport } from './routes/u/$userName/_profile/index'
 import { Route as UUserNameProfileHistoriqueRouteImport } from './routes/u/$userName/_profile/historique'
@@ -88,6 +89,11 @@ const UUserNameBilanRoute = UUserNameBilanRouteImport.update({
   path: '/bilan',
   getParentRoute: () => UUserNameRouteRoute,
 } as any)
+const UUserNameRechercheRoute = UUserNameRechercheRouteImport.update({
+  id: '/recherche',
+  path: '/recherche',
+  getParentRoute: () => UUserNameRouteRoute,
+} as any)
 const UUserNameStatsRoute = UUserNameStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/bilan': typeof UUserNameBilanRoute
+  '/u/$userName/recherche': typeof UUserNameRechercheRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/historique': typeof UUserNameProfileHistoriqueRoute
   '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/reglages/tokens': typeof ReglagesTokensRoute
   '/reglages': typeof ReglagesIndexRoute
   '/u/$userName/bilan': typeof UUserNameBilanRoute
+  '/u/$userName/recherche': typeof UUserNameRechercheRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/historique': typeof UUserNameProfileHistoriqueRoute
   '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/reglages/': typeof ReglagesIndexRoute
   '/u/$userName/_profile': typeof UUserNameProfileRouteRouteWithChildren
   '/u/$userName/bilan': typeof UUserNameBilanRoute
+  '/u/$userName/recherche': typeof UUserNameRechercheRoute
   '/u/$userName/stats': typeof UUserNameStatsRoute
   '/u/$userName/_profile/historique': typeof UUserNameProfileHistoriqueRoute
   '/u/$userName/artistes/$artist': typeof UUserNameArtistesArtistRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/reglages/tokens'
     | '/reglages/'
     | '/u/$userName/bilan'
+    | '/u/$userName/recherche'
     | '/u/$userName/stats'
     | '/u/$userName/historique'
     | '/u/$userName/artistes/$artist'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/reglages/tokens'
     | '/reglages'
     | '/u/$userName/bilan'
+    | '/u/$userName/recherche'
     | '/u/$userName/stats'
     | '/u/$userName/historique'
     | '/u/$userName/artistes/$artist'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/reglages/'
     | '/u/$userName/_profile'
     | '/u/$userName/bilan'
+    | '/u/$userName/recherche'
     | '/u/$userName/stats'
     | '/u/$userName/_profile/historique'
     | '/u/$userName/artistes/$artist'
@@ -346,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserNameBilanRouteImport
       parentRoute: typeof UUserNameRouteRoute
     }
+    '/u/$userName/recherche': {
+      id: '/u/$userName/recherche'
+      path: '/recherche'
+      fullPath: '/u/$userName/recherche'
+      preLoaderRoute: typeof UUserNameRechercheRouteImport
+      parentRoute: typeof UUserNameRouteRoute
+    }
     '/u/$userName/stats': {
       id: '/u/$userName/stats'
       path: '/stats'
@@ -434,6 +453,7 @@ const UUserNameProfileRouteRouteWithChildren =
 interface UUserNameRouteRouteChildren {
   UUserNameProfileRouteRoute: typeof UUserNameProfileRouteRouteWithChildren
   UUserNameBilanRoute: typeof UUserNameBilanRoute
+  UUserNameRechercheRoute: typeof UUserNameRechercheRoute
   UUserNameStatsRoute: typeof UUserNameStatsRoute
   UUserNameArtistesArtistRoute: typeof UUserNameArtistesArtistRoute
   UUserNameAlbumsArtistAlbumRoute: typeof UUserNameAlbumsArtistAlbumRoute
@@ -443,6 +463,7 @@ interface UUserNameRouteRouteChildren {
 const UUserNameRouteRouteChildren: UUserNameRouteRouteChildren = {
   UUserNameProfileRouteRoute: UUserNameProfileRouteRouteWithChildren,
   UUserNameBilanRoute: UUserNameBilanRoute,
+  UUserNameRechercheRoute: UUserNameRechercheRoute,
   UUserNameStatsRoute: UUserNameStatsRoute,
   UUserNameArtistesArtistRoute: UUserNameArtistesArtistRoute,
   UUserNameAlbumsArtistAlbumRoute: UUserNameAlbumsArtistAlbumRoute,
