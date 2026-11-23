@@ -4145,9 +4145,21 @@ svg.ap-hero__cover {
   }
 }
 /* Buttons drawn as links (<a class="ap-btn">): keep their colours over ".ap-root a { color: inherit }". */
-.ap-root a.ap-btn--primary { color: var(--gold-ink); }
-.ap-root a.ap-btn--dark { color: var(--on-chrome); }
-.ap-root a.ap-btn--secondary { color: var(--ink); }
-.ap-root a.ap-btn--danger { color: var(--danger); }
-.ap-root a.ap-btn--light { color: var(--chrome); }
-.ap-root a.ap-btn--band { color: var(--band-ink); }
+.ap-root a.ap-btn--primary {
+  color: var(--gold-ink);
+}
+.ap-root a.ap-btn--dark {
+  color: var(--on-chrome);
+}
+.ap-root a.ap-btn--secondary {
+  color: var(--ink);
+}
+.ap-root a.ap-btn--danger {
+  color: var(--danger);
+}
+.ap-root a.ap-btn--light {
+  color: var(--chrome);
+}
+.ap-root a.ap-btn--band {
+  color: var(--band-ink);
+}

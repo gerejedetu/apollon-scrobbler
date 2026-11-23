@@ -1,6 +1,6 @@
 import type { AlbumPage, ArtistPage, Timeline, TrackPage } from "../../api/index.ts";
-import { formatCount } from "../../lib/format/index.ts";
-import { dateFormat } from "../../lib/locale.ts";
+import { formatCount, formatDate } from "../../lib/format/index.ts";
+import { dateFormat, intlLocale } from "../../lib/locale.ts";
 import {
   AlbumGrid,
   Columns,
@@ -25,11 +25,11 @@ import {
   trackHref,
 } from "./links.ts";
 
-const longDate = (s: number | null) =>
-  s
-    ? dateFormat({ day: "numeric", month: "long", year: "numeric" }).format(new Date(s * 1000))
-    : null;
+// formatDate shifts to the viewer's offset first: the same text on the server and in the browser.
+const longDate = (s: number | null) => (s ? formatDate(s) : null);
 const shortMonth = (period: string) =>
+  // A calendar month ("2026-11"), read in UTC so no time zone moves it.
+
   dateFormat({ month: "short", year: "2-digit", timeZone: "UTC" }).format(
     new Date(`${period}-01T00:00:00Z`),
   );
@@ -107,7 +107,7 @@ export function ArtistDetail({
                   {
                     label: m.ds_share_of_listens(),
                     value: share
-                      ? `${share.toLocaleString(undefined, { maximumFractionDigits: 1 })} %`
+                      ? `${share.toLocaleString(intlLocale(), { maximumFractionDigits: 1 })} %`
                       : null,
                   },
                 ])}
