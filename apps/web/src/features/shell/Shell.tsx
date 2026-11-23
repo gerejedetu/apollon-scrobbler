@@ -11,6 +11,7 @@ import {
   SiteHeader,
 } from "../../ui/apollon/index.ts";
 import { SOURCE_URL } from "../../ui/brand/index.ts";
+import { sectionHref } from "../apollon/Settings.tsx";
 import { m } from "../../paraglide/messages.js";
 
 /** The profile a page belongs to (its owner's colour, its tabs), or none (settings, sign-in…). */
@@ -121,8 +122,10 @@ export function Shell({
         signupOpen={signupOpen}
         loginHref="/connexion"
         signupHref="/inscription"
-        accountHref="/reglages"
-        accountLabel={m.account_settings()}
+        owner={viewer?.owner === true}
+        profileHref={viewer ? profilePath(viewer.userName) : undefined}
+        sectionHref={sectionHref}
+        onAccount={(choice: string) => (choice === "logout" ? void signOut() : undefined)}
         links={links.map((l) => ({ ...l, current: current(l.href) }))}
         onSearch={() => (owner ? router.history.push(profilePath(owner, "/recherche")) : undefined)}
         onMenu={() => setMenuOpen(true)}
@@ -142,7 +145,7 @@ export function Shell({
             links: [
               {
                 label: m.ds_footer_connect_player(),
-                href: visitor ? "/connexion" : "/reglages#cles",
+                href: visitor ? "/connexion" : "/reglages/cles",
               },
               {
                 label: m.ds_footer_import_lastfm(),
@@ -161,9 +164,9 @@ export function Shell({
             : {
                 title: m.ds_footer_account(),
                 links: [
-                  { label: m.account_settings(), href: "/reglages" },
-                  { label: m.settings_tokens(), href: "/reglages#cles" },
-                  { label: m.settings_import(), href: "/reglages/import" },
+                  { label: m.account_settings(), href: "/reglages/profil" },
+                  { label: m.settings_tokens(), href: "/reglages/cles" },
+                  { label: m.ds_import_export(), href: "/reglages/import" },
                 ],
               },
           {
@@ -193,8 +196,9 @@ export function Shell({
           onLang={(locale: Locale) => void setLocale(locale)}
           onClose={() => setMenuOpen(false)}
           accountLinks={[
-            { label: m.account_settings(), href: "/reglages" },
-            { label: m.settings_tokens(), href: "/reglages/tokens" },
+            { label: m.account_settings(), href: "/reglages/profil" },
+            { label: m.settings_tokens(), href: "/reglages/cles" },
+            { label: m.ds_import_export(), href: "/reglages/import" },
             { label: m.signout(), onClick: () => void signOut() },
           ]}
         />
