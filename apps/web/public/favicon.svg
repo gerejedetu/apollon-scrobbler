@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Apollon: a lyre, white on ink, one colour so it reads at 16 px. Ink from ui/theme/colors.ts. -->
-  <rect width="64" height="64" rx="14" fill="#111111"/>
-  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M24.5 44 C 14.5 40, 12 28, 18 20.5 C 21 16.5, 19.5 12, 14 12" stroke-width="5.5"/>
-    <path d="M39.5 44 C 49.5 40, 52 28, 46 20.5 C 43 16.5, 44.5 12, 50 12" stroke-width="5.5"/>
-    <path d="M18 20 H 46" stroke-width="5"/>
-    <path d="M27.5 21 V 38 M36.5 21 V 38" stroke-width="3"/>
+  <!-- Apollon: a lyre drawn in strokes, white on ink, one colour. Ink from ui/theme/colors.ts. -->
+  <rect width="64" height="64" rx="4" fill="#111111"/>
+  <g transform="translate(32 32) scale(0.196) translate(-120 -122)" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M80 65 H160 L210 192 L162 232 H78 L30 192 Z"/>
+    <path d="M80 65 L55 12 L8 36 V50 M160 65 L185 12 L232 36 V50"/>
+    <path d="M90 65 V232 M110 65 V232 M130 65 V232 M150 65 V232"/>
   </g>
-  <circle cx="32" cy="45" r="7.5" fill="#FFFFFF"/>
 </svg>
