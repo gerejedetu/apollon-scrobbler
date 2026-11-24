@@ -10,18 +10,18 @@ export function Mark({ size = 20 }: { size?: number }) {
     <svg
       width={size}
       height={size}
-      viewBox="12 24 216 208"
+      viewBox="0 4 240 236"
       className={mark}
       aria-hidden="true"
       fill="none"
       stroke="currentColor"
-      strokeWidth={14}
+      strokeWidth={10}
       strokeLinecap="square"
       strokeLinejoin="miter"
     >
-      <path d="M82 96 H158 L212 176 L148 218 H92 L28 176 Z" />
-      <path d="M82 96 L52 40 L24 52 V64 M158 96 L188 40 L216 52 V64" />
-      <path d="M93 96 V218 M111 96 V218 M129 96 V218 M147 96 V218" />
+      <path d="M80 65 H160 L210 192 L162 232 H78 L30 192 Z" />
+      <path d="M80 65 L55 12 L8 36 V50 M160 65 L185 12 L232 36 V50" />
+      <path d="M90 65 V232 M110 65 V232 M130 65 V232 M150 65 V232" />
     </svg>
   );
 }
