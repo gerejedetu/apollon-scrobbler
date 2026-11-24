@@ -1,6 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { type ChangeEvent, type DragEvent, type FormEvent, useRef, useState } from "react";
-import { api, type ApiKey, type Instance, type Me } from "../../api/index.ts";
+import { api, type ApiKey, type InstanceSettings, type Me } from "../../api/index.ts";
 import { forgetViewer } from "../../auth/index.ts";
 import { formatCount, formatDate } from "../../lib/format/index.ts";
 import { intlLocale } from "../../lib/locale.ts";
@@ -374,7 +374,7 @@ export function ImportSection({ me }: { me: Me }) {
 }
 
 /** Instance (owner only): who may create an account. */
-export function InstanceSection({ me, instance }: { me: Me; instance: Instance }) {
+export function InstanceSection({ me, instance }: { me: Me; instance: InstanceSettings }) {
   const toast = useToast();
   const [open, setOpen] = useState(instance.signupOpen);
   return (

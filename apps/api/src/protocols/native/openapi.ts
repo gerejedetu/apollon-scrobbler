@@ -598,6 +598,15 @@ const baseDocument = {
             type: "boolean",
             description: "Whether new accounts can be created right now.",
           },
+        },
+      },
+      InstanceSettings: {
+        type: "object",
+        properties: {
+          signupOpen: {
+            type: "boolean",
+            description: "Whether new accounts can be created right now.",
+          },
           hasUsers: { type: "boolean", description: "False until the first account exists." },
         },
       },
@@ -958,8 +967,8 @@ const baseDocument = {
     },
     "/instance": {
       get: {
-        summary: "Instance settings",
-        responses: { "200": ok("Settings", ref("Instance")) },
+        summary: "Whether sign-up is open",
+        responses: { "200": ok("Public settings", ref("Instance")) },
       },
       patch: {
         summary: "Change instance settings (owner only)",
@@ -969,8 +978,19 @@ const baseDocument = {
           content: json({ type: "object", properties: { signupOpen: { type: "boolean" } } }),
         },
         responses: {
-          "200": ok("Updated settings", ref("Instance")),
+          "200": ok("Updated settings", ref("InstanceSettings")),
           "400": errors["400"],
+          "401": errors["401"],
+          "403": ok("Not the owner", ref("Error")),
+        },
+      },
+    },
+    "/instance/settings": {
+      get: {
+        summary: "Instance settings (owner only)",
+        security: secured,
+        responses: {
+          "200": ok("Settings", ref("InstanceSettings")),
           "401": errors["401"],
           "403": ok("Not the owner", ref("Error")),
         },

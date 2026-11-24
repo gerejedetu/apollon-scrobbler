@@ -428,9 +428,10 @@ describe("instance sign-up", () => {
 
   test("open until the first account, then closed server-side; only the owner reopens it", async () => {
     const fresh = testApi();
-    expect((await fresh.json("/v1/instance")).body).toEqual({ hasUsers: false, signupOpen: true });
+    expect((await fresh.json("/v1/instance")).body).toEqual({ signupOpen: true });
     const ownerToken = await fresh.signUp("owner");
-    expect((await fresh.json("/v1/instance")).body).toEqual({ hasUsers: true, signupOpen: false });
+    // The public check gives the boolean only.
+    expect((await fresh.json("/v1/instance")).body).toEqual({ signupOpen: false });
 
     // Closed in Better Auth itself, not just hidden: a direct sign-up is refused.
     const refused = await signUpRaw(fresh, "intruder");
@@ -471,6 +472,58 @@ describe("instance sign-up", () => {
         })
       ).status,
     ).toBe(400);
+  });
+
+  test("only the owner reads the instance settings; closing again blocks registration", async () => {
+    const fresh = testApi();
+    const ownerToken = await fresh.signUp("owner");
+    const friendToken = await fresh.signUp("friend"); // leaves sign-up open (the helper reopens it)
+    const as = (token: string) => ({ headers: { authorization: `Bearer ${token}` } });
+
+    const own = await fresh.json("/v1/instance/settings", as(ownerToken));
+    expect(own.status).toBe(200);
+    expect(own.body).toEqual({ hasUsers: true, signupOpen: true });
+    // The owner's browser session works too.
+    expect(
+      (await fresh.json("/v1/instance/settings", { headers: { cookie: fresh.cookies.owner! } }))
+        .status,
+    ).toBe(200);
+
+    const denied = await fresh.json("/v1/instance/settings", as(friendToken));
+    expect(denied.status).toBe(403);
+    expect(denied.body).not.toHaveProperty("signupOpen");
+    expect(
+      (await fresh.json("/v1/instance/settings", { headers: { cookie: fresh.cookies.friend! } }))
+        .status,
+    ).toBe(403);
+    expect((await fresh.json("/v1/instance/settings")).status).toBe(401);
+    expect((await fresh.json("/v1/instance/settings", as("not-a-real-token"))).status).toBe(401);
+
+    // A non-owner cannot close (or reopen) sign-up, by token or session; the setting is unchanged.
+    for (const headers of <Record<string, string>[]>[
+      { authorization: `Bearer ${friendToken}` },
+      { cookie: fresh.cookies.friend! },
+    ]) {
+      const r = await fresh.json("/v1/instance", {
+        method: "PATCH",
+        headers: { "content-type": "application/json", ...headers },
+        body: JSON.stringify({ signupOpen: false }),
+      });
+      expect(r.status).toBe(403);
+    }
+    expect((await fresh.json("/v1/instance")).body).toEqual({ signupOpen: true });
+
+    // The owner closes it: registration itself is refused, not just hidden.
+    const closed = await fresh.json("/v1/instance", {
+      method: "PATCH",
+      headers: { "content-type": "application/json", authorization: `Bearer ${ownerToken}` },
+      body: JSON.stringify({ signupOpen: false }),
+    });
+    expect(closed.status).toBe(200);
+    expect(closed.body).toEqual({ hasUsers: true, signupOpen: false });
+    const refused = await signUpRaw(fresh, "latecomer");
+    expect(refused.status).toBe(403);
+    expect(await refused.text()).toContain("closed");
   });
 
   test("DISABLE_SIGNUP keeps it closed even for the first account", async () => {

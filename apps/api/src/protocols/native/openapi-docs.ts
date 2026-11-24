@@ -142,13 +142,19 @@ export const OPERATIONS: Record<string, OperationDoc> = {
     operationId: "getInstance",
     tag: "Account",
     description:
-      "Public settings of this instance. `signupOpen` says whether the sign-up form should be offered: sign-up is open until the first account exists, then closed unless the owner reopens it (and always closed when the operator sets `DISABLE_SIGNUP`).",
+      "Public, no token needed. Only `signupOpen`: whether the sign-up form should be offered. Sign-up is open until the first account exists, then closed unless the owner reopens it (and always closed when the operator sets `DISABLE_SIGNUP`). The other settings are at `GET /instance/settings`, for the owner.",
+  },
+  "GET /instance/settings": {
+    operationId: "getInstanceSettings",
+    tag: "Account",
+    description:
+      "The instance settings, for its owner (the first account created) only: anyone else gets 403, and a request without a token or session gets 401.",
   },
   "PATCH /instance": {
     operationId: "updateInstance",
     tag: "Account",
     description:
-      "Changes instance settings. Only the owner (the first account created) may do it; anyone else gets 403. `signupOpen: true` lets new people create accounts, `false` closes sign-up again. Closing is enforced by the server, not just hidden in the front.",
+      "Changes instance settings. Only the owner (the first account created) may do it; anyone else gets 403 (401 without a token or session). `signupOpen: true` lets new people create accounts, `false` closes sign-up again. Closing is enforced by the server, not just hidden in the front.",
     requestExample: { signupOpen: true },
   },
   "POST /listens": {
