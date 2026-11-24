@@ -2,7 +2,7 @@
 
 <br />
 <div align="center">
-  <a href="https://github.com/powpowchuuuu/stunning-winner">
+  <a href="https://github.com/gerejedetu/apollon-scrobbler">
     <img src="docs/brand/apollon-lyre.svg" alt="Apollon logo, a lyre drawn in strokes" width="96" height="96">
   </a>
 
@@ -19,9 +19,9 @@
     <br />
     <a href="#getting-started">Deploy your own</a>
     &middot;
-    <a href="https://github.com/powpowchuuuu/stunning-winner/issues/new?labels=bug">Report Bug</a>
+    <a href="https://github.com/gerejedetu/apollon-scrobbler/issues/new?labels=bug">Report Bug</a>
     &middot;
-    <a href="https://github.com/powpowchuuuu/stunning-winner/issues/new?labels=enhancement">Request Feature</a>
+    <a href="https://github.com/gerejedetu/apollon-scrobbler/issues/new?labels=enhancement">Request Feature</a>
   </p>
 </div>
 
@@ -146,7 +146,7 @@ namespace, plus an optional third one for the MCP server. The steps below deploy
 ### Installation
 
 ```bash
-git clone https://github.com/powpowchuuuu/stunning-winner.git apollon
+git clone https://github.com/gerejedetu/apollon-scrobbler.git apollon
 cd apollon
 vp install
 ```
@@ -385,7 +385,7 @@ More detail for contributors is in [AGENTS.md](AGENTS.md).
 - [x] Turso as the production database
 - [x] MCP server, so AI assistants can read your listening history and stats
 
-See the [open issues](https://github.com/powpowchuuuu/stunning-winner/issues) for proposed features and known issues.
+See the [open issues](https://github.com/gerejedetu/apollon-scrobbler/issues) for proposed features and known issues.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -414,9 +414,9 @@ modified version as a public service, you must share your changes.
 
 ## Contact
 
-Open an [issue](https://github.com/powpowchuuuu/stunning-winner/issues) for questions, bugs and ideas.
+Open an [issue](https://github.com/gerejedetu/apollon-scrobbler/issues) for questions, bugs and ideas.
 
-Project link: [github.com/powpowchuuuu/stunning-winner](https://github.com/powpowchuuuu/stunning-winner)
+Project link: [github.com/gerejedetu/apollon-scrobbler](https://github.com/gerejedetu/apollon-scrobbler)
 
 Live instance: [apollon.dereje.cc](https://apollon.dereje.cc/u/dereje)
 
