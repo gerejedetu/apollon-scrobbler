@@ -3,7 +3,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/powpowchuuuu/stunning-winner">
-    <img src="apps/web/brand/mark.svg" alt="Apollon logo" width="96" height="96">
+    <img src="docs/brand/apollon-lyre.svg" alt="Apollon logo, a lyre drawn in strokes" width="96" height="96">
   </a>
 
   <h1 align="center">Apollon</h1>
