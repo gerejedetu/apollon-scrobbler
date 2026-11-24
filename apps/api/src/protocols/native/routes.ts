@@ -57,7 +57,13 @@ export const nativeRoutes = new Hono<AppEnv>()
       accent: user.accent,
     });
   })
-  .get("/instance", async (c) => c.json(await c.var.services.instance.settings()))
+  // Public: the sign-in and sign-up pages only need to know whether sign-up is open.
+  .get("/instance", async (c) => c.json(await c.var.services.instance.publicSettings()))
+  // Owner only (401 without a session or token, 403 for any other account).
+  .get("/instance/settings", async (c) => {
+    const user = await requireUserOrSession(c);
+    return c.json(await c.var.services.instance.ownerSettings(user));
+  })
   .patch("/instance", async (c) => {
     const user = await requireUserOrSession(c);
     return c.json(await c.var.services.instance.update(user, await jsonBody(c)));

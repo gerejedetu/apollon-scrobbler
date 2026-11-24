@@ -31,14 +31,29 @@ export class InstanceService {
     return (await this.settings()).signupOpen;
   }
 
+  /** What anyone may know (the sign-in and sign-up pages): whether sign-up is open, nothing else. */
+  async publicSettings(): Promise<{ signupOpen: boolean }> {
+    return { signupOpen: await this.signupOpen() };
+  }
+
   async isOwner(user: User): Promise<boolean> {
     return (await this.instance.ownerUserId()) === user.id;
   }
 
+  private async assertOwner(user: User): Promise<void> {
+    if (!(await this.isOwner(user)))
+      throw ApiError.forbidden("Only the owner of this instance can see or change its settings.");
+  }
+
+  /** Only the owner (the first account) reads the full instance settings. */
+  async ownerSettings(user: User): Promise<InstanceSettings> {
+    await this.assertOwner(user);
+    return this.settings();
+  }
+
   /** Only the owner (the first account) changes instance settings. */
   async update(user: User, body: unknown): Promise<InstanceSettings> {
-    if (!(await this.isOwner(user)))
-      throw ApiError.forbidden("Only the owner of this instance can change its settings.");
+    await this.assertOwner(user);
     const changes = (typeof body === "object" && body !== null ? body : {}) as Record<
       string,
       unknown

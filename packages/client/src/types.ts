@@ -32,8 +32,13 @@ export interface Profile {
   accent: string | null;
 }
 
-/** GET /v1/instance */
+/** GET /v1/instance: public, only whether sign-up is open. */
 export interface Instance {
+  signupOpen: boolean;
+}
+
+/** GET /v1/instance/settings and PATCH /v1/instance: the owner only. */
+export interface InstanceSettings {
   signupOpen: boolean;
   hasUsers: boolean;
 }
