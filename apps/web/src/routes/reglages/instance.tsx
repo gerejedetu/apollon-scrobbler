@@ -9,7 +9,7 @@ export const Route = createFileRoute("/reglages/instance")({
   beforeLoad: ({ context }) => {
     if (!context.me.owner) throw redirect({ to: "/reglages/profil", replace: true });
   },
-  loader: () => api.instance.get(),
+  loader: () => api.instance.settings(),
   head: () => ({ meta: [{ title: pageTitle(m.ds_instance(), m.nav_settings()) }] }),
   component: () => (
     <InstanceSection me={Route.useRouteContext().me} instance={Route.useLoaderData()} />

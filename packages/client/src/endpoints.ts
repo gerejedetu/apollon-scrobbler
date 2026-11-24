@@ -43,8 +43,13 @@ export function createEndpoints(http: Http) {
     },
     /** Instance settings: sign-up is open until the first account, then only if the owner reopens it. */
     instance: {
+      /** Public: whether sign-up is open. */
       get: () => http.get<T.Instance>(`${v1}/instance`),
-      update: (patch: { signupOpen?: boolean }) => http.patch<T.Instance>(`${v1}/instance`, patch),
+      /** Owner only (403 for anyone else). */
+      settings: () => http.get<T.InstanceSettings>(`${v1}/instance/settings`),
+      /** Owner only (403 for anyone else). */
+      update: (patch: { signupOpen?: boolean }) =>
+        http.patch<T.InstanceSettings>(`${v1}/instance`, patch),
     },
     me: {
       get: () => http.get<T.Me>(`${v1}/me`),

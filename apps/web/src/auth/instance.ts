@@ -8,6 +8,6 @@ export async function loadInstance(): Promise<Instance> {
   try {
     return await api.instance.get();
   } catch {
-    return { signupOpen: true, hasUsers: true };
+    return { signupOpen: true };
   }
 }
