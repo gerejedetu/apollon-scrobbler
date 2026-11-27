@@ -79,7 +79,7 @@ export function LovedPage({
   );
 }
 
-type Obsession = Favourite & { until: number | null };
+type Obsession = Favourite & { id: number; until: number | null };
 
 /** Obsessions (design system: PageObsessions): the current one first, then the earlier ones, the longest marked. */
 export function ObsessionsPage({
@@ -123,17 +123,33 @@ export function ObsessionsPage({
       <div className="ap-lib__gap" />
       {items.length ? (
         <div className="ap-obstiles">
-          {items.map((o) => (
-            <ObsessionTile
-              key={`${o.since}/${o.artist}/${o.track}`}
-              now={now}
-              current={o.until === null}
-              longest={longest !== null && longest.since === o.since && longest.track === o.track}
-              obsession={o}
-              coverUrl={coverUrl(o, 500)}
-              href={trackHref(userName, o)}
-            />
-          ))}
+          {items
+            .filter((o) => !fav.isRemovedObsession(o.id))
+            .map((o) => (
+              <div key={o.id} className="ap-obstile-wrap">
+                <ObsessionTile
+                  now={now}
+                  current={o.until === null}
+                  longest={longest !== null && longest.id === o.id}
+                  obsession={o}
+                  coverUrl={coverUrl(o, 500)}
+                  href={trackHref(userName, o)}
+                />
+                {fav.owner ? (
+                  <div className="ap-obstile-wrap__remove">
+                    <Button
+                      variant="light"
+                      size="sm"
+                      icon="trash"
+                      aria-label={`${m.obsession_remove()} : ${o.track}`}
+                      onClick={() => void fav.removeObsession(o)}
+                    >
+                      {m.obsession_remove()}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
         </div>
       ) : (
         <p className="ap-detail__lead">{m.ds_obsessions_empty()}</p>
