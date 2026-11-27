@@ -201,6 +201,13 @@ export interface ArtistRepository {
   learnAliases(pairs: [alias: string, artist: string][]): Promise<void>;
   /** Which (artist, album) pairs the user already has listens under, as `artist\u0000album` keys. */
   knownAlbums(userId: UserId, pairs: [artist: string, album: string][]): Promise<Set<string>>;
+  /**
+   * The name each spelling key (`artistKey`) is stored under. Keys not seen before are recorded with the name
+   * given; a key already recorded keeps its name. One round trip.
+   */
+  spellings(pairs: [key: string, artist: string][]): Promise<Map<string, string>>;
+  /** (artist, album) pairs of the user's listens, other artists than `name`, whose album title starts with `name`. At most 20. */
+  albumsStartingWith(userId: UserId, name: string): Promise<{ artist: string; album: string }[]>;
 }
 
 /** Search inside one user's listens. */

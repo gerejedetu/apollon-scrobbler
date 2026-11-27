@@ -11,6 +11,7 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
   const users: (User & { authUserId: string })[] = [];
   const settings = new Map<string, string>();
   const aliases = new Map<string, string>();
+  const spellings = new Map<string, string>();
   /** Bumped by every listen change, like users.data_version. */
   const version = { n: 0 };
   const listens: StoredListen[] = [];
@@ -271,6 +272,20 @@ export function fakeRepositories(): Repositories & { _listens: StoredListen[] } 
             )
             .map(([a, r]) => `${a}\u0000${r}`),
         );
+      },
+      async spellings(pairs) {
+        for (const [k, a] of pairs) if (!spellings.has(k)) spellings.set(k, a);
+        return new Map(pairs.map(([k]) => [k, spellings.get(k)!]));
+      },
+      async albumsStartingWith(userId, name) {
+        const seen = new Map<string, { artist: string; album: string }>();
+        for (const l of listens)
+          if (l.userId === userId && l.artistName !== name && l.releaseName?.startsWith(name))
+            seen.set(`${l.artistName}\u0000${l.releaseName}`, {
+              artist: l.artistName,
+              album: l.releaseName,
+            });
+        return [...seen.values()].slice(0, 20);
       },
     },
     instance: {

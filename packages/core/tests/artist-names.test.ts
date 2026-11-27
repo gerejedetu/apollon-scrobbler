@@ -60,3 +60,84 @@ describe("service labels", () => {
     expect(withoutServiceLabel("Song •")).toBe("Song •");
   });
 });
+
+describe("spellings of one artist", () => {
+  test("case, apostrophes, periods, dashes and spaces do not make another artist", async () => {
+    const { artistKey } = await import("../src/index.ts");
+    const key = artistKey("Despo Rutti");
+    for (const n of [
+      "Despo' Rutti",
+      "Despo’ Rutti",
+      "despo rutti",
+      "DESPO RUTTI",
+      "Despo  Rutti",
+      "Despo`Rutti",
+      "Despo-Rutti",
+      "Despo. Rutti",
+    ])
+      expect(artistKey(n), n).toBe(key);
+    expect(artistKey("GFRIEND")).toBe(artistKey("gfriend"));
+    expect(artistKey("Ｇｆｒｉｅｎｄ")).toBe(artistKey("GFRIEND"));
+  });
+
+  test("other differences still count", async () => {
+    const { artistKey } = await import("../src/index.ts");
+    expect(artistKey("Beyoncé")).not.toBe(artistKey("Beyonce"));
+    expect(artistKey("AC/DC")).not.toBe(artistKey("ACDC"));
+    expect(artistKey("Florence + The Machine")).not.toBe(artistKey("Florence The Machine"));
+    expect(artistKey("여자친구")).not.toBe(artistKey("GFRIEND"));
+    expect(artistKey("!!!")).toBe("!!!");
+    expect(artistKey("...")).toBe("...");
+  });
+});
+
+describe("native names in album titles", () => {
+  test("an album titled after the native name, as a whole word", async () => {
+    const { albumNamedAfter, isLatinOnly, isNativeOnly } = await import("../src/index.ts");
+    expect(albumNamedAfter("여자친구 The 7th Mini Album 'FEVER SEASON'", "여자친구")).toBe(true);
+    expect(albumNamedAfter("여자친구", "여자친구")).toBe(true);
+    expect(albumNamedAfter("여자친구들의 노래", "여자친구")).toBe(false);
+    expect(albumNamedAfter("回:Walpurgis Night", "回")).toBe(false);
+    expect(albumNamedAfter("Season Of Glass", "여자친구")).toBe(false);
+    expect(isNativeOnly("여자친구")).toBe(true);
+    expect(isNativeOnly("헤이즈 Heize")).toBe(false);
+    expect(isLatinOnly("GFRIEND")).toBe(true);
+    expect(isLatinOnly("Despo' Rutti")).toBe(true);
+    expect(isLatinOnly("헤이즈 Heize")).toBe(false);
+  });
+});
+
+describe("title in the artist field", () => {
+  test("the title repeated in the artist field, or the artist in the title, is dropped", async () => {
+    const { untangleTitle } = await import("../src/index.ts");
+    const track = "유리구슬 (Glass Bead)";
+    expect(untangleTitle("gfriend : 유리구슬 (Glass Bead)", track)).toEqual({
+      artist: "gfriend",
+      track,
+    });
+    expect(untangleTitle("GFRIEND - 유리구슬 (Glass Bead)", track)).toEqual({
+      artist: "GFRIEND",
+      track,
+    });
+    expect(untangleTitle("GFRIEND", "GFRIEND - 유리구슬 (Glass Bead)")).toEqual({
+      artist: "GFRIEND",
+      track,
+    });
+    expect(untangleTitle("Gfriend", "GFRIEND : 유리구슬 (Glass Bead)")).toEqual({
+      artist: "Gfriend",
+      track,
+    });
+  });
+
+  test("names that only contain a separator are kept", async () => {
+    const { untangleTitle } = await import("../src/index.ts");
+    for (const [artist, track] of [
+      ["Sexion d'Assaut - Live", "Wati House"],
+      ["Run - DMC", "Walk This Way"],
+      ["Heize", "Intro : Heize"],
+      ["Despo Rutti", "Traffic de stéréotypes"],
+      ["The Weeknd", "Blinding Lights - Remix"],
+    ] as const)
+      expect(untangleTitle(artist, track)).toEqual({ artist, track });
+  });
+});

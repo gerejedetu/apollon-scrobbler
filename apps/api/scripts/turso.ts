@@ -10,13 +10,22 @@
  *   vpx scripts/turso.ts merge-album <artist> <from> <to>  rename one artist's album everywhere
  *   vpx scripts/turso.ts dedupe-albums [--apply]          list (then, with --apply, merge) albums whose names
  *                                                          differ only by store suffixes ("X - EP" → "X")
+ *   vpx scripts/turso.ts dedupe-artists [--apply]         list (then, with --apply, merge) artists stored under
+ *                                                          several names, and record every artist's spelling key
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
-import { creditPairs, withoutStoreSuffixes } from "@scrobbler/core";
+import {
+  albumNamedAfter,
+  artistKey,
+  creditPairs,
+  isLatinOnly,
+  isNativeOnly,
+  withoutStoreSuffixes,
+} from "@scrobbler/core";
 import { MIGRATIONS_DIR } from "@scrobbler/db-d1/testing";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -275,6 +284,192 @@ async function dedupeAlbums(apply: boolean) {
   );
 }
 
+/**
+ * Artists stored under several names before the ingest rules joined them. Names are grouped when they
+ * - share a spelling key ("Despo' Rutti" / "Despo Rutti", "gfriend" / "GFRIEND"),
+ * - are a learned alias of each other (artist_aliases),
+ * - carry the same single MusicBrainz artist id,
+ * - or are a native-script name ("여자친구") whose releases title only one Latin-script artist's albums
+ *   ("여자친구 The 7th Mini Album" by GFRIEND).
+ * Each group keeps its most-listened name (ties: the Latin one, then the one with more capitals). Dry run unless `apply`; applying first writes
+ * every affected row to ~/stunning-winner-backups, then repoints listens, loved tracks, obsessions and their
+ * history, joint credits and aliases, remembers the old names as aliases, and records the spelling key of
+ * every artist so new listens join the kept name.
+ */
+async function dedupeArtists(apply: boolean) {
+  // Full scans: an occasional maintenance read, never in the API.
+  const [names, albums, mbids, aliasRows] = await db.batch(
+    [
+      "SELECT artist_name AS name, count(*) AS n FROM listens GROUP BY artist_name",
+      "SELECT DISTINCT artist_name AS artist, release_name AS album FROM listens WHERE release_name IS NOT NULL",
+      "SELECT DISTINCT artist_name AS artist, artist_mbids AS mbids FROM listens WHERE artist_mbids IS NOT NULL",
+      "SELECT alias, artist FROM artist_aliases",
+    ],
+    "read",
+  );
+  const count = new Map(names!.rows.map((r) => [r.name as string, r.n as number]));
+  const parent = new Map<string, string>([...count.keys()].map((n) => [n, n]));
+  const reasons = new Map<string, Set<string>>();
+  const find = (n: string): string => {
+    const p = parent.get(n)!;
+    return p === n ? n : find(p);
+  };
+  const unite = (a: string, b: string, why: string) => {
+    if (!count.has(a) || !count.has(b) || a === b) return;
+    const [ra, rb] = [find(a), find(b)];
+    if (ra !== rb) parent.set(ra, rb);
+    for (const n of [a, b]) reasons.set(n, (reasons.get(n) ?? new Set()).add(why));
+  };
+
+  const byKey = new Map<string, string>();
+  for (const n of count.keys()) {
+    const k = artistKey(n);
+    if (byKey.has(k)) unite(n, byKey.get(k)!, "spelling");
+    else byKey.set(k, n);
+  }
+  for (const r of aliasRows!.rows) unite(r.alias as string, r.artist as string, "alias");
+  const byMbid = new Map<string, string>();
+  for (const r of mbids!.rows) {
+    const ids = JSON.parse(r.mbids as string) as string[];
+    if (ids.length !== 1) continue;
+    const other = byMbid.get(ids[0]!);
+    if (other) unite(r.artist as string, other, "MusicBrainz id");
+    else byMbid.set(ids[0]!, r.artist as string);
+  }
+  for (const n of count.keys()) {
+    if (!isNativeOnly(n)) continue;
+    const latin = new Set(
+      albums!.rows
+        .filter((r) => r.artist !== n && isLatinOnly(r.artist as string))
+        .filter((r) => albumNamedAfter(r.album as string, n))
+        .map((r) => r.artist as string),
+    );
+    if (latin.size === 1) unite(n, [...latin][0]!, "album titles");
+  }
+
+  const groups = new Map<string, string[]>();
+  for (const n of count.keys()) groups.set(find(n), [...(groups.get(find(n)) ?? []), n]);
+  // Most listens; on a tie the Latin-script name, then the one with more capitals ("MEOVV" over "Meovv": a
+  // stylised name is the label's, a title-cased one a service's normalisation).
+  const capitals = (n: string) => n.replace(/[^\p{Lu}]/gu, "").length;
+  const rank = (n: string) => [count.get(n)!, isLatinOnly(n) ? 1 : 0, capitals(n)] as const;
+  const moves: { from: string; to: string; fromListens: number; toListens: number; why: string }[] =
+    [];
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const [to] = [...group].sort((a, b) => {
+      const [x, y] = [rank(a), rank(b)];
+      return y[0] - x[0] || y[1] - x[1] || y[2] - x[2] || a.localeCompare(b);
+    });
+    for (const from of group)
+      if (from !== to!)
+        moves.push({
+          from,
+          to: to!,
+          fromListens: count.get(from)!,
+          toListens: count.get(to!)!,
+          why: [...(reasons.get(from) ?? [])].join(", "),
+        });
+  }
+  for (const m of moves)
+    console.log(
+      `"${m.from}" (${m.fromListens} listens) → "${m.to}" (${m.toListens} listens)   [${m.why}]`,
+    );
+  if (!apply)
+    return console.log(
+      `${moves.length} artist name(s) to merge, ${count.size} spelling keys to record. Dry run: add --apply.`,
+    );
+
+  const from = moves.map((m) => m.from);
+  const list = JSON.stringify(from);
+  const backup = await db.batch(
+    [
+      ...["listens", "loved_tracks", "obsessions", "obsession_history"].map((t) => ({
+        sql: `SELECT '${t}' AS _table, * FROM ${t} WHERE artist_name IN (SELECT value FROM json_each(?1))`,
+        args: [list],
+      })),
+      {
+        sql: "SELECT 'artist_credits' AS _table, * FROM artist_credits WHERE credit IN (SELECT value FROM json_each(?1)) OR artist IN (SELECT value FROM json_each(?1))",
+        args: [list],
+      },
+      {
+        sql: "SELECT 'artist_aliases' AS _table, * FROM artist_aliases WHERE alias IN (SELECT value FROM json_each(?1)) OR artist IN (SELECT value FROM json_each(?1))",
+        args: [list],
+      },
+      "SELECT 'artist_spellings' AS _table, * FROM artist_spellings",
+    ],
+    "read",
+  );
+  const dir = join(homedir(), "stunning-winner-backups");
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `artists-dedupe-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
+  writeFileSync(file, JSON.stringify({ moves, rows: backup.flatMap((b) => b.rows) }, null, 1));
+  console.log(`backup: ${file}`);
+
+  const PER_MOVE = 11;
+  const out = await db.batch(
+    [
+      ...moves.flatMap(({ from, to }) => [
+        { sql: "UPDATE listens SET artist_name = ?2 WHERE artist_name = ?1", args: [from, to] },
+        // A track loved under both names stays loved once (the row already under the kept name).
+        {
+          sql: "UPDATE OR IGNORE loved_tracks SET artist_name = ?2 WHERE artist_name = ?1",
+          args: [from, to],
+        },
+        { sql: "DELETE FROM loved_tracks WHERE artist_name = ?1", args: [from] },
+        { sql: "UPDATE obsessions SET artist_name = ?2 WHERE artist_name = ?1", args: [from, to] },
+        {
+          sql: "UPDATE obsession_history SET artist_name = ?2 WHERE artist_name = ?1",
+          args: [from, to],
+        },
+        {
+          sql: "UPDATE OR IGNORE artist_credits SET artist = ?2 WHERE artist = ?1",
+          args: [from, to],
+        },
+        {
+          sql: "UPDATE OR IGNORE artist_credits SET credit = ?2 WHERE credit = ?1",
+          args: [from, to],
+        },
+        {
+          sql: "DELETE FROM artist_credits WHERE artist = ?1 OR credit = ?1",
+          args: [from],
+        },
+        { sql: "UPDATE artist_aliases SET artist = ?2 WHERE artist = ?1", args: [from, to] },
+        {
+          sql: "INSERT OR REPLACE INTO artist_aliases (alias, artist) VALUES (?1, ?2)",
+          args: [from, to],
+        },
+        {
+          sql: "INSERT OR REPLACE INTO artist_spellings (key, artist) VALUES (?1, ?2)",
+          args: [artistKey(from), to],
+        },
+      ]),
+      // Every remaining artist's key, the kept names first so they win their key.
+      {
+        sql: "INSERT OR REPLACE INTO artist_spellings (key, artist) SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]') FROM json_each(?1)",
+        args: [JSON.stringify([...new Set(moves.map((m) => m.to))].map((n) => [artistKey(n), n]))],
+      },
+      {
+        sql: "INSERT OR IGNORE INTO artist_spellings (key, artist) SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]') FROM json_each(?1)",
+        args: [
+          JSON.stringify(
+            [...count.keys()].filter((n) => !from.includes(n)).map((n) => [artistKey(n), n]),
+          ),
+        ],
+      },
+      { sql: "UPDATE users SET data_version = data_version + 1", args: [] },
+    ],
+    "write",
+  );
+  moves.forEach((m, i) => {
+    const r = out.slice(i * PER_MOVE, (i + 1) * PER_MOVE).map((x) => x.rowsAffected);
+    console.log(
+      `"${m.from}" → "${m.to}": listens ${r[0]}, loved ${r[1]} (+${r[2]} duplicates dropped), obsessions ${r[3]}, history ${r[4]}, credits ${r[5]! + r[6]!}`,
+    );
+  });
+  console.log(`spelling keys recorded: ${out.at(-3)!.rowsAffected + out.at(-2)!.rowsAffected}`);
+}
+
 const [command, arg] = process.argv.slice(2);
 switch (command) {
   case "migrate":
@@ -304,6 +499,9 @@ switch (command) {
   }
   case "dedupe-albums":
     await dedupeAlbums(process.argv.includes("--apply"));
+    break;
+  case "dedupe-artists":
+    await dedupeArtists(process.argv.includes("--apply"));
     break;
   default:
     console.error(
