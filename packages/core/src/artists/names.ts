@@ -83,3 +83,57 @@ export function canonicalArtist(
     .map((n) => [n, artist]);
   return { artist, learn };
 }
+
+/**
+ * Spelling-insensitive key of an artist name: "Despo' Rutti", "Despo Rutti", "despo rutti" and "DESPO’RUTTI"
+ * share one. Case, width (NFKC), apostrophes and quotes, backticks, periods, hyphens and dashes, underscores
+ * and spaces are ignored; everything else counts ("AC/DC", "Florence + The Machine", accents, other scripts).
+ */
+const SPELLING = /[\s'’‘ʼ`´".\-‐‑‒–—_]+/gu;
+
+export function artistKey(name: string): string {
+  const folded = name.normalize("NFKC").toLowerCase();
+  return folded.replace(SPELLING, "") || folded.trim();
+}
+
+const nativeOnly = (s: string): boolean => NATIVE.test(s) && !LATIN.test(s);
+
+/** Whether a name is written only in a non-Latin script ("여자친구"), with no Latin letter at all. */
+export function isNativeOnly(name: string): boolean {
+  return nativeOnly(name);
+}
+
+/** Whether a name has Latin letters and no letter of another script ("GFRIEND"). */
+export function isLatinOnly(name: string): boolean {
+  return LATIN.test(name) && !NATIVE.test(name);
+}
+
+/**
+ * Whether an album title starts with an artist's native name as a whole word, the way Korean labels title
+ * releases ("여자친구 The 7th Mini Album 'FEVER SEASON'" by GFRIEND). Used to tell that a native-script name
+ * ("여자친구") is the artist the library knows in Latin letters. Names under two characters never match.
+ */
+export function albumNamedAfter(album: string, native: string): boolean {
+  const n = native.trim();
+  if (Array.from(n).length < 2 || !album.startsWith(n)) return false;
+  const next = album.slice(n.length);
+  return next === "" || /^[\s:'"‘’“”([-]/u.test(next);
+}
+
+/**
+ * The (artist, track) a listen really is when a scrobbler put the title into the artist field or the artist
+ * into the title, as YouTube uploads named "Artist - Title" end up:
+ * - artist "GFRIEND : 유리구슬 (Glass Bead)" or "GFRIEND - 유리구슬 (Glass Bead)" with that very title → "GFRIEND";
+ * - title "GFRIEND - 유리구슬 (Glass Bead)" by artist "GFRIEND" → "유리구슬 (Glass Bead)".
+ * Only fires when the repeated part matches the other field, so names that merely contain " - " are kept.
+ */
+const JOINED = /^(.+?)(?:\s+[-–—|]\s+|\s*[:：]\s+)(.+)$/u;
+
+export function untangleTitle(artist: string, track: string): { artist: string; track: string } {
+  const a = JOINED.exec(artist.trim());
+  if (a?.[1] && a[2] && artistKey(a[2]) === artistKey(track)) return { artist: a[1].trim(), track };
+  const t = JOINED.exec(track.trim());
+  if (t?.[1] && t[2] && artistKey(t[1]) === artistKey(artist))
+    return { artist, track: t[2].trim() };
+  return { artist, track };
+}

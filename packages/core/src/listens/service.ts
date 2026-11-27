@@ -7,9 +7,14 @@ import type {
   PlayingNowRepository,
 } from "../ports/index.ts";
 import {
+  albumNamedAfter,
+  artistKey,
   bilingualParts,
   canonicalArtist,
   hasNativeScript,
+  isLatinOnly,
+  isNativeOnly,
+  untangleTitle,
   withoutServiceLabel,
 } from "../artists/names.ts";
 import {
@@ -91,7 +96,42 @@ export class ListenService {
       if (result.artist !== n) out.set(n, result.artist);
       learn.push(...result.learn);
     }
+    // "여자친구" seen for the first time while the library has GFRIEND's "여자친구 The 7th Mini Album": the label
+    // titles its releases with the native name, so it is GFRIEND. Only when exactly one Latin-script artist fits.
+    for (const n of distinct) {
+      if (out.has(n) || known.has(n) || !isNativeOnly(n)) continue;
+      const albums = await this.artists.albumsStartingWith(user.id, n);
+      const named = [
+        ...new Set(
+          albums
+            .filter((a) => albumNamedAfter(a.album, n) && isLatinOnly(a.artist))
+            .map((a) => a.artist),
+        ),
+      ];
+      if (named.length === 1) {
+        out.set(n, named[0]!);
+        learn.push([n, named[0]!]);
+      }
+    }
     if (learn.length) await this.artists.learnAliases(learn);
+    return out;
+  }
+
+  /**
+   * One spelling per artist: "Despo' Rutti" joins the "Despo Rutti" already stored (case, apostrophes, periods,
+   * dashes and spaces ignored, see `artistKey`). The first spelling seen is the one kept.
+   */
+  private async sameSpelling(names: string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (!this.artists || names.length === 0) return out;
+    const byKey = new Map<string, string>();
+    for (const n of names) if (!byKey.has(artistKey(n))) byKey.set(artistKey(n), n);
+    const stored = await this.artists.spellings([...byKey]);
+    for (const n of new Set(names)) {
+      const key = artistKey(n);
+      const name = stored.get(key) ?? byKey.get(key)!;
+      if (name !== n) out.set(n, name);
+    }
     return out;
   }
 
@@ -131,19 +171,26 @@ export class ListenService {
     const submission = validateSubmission(body);
     const now = this.clock();
     // "Song • STAYC" -> "STAYC": a service's type label is never part of the artist's name.
+    // "GFRIEND : 유리구슬 (Glass Bead)" by artist field, with that title -> "GFRIEND".
     for (const l of submission.listens) {
-      const artist = withoutServiceLabel(l.trackMetadata.artist_name);
-      if (artist !== l.trackMetadata.artist_name)
-        l.trackMetadata = { ...l.trackMetadata, artist_name: artist };
+      const m = l.trackMetadata;
+      const { artist, track } = untangleTitle(withoutServiceLabel(m.artist_name), m.track_name);
+      if (artist !== m.artist_name || track !== m.track_name)
+        l.trackMetadata = { ...m, artist_name: artist, track_name: track };
     }
-    const renamed = await this.canonicalNames(
-      user,
-      submission.listens.map((l) => l.trackMetadata.artist_name),
+    const rename = (renamed: Map<string, string>) => {
+      for (const l of submission.listens) {
+        const artist = renamed.get(l.trackMetadata.artist_name);
+        if (artist) l.trackMetadata = { ...l.trackMetadata, artist_name: artist };
+      }
+    };
+    rename(
+      await this.canonicalNames(
+        user,
+        submission.listens.map((l) => l.trackMetadata.artist_name),
+      ),
     );
-    for (const l of submission.listens) {
-      const artist = renamed.get(l.trackMetadata.artist_name);
-      if (artist) l.trackMetadata = { ...l.trackMetadata, artist_name: artist };
-    }
+    rename(await this.sameSpelling(submission.listens.map((l) => l.trackMetadata.artist_name)));
     await this.canonicalAlbums(user, submission.listens);
 
     if (submission.listenType === "playing_now") {

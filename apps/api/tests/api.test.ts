@@ -154,7 +154,7 @@ describe("submit-listens", () => {
     });
   });
 
-  test("a 1000-listen import is one D1 round trip for the listens", async () => {
+  test("a 1000-listen import is one D1 round trip for the artist spellings, one for the listens", async () => {
     const payload = Array.from({ length: 1000 }, (_, i) => single(i, `Artist ${i % 7}`).payload[0]);
     // Warm the token cache so only the insert is measured.
     await api.json("/1/validate-token", { headers: { authorization: `Token ${token}` } });
@@ -162,7 +162,7 @@ describe("submit-listens", () => {
     expect(
       (await api.json("/1/submit-listens", post({ listen_type: "import", payload }, token))).status,
     ).toBe(200);
-    expect(api.db.roundTrips).toBe(1);
+    expect(api.db.roundTrips).toBe(2);
     expect((await api.json("/1/user/alice/listen-count")).body.payload.count).toBe(1000);
   });
 });

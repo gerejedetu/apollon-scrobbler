@@ -48,5 +48,38 @@ export function d1Artists(db: D1Like): ArtistRepository {
         .all<{ artist: string; album: string }>();
       return new Set(results.map((r) => `${r.artist}\u0000${r.album}`));
     },
+    async spellings(pairs) {
+      if (pairs.length === 0) return new Map();
+      const json = JSON.stringify(pairs);
+      // Record the new keys, then read every key back: one batch, so one round trip.
+      const [, read] = await db.batch([
+        db
+          .prepare(
+            "INSERT OR IGNORE INTO artist_spellings (key, artist) SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]') FROM json_each(?1)",
+          )
+          .bind(json),
+        db
+          .prepare(
+            "SELECT key, artist FROM artist_spellings WHERE key IN (SELECT json_extract(value, '$[0]') FROM json_each(?1))",
+          )
+          .bind(json),
+      ]);
+      return new Map(
+        ((read?.results ?? []) as { key: string; artist: string }[]).map((r) => [r.key, r.artist]),
+      );
+    },
+    async albumsStartingWith(userId, name) {
+      // Reads the user's listens (no index on release_name): only run for a native-script name seen for the
+      // first time, which then becomes known or an alias and never costs this again.
+      const { results } = await db
+        .prepare(
+          `SELECT DISTINCT artist_name AS artist, release_name AS album FROM listens
+           WHERE user_id = ?1 AND artist_name <> ?2 AND substr(release_name, 1, length(?2)) = ?2
+           LIMIT 20`,
+        )
+        .bind(userId, name)
+        .all<{ artist: string; album: string }>();
+      return results;
+    },
   };
 }

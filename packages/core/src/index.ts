@@ -32,8 +32,13 @@ export { FavouriteService, MAX_LOVED_PAGE, type TrackRef } from "./favourites/se
 export { InsightsService, type Params as InsightParams } from "./insights/service.ts";
 export { InstanceService, type InstanceSettings } from "./instance/service.ts";
 export {
+  albumNamedAfter,
+  artistKey,
   bilingualParts,
   canonicalArtist,
+  isLatinOnly,
+  isNativeOnly,
+  untangleTitle,
   hasNativeScript,
   withoutServiceLabel,
   type BilingualName,

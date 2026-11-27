@@ -415,6 +415,45 @@ describe("joint credits", () => {
   });
 });
 
+describe("artist names", () => {
+  test("spellings: the first name recorded for a key stays", async () => {
+    await repos.artists.spellings([["desporutti", "Despo Rutti"]]);
+    db.roundTrips = 0;
+    expect(
+      await repos.artists.spellings([
+        ["desporutti", "Despo' Rutti"],
+        ["gfriend", "GFRIEND"],
+      ]),
+    ).toEqual(
+      new Map([
+        ["desporutti", "Despo Rutti"],
+        ["gfriend", "GFRIEND"],
+      ]),
+    );
+    expect(db.roundTrips).toBe(1);
+  });
+
+  test("albums starting with a name, other artists only", async () => {
+    await repos.listens.insertMany(
+      userId,
+      [
+        listen(1, {
+          artistName: "GFRIEND",
+          releaseName: "여자친구 The 7th Mini Album 'FEVER SEASON'",
+        }),
+        listen(2, { artistName: "여자친구", releaseName: "여자친구 1st Mini Album" }),
+        listen(3, { artistName: "Heize", releaseName: "She's Fine" }),
+        listen(4, { artistName: "GFRIEND", releaseName: null }),
+      ],
+      T0,
+    );
+    expect(await repos.artists.albumsStartingWith(userId, "여자친구")).toEqual([
+      { artist: "GFRIEND", album: "여자친구 The 7th Mini Album 'FEVER SEASON'" },
+    ]);
+    expect(await repos.artists.albumsStartingWith(userId, "헤이즈")).toEqual([]);
+  });
+});
+
 describe("favourites", () => {
   const t = (track: string, at: number) => ({
     artistName: "Air",

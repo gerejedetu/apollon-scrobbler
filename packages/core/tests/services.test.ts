@@ -312,6 +312,69 @@ describe("one name per artist", () => {
     expect(repos._listens.map((l) => l.artistName)).toEqual(["Heize", "Heize", "Heize"]);
     expect((await s.listens.current(user))?.artist_name).toBe("Heize");
   });
+  test("spellings that differ by case or punctuation join the first one stored", async () => {
+    const { user } = await signUp("alice");
+    const one = (artist: string, t: number, track = `T${t}`) => ({
+      listen_type: "single",
+      payload: [
+        { listened_at: T0 + t, track_metadata: { artist_name: artist, track_name: track } },
+      ],
+    });
+    await s.listens.submit(user, one("Despo Rutti", 1));
+    await s.listens.submit(user, one("Despo' Rutti", 2));
+    await s.listens.submit(user, one("despo rutti", 3));
+    await s.listens.submit(user, {
+      listen_type: "import",
+      payload: [
+        { listened_at: T0 + 4, track_metadata: { artist_name: "Beyoncé", track_name: "A" } },
+        { listened_at: T0 + 5, track_metadata: { artist_name: "BEYONCÉ", track_name: "B" } },
+        { listened_at: T0 + 6, track_metadata: { artist_name: "Beyonce", track_name: "C" } },
+      ],
+    });
+    expect(repos._listens.map((l) => l.artistName)).toEqual([
+      "Despo Rutti",
+      "Despo Rutti",
+      "Despo Rutti",
+      "Beyoncé",
+      "Beyoncé",
+      "Beyonce",
+    ]);
+  });
+
+  test("a native name joins the Latin artist whose albums are titled with it", async () => {
+    const { user } = await signUp("alice");
+    const one = (artist: string, t: number, track: string, album?: string) => ({
+      listen_type: "single",
+      payload: [
+        {
+          listened_at: T0 + t,
+          track_metadata: { artist_name: artist, track_name: track, release_name: album },
+        },
+      ],
+    });
+    await s.listens.submit(
+      user,
+      one("GFRIEND", 1, "Mr. Blue", "여자친구 The 7th Mini Album 'FEVER SEASON'"),
+    );
+    await s.listens.submit(
+      user,
+      one("여자친구", 2, "유리구슬 (Glass Bead)", "여자친구 1st Mini Album 'Season Of Glass'"),
+    );
+    await s.listens.submit(user, one("여자친구", 3, "오늘부터 우리는"));
+    await s.listens.submit(
+      user,
+      one("gfriend : 유리구슬 (Glass Bead)", 4, "유리구슬 (Glass Bead)"),
+    );
+    // No album titled after it: a native name stays its own artist.
+    await s.listens.submit(user, one("아이유", 5, "Love wins all"));
+    expect(repos._listens.map((l) => [l.artistName, l.trackName])).toEqual([
+      ["GFRIEND", "Mr. Blue"],
+      ["GFRIEND", "유리구슬 (Glass Bead)"],
+      ["GFRIEND", "오늘부터 우리는"],
+      ["GFRIEND", "유리구슬 (Glass Bead)"],
+      ["아이유", "Love wins all"],
+    ]);
+  });
 });
 
 describe("one name per album", () => {
