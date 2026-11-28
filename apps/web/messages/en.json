@@ -342,6 +342,8 @@
   "notfound_title": "Nothing here",
   "now_playing": "Now playing",
   "now_playing_short": "playing",
+  "obsession_remove": "Remove",
+  "obsession_removed": "Obsession removed.",
   "obsession_clear": "No longer my obsession",
   "obsession_cleared": "No obsession for now.",
   "obsession_make": "My current obsession",

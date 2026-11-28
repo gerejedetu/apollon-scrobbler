@@ -342,6 +342,8 @@
   "notfound_title": "Rien ici",
   "now_playing": "En écoute",
   "now_playing_short": "en écoute",
+  "obsession_remove": "Retirer",
+  "obsession_removed": "Obsession retirée.",
   "obsession_clear": "Ce n'est plus mon obsession",
   "obsession_cleared": "Plus d'obsession pour l'instant.",
   "obsession_make": "Mon obsession du moment",

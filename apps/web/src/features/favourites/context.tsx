@@ -4,7 +4,14 @@
  */
 import { useRouter } from "@tanstack/react-router";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
-import { api, type Favourite, type Listen, type Track, type TrackRef } from "../../api/index.ts";
+import {
+  api,
+  isNotFound,
+  type Favourite,
+  type Listen,
+  type Track,
+  type TrackRef,
+} from "../../api/index.ts";
 import { forgetViewer } from "../../auth/index.ts";
 import { useToast } from "../../ui/feedback/index.ts";
 import { m } from "../../paraglide/messages.js";
@@ -26,6 +33,14 @@ interface Favourites {
   toggleLove: (t: Track) => Promise<void>;
   toggleObsession: (t: Track) => Promise<void>;
   deleteListen: (l: Listen) => Promise<void>;
+  /** Takes one obsession off the history; the current one also stops being the obsession. */
+  removeObsession: (o: {
+    id: number;
+    artist: string;
+    track: string;
+    until: number | null;
+  }) => Promise<void>;
+  isRemovedObsession: (id: number) => boolean;
   /** Deleted here: lists that keep their own pages (history) hide them without reloading. */
   isDeleted: (l: Listen) => boolean;
 }
@@ -38,6 +53,8 @@ const FavouritesContext = createContext<Favourites>({
   toggleLove: async () => {},
   toggleObsession: async () => {},
   deleteListen: async () => {},
+  removeObsession: async () => {},
+  isRemovedObsession: () => false,
   isDeleted: () => false,
 });
 
@@ -57,6 +74,7 @@ export function FavouritesProvider({
   const [keys, setKeys] = useState(() => new Set(loved.map((f) => trackKey(f.artist, f.track))));
   const [obsession, setObsession] = useState(initialObsession);
   const [deleted, setDeleted] = useState(() => new Set<string>());
+  const [removed, setRemoved] = useState(() => new Set<number>());
   const listenKey = (l: Listen) => `${l.listenedAt}/${l.id}`;
 
   const isLoved = useCallback(
@@ -121,6 +139,30 @@ export function FavouritesProvider({
           toast(m.error_generic());
         }
       },
+      isRemovedObsession: (id) => removed.has(id),
+      async removeObsession(o) {
+        const previous = obsession;
+        const current = o.until === null && isObsession(o);
+        setRemoved((r) => new Set(r).add(o.id));
+        if (current) setObsession(null);
+        try {
+          if (current) await api.favourites.clearObsession();
+          // Clearing may already drop a very short period: a missing one is gone, as asked.
+          await api.favourites.deleteObsessionPeriod(o.id).catch((e: unknown) => {
+            if (!(current && isNotFound(e))) throw e;
+          });
+          toast(m.obsession_removed());
+          await router.invalidate();
+        } catch {
+          setRemoved((r) => {
+            const next = new Set(r);
+            next.delete(o.id);
+            return next;
+          });
+          if (current) setObsession(previous);
+          toast(m.error_generic());
+        }
+      },
       isDeleted: (l) => deleted.has(listenKey(l)),
       async deleteListen(l) {
         try {
@@ -134,7 +176,7 @@ export function FavouritesProvider({
         }
       },
     }),
-    [owner, isLoved, obsession, isObsession, keys, toast, router, deleted],
+    [owner, isLoved, obsession, isObsession, keys, toast, router, deleted, removed],
   );
 
   return <FavouritesContext.Provider value={value}>{children}</FavouritesContext.Provider>;

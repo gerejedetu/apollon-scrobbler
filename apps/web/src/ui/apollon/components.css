@@ -2465,6 +2465,18 @@
   opacity: 0.85;
   margin-top: var(--space-1);
 }
+/* The owner's "Retirer" over a tile (beside the link, never inside it). */
+.ap-obstile-wrap {
+  position: relative;
+}
+.ap-obstile-wrap > .ap-obstile {
+  width: 100%;
+}
+.ap-obstile-wrap__remove {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+}
 
 /* SiteFooter */
 .ap-foot {
